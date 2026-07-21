@@ -948,6 +948,66 @@ main {
     font-size: 0.95rem;
 }
 
+.nav-profile {
+    position: relative;
+}
+
+.unread-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: grid;
+    place-items: center;
+    background: var(--c-red);
+    color: #fff;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1;
+}
+
+.report-form {
+    margin-top: 0.8rem;
+    padding: 1rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.quoted-comment {
+    margin: 0.6rem 0;
+    padding: 0.5rem 0.9rem;
+    border-left: 3px solid var(--c-red);
+    background: var(--surface-2);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+}
+
+.report-response {
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.badge-banned {
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    margin-left: 0.4rem;
+}
+
+.profile-nav {
+    font-size: 0.92rem;
+}
+
+.profile-nav span {
+    color: var(--text-muted);
+    margin: 0 0.3rem;
+}
+
 .comment-you {
     padding: 0.05rem 0.5rem;
     border: 1px solid var(--c-blue);

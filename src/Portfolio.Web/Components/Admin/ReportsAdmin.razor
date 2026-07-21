@@ -1,0 +1,323 @@
+@page "/admin/reports"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject ReportService Reports
+@inject MessageService MessageStore
+@inject CommentService Comments
+@inject ModerationService Moderation
+@inject SiteConfig Site
+
+<PageTitle>Reports — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Reports</h1>
+            <label class="check-field">
+                <input type="checkbox" checked="@_openOnly" @onchange="ToggleOpenOnlyAsync" />
+                <span>Open only</span>
+            </label>
+        </div>
+
+        @if (_status is not null)
+        {
+            <p class="saved-note" role="status">@_status</p>
+        }
+
+        @if (_reports is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_reports.Count == 0)
+        {
+            <p class="muted">@(_openOnly ? "No open reports — the queue is clear." : "No reports have ever been filed.")</p>
+        }
+        else
+        {
+            <ul class="inbox">
+                @foreach (var report in _reports)
+                {
+                    <li class="inbox-item @(report.Status == Portfolio.Web.Data.ReportStatus.Open ? "unread" : "read")">
+                        <button class="inbox-summary" @onclick="() => Toggle(report.Id)">
+                            <span class="inbox-from">
+                                @(report.TargetType == Portfolio.Web.Data.ReportTargetType.User ? "User" : "Comment")
+                            </span>
+                            <span class="inbox-subject">
+                                @report.Reason — @report.TargetUser.PublicName
+                                @if (report.TargetUser.IsBanned)
+                                {
+                                    <span class="badge badge-banned">Banned</span>
+                                }
+                            </span>
+                            <time class="inbox-date" datetime="@report.CreatedAt.ToString("o")" data-local="datetime">
+                                @report.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                            </time>
+                            @switch (report.Status)
+                            {
+                                case Portfolio.Web.Data.ReportStatus.Open:
+                                    <span class="badge badge-draft">Open</span>
+                                    break;
+                                case Portfolio.Web.Data.ReportStatus.Resolved:
+                                    <span class="badge badge-published">Resolved</span>
+                                    break;
+                                default:
+                                    <span class="badge">Dismissed</span>
+                                    break;
+                            }
+                        </button>
+
+                        @if (_expandedId == report.Id)
+                        {
+                            <div class="inbox-body">
+                                <p class="muted mono-small">
+                                    Reported by @report.Reporter.PublicName (@report.Reporter.Email) ·
+                                    target @report.TargetUser.PublicName (@report.TargetUser.Email)
+                                </p>
+                                @if (report.CommentExcerpt is not null)
+                                {
+                                    <blockquote class="quoted-comment">@report.CommentExcerpt</blockquote>
+                                }
+                                @if (report.Details is not null)
+                                {
+                                    <p class="inbox-text">Reporter's note: @report.Details</p>
+                                }
+                                @if (report.Comment is not null)
+                                {
+                                    <p>
+                                        <a href="/blog/@report.Comment.BlogPost.Slug#comments">View on the post</a>
+                                    </p>
+                                }
+                                else if (report.CommentId is null && report.TargetType == Portfolio.Web.Data.ReportTargetType.Comment)
+                                {
+                                    <p class="muted">The reported comment has been deleted.</p>
+                                }
+
+                                <div class="editor-actions">
+                                    <button class="btn btn-ghost" @onclick="() => StartCompose(report)">Message user</button>
+                                    @if (report.Comment is not null)
+                                    {
+                                        <button class="btn btn-ghost btn-danger" @onclick="() => DeleteCommentAsync(report)">Delete comment</button>
+                                    }
+                                    @if (report.TargetUser.IsBanned)
+                                    {
+                                        <button class="btn btn-ghost" @onclick="() => UnbanAsync(report)">Unban user</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-ghost btn-danger" @onclick="() => BanAsync(report)">Ban user</button>
+                                    }
+                                    @if (report.Status == Portfolio.Web.Data.ReportStatus.Open)
+                                    {
+                                        <button class="btn btn-ghost" @onclick="() => StartResolve(report, Portfolio.Web.Data.ReportStatus.Resolved)">Resolve…</button>
+                                        <button class="btn btn-ghost" @onclick="() => StartResolve(report, Portfolio.Web.Data.ReportStatus.Dismissed)">Dismiss…</button>
+                                    }
+                                </div>
+
+                                @if (_composeForId == report.Id)
+                                {
+                                    <div class="report-form">
+                                        @if (_composeError is not null)
+                                        {
+                                            <p class="alert" role="alert">@_composeError</p>
+                                        }
+                                        <label class="field">
+                                            <span>Message to @report.TargetUser.PublicName <span class="muted">their offending comment is quoted automatically</span></span>
+                                            <textarea rows="4" maxlength="2000" @bind="_composeBody"></textarea>
+                                        </label>
+                                        <div class="editor-actions">
+                                            <button class="btn btn-primary" @onclick="() => SendMessageAsync(report)" disabled="@_busy">Send</button>
+                                            <button class="btn btn-ghost" @onclick="() => _composeForId = null">Cancel</button>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (_resolveForId == report.Id)
+                                {
+                                    <div class="report-form">
+                                        <label class="field">
+                                            <span>@(_resolveStatus == Portfolio.Web.Data.ReportStatus.Resolved ? "Resolve" : "Dismiss") with a note to the reporter <span class="muted">optional — leave blank to close silently</span></span>
+                                            <textarea rows="3" maxlength="2000" @bind="_resolveNote"></textarea>
+                                        </label>
+                                        <div class="editor-actions">
+                                            <button class="btn btn-primary" @onclick="() => ResolveAsync(report)" disabled="@_busy">
+                                                @(_resolveStatus == Portfolio.Web.Data.ReportStatus.Resolved ? "Mark resolved" : "Dismiss report")
+                                            </button>
+                                            <button class="btn btn-ghost" @onclick="() => _resolveForId = null">Cancel</button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</section>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<Portfolio.Web.Data.Report>? _reports;
+    private string? _adminId;
+    private bool _openOnly = true;
+    private int? _expandedId;
+    private string? _status;
+    private bool _busy;
+
+    private int? _composeForId;
+    private string _composeBody = string.Empty;
+    private string? _composeError;
+
+    private int? _resolveForId;
+    private Portfolio.Web.Data.ReportStatus _resolveStatus;
+    private string _resolveNote = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _adminId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+        => _reports = await Reports.GetAllForAdminAsync(_openOnly);
+
+    private async Task ToggleOpenOnlyAsync(ChangeEventArgs e)
+    {
+        _openOnly = e.Value is true;
+        await ReloadAsync();
+    }
+
+    private void Toggle(int reportId)
+    {
+        _expandedId = _expandedId == reportId ? null : reportId;
+        _composeForId = null;
+        _resolveForId = null;
+        _status = null;
+    }
+
+    private void StartCompose(Portfolio.Web.Data.Report report)
+    {
+        _resolveForId = null;
+        _composeForId = report.Id;
+        _composeError = null;
+        _composeBody =
+            $"Hi {report.TargetUser.PublicName},\n\n" +
+            $"Your comment (quoted in this message) was reported for \"{report.Reason}\" and breaks this site's rules. " +
+            "Consider this a warning — repeated issues can lead to your account being restricted.\n\n" +
+            $"— {Site.OwnerName}";
+    }
+
+    private async Task SendMessageAsync(Portfolio.Web.Data.Report report)
+    {
+        _busy = true;
+        try
+        {
+            var (message, error) = await MessageStore.SendAsync(
+                report.TargetUserId, _adminId, _composeBody,
+                quotedComment: report.CommentExcerpt, reportId: report.Id);
+            _composeError = error;
+            if (message is not null)
+            {
+                _composeForId = null;
+                _status = $"Message sent to {report.TargetUser.PublicName}.";
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteCommentAsync(Portfolio.Web.Data.Report report)
+    {
+        if (report.CommentId is null || _adminId is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await Comments.DeleteAsync(report.CommentId.Value, _adminId, isAdmin: true);
+            _status = "Comment deleted. The excerpt stays on the report.";
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task BanAsync(Portfolio.Web.Data.Report report)
+    {
+        _busy = true;
+        try
+        {
+            var banned = await Moderation.BanAsync(report.TargetUserId, $"Report: {report.Reason}");
+            _status = banned
+                ? $"{report.TargetUser.PublicName} is banned. They can still sign in to read their messages."
+                : "That user is an admin and can't be banned.";
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task UnbanAsync(Portfolio.Web.Data.Report report)
+    {
+        _busy = true;
+        try
+        {
+            await Moderation.UnbanAsync(report.TargetUserId);
+            _status = $"{report.TargetUser.PublicName} is unbanned.";
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void StartResolve(Portfolio.Web.Data.Report report, Portfolio.Web.Data.ReportStatus status)
+    {
+        _composeForId = null;
+        _resolveForId = report.Id;
+        _resolveStatus = status;
+        _resolveNote = string.Empty;
+    }
+
+    private async Task ResolveAsync(Portfolio.Web.Data.Report report)
+    {
+        if (_adminId is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await Reports.ResolveAsync(report.Id, _resolveStatus, _adminId,
+                string.IsNullOrWhiteSpace(_resolveNote) ? null : _resolveNote);
+            _resolveForId = null;
+            _expandedId = null;
+            _status = _resolveStatus == Portfolio.Web.Data.ReportStatus.Resolved
+                ? "Report resolved."
+                : "Report dismissed.";
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -1,0 +1,95 @@
+@page "/messages"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject MessageService MessageStore
+@inject SiteConfig Site
+
+<PageTitle>Messages — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container narrow-form">
+        <p class="eyebrow">Messages</p>
+        <h1>Your inbox</h1>
+        <p class="muted">Notices from the site — moderation outcomes, report responses, and warnings.</p>
+
+        @if (_messages is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_messages.Count == 0)
+        {
+            <p class="muted">Nothing here — that's usually good news.</p>
+        }
+        else
+        {
+            <ul class="inbox">
+                @foreach (var message in _messages)
+                {
+                    <li class="inbox-item @(message.IsRead ? "read" : "unread")">
+                        <button class="inbox-summary" @onclick="() => ToggleAsync(message)">
+                            <span class="inbox-from">@(message.Sender?.PublicName ?? "Site notice")</span>
+                            <span class="inbox-subject">@Excerpt(message.Body)</span>
+                            <time class="inbox-date" datetime="@message.CreatedAt.ToString("o")" data-local="datetime">
+                                @message.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                            </time>
+                            @if (!message.IsRead)
+                            {
+                                <span class="badge badge-draft">New</span>
+                            }
+                        </button>
+                        @if (_expandedId == message.Id)
+                        {
+                            <div class="inbox-body">
+                                @if (message.QuotedComment is not null)
+                                {
+                                    <blockquote class="quoted-comment">@message.QuotedComment</blockquote>
+                                }
+                                <p class="inbox-text">@message.Body</p>
+                                @if (message.ReportId is not null)
+                                {
+                                    <p><a href="/my-reports">View the related report</a></p>
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</section>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<Portfolio.Web.Data.UserMessage>? _messages;
+    private string? _userId;
+    private int? _expandedId;
+
+    private static string Excerpt(string body)
+        => body.Length <= 70 ? body : body[..69] + "…";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (_userId is not null)
+        {
+            _messages = await MessageStore.GetForUserAsync(_userId);
+        }
+    }
+
+    private async Task ToggleAsync(Portfolio.Web.Data.UserMessage message)
+    {
+        _expandedId = _expandedId == message.Id ? null : message.Id;
+        if (_expandedId is not null && !message.IsRead && _userId is not null)
+        {
+            await MessageStore.MarkReadAsync(message.Id, _userId);
+            message.IsRead = true;
+        }
+    }
+}

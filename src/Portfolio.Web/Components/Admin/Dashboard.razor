@@ -1,6 +1,7 @@
 @page "/admin"
 @attribute [Authorize(Roles = "Admin")]
 @inject SiteConfig Site
+@inject ReportService Reports
 
 <PageTitle>Admin — @Site.SiteTitle</PageTitle>
 
@@ -26,6 +27,23 @@
                 <h3>Messages</h3>
                 <p class="muted">Read contact-form messages.</p>
             </a>
+            <a class="card card-link" href="/admin/reports">
+                <h3>
+                    Reports
+                    @if (_openReports > 0)
+                    {
+                        <span class="badge badge-draft">@_openReports open</span>
+                    }
+                </h3>
+                <p class="muted">Review reported comments and users.</p>
+            </a>
         </div>
     </div>
 </section>
+
+@code {
+    private int _openReports;
+
+    protected override async Task OnInitializedAsync()
+        => _openReports = await Reports.OpenCountAsync();
+}

@@ -1,6 +1,7 @@
 @rendermode InteractiveServer
 @inject CommentService Comments
 @inject ProfileService Profiles
+@inject ReportService Reports
 @inject NavigationManager Nav
 
 <section class="section comments" id="comments">
@@ -48,14 +49,67 @@
                             <button class="comment-delete" title="Delete comment"
                                     @onclick="() => DeleteAsync(comment.Id)">Delete</button>
                         }
+                        @if (_userId is not null && !_isBanned && comment.UserId != _userId)
+                        {
+                            <button class="comment-delete" title="Report this comment or its author"
+                                    @onclick="() => ToggleReportForm(comment.Id)">Report</button>
+                        }
                     </div>
                     <p class="comment-body">@comment.Body</p>
+
+                    @if (_reportedCommentId == comment.Id)
+                    {
+                        <p class="saved-note" role="status">Thanks — the report is in the moderation queue.</p>
+                    }
+                    else if (_reportingCommentId == comment.Id)
+                    {
+                        <div class="report-form">
+                            @if (_reportError is not null)
+                            {
+                                <p class="alert" role="alert">@_reportError</p>
+                            }
+                            <label class="field">
+                                <span>What are you reporting?</span>
+                                <select @bind="_reportTarget">
+                                    <option value="comment">This comment</option>
+                                    <option value="user">This user</option>
+                                </select>
+                            </label>
+                            <label class="field">
+                                <span>Reason</span>
+                                <select @bind="_reportReason">
+                                    <option value="">Choose a reason…</option>
+                                    @foreach (var reason in ReportRules.Reasons)
+                                    {
+                                        <option value="@reason">@reason</option>
+                                    }
+                                </select>
+                            </label>
+                            <label class="field">
+                                <span>Details <span class="muted">@(_reportReason == ReportRules.OtherReason ? "required" : "optional")</span></span>
+                                <textarea rows="2" maxlength="@ReportRules.MaxDetailsLength" @bind="_reportDetails"></textarea>
+                            </label>
+                            <div class="editor-actions">
+                                <button class="btn btn-primary" @onclick="() => SubmitReportAsync(comment.Id)" disabled="@_busy">
+                                    @(_busy ? "Sending…" : "Send report")
+                                </button>
+                                <button class="btn btn-ghost" @onclick="() => _reportingCommentId = null">Cancel</button>
+                            </div>
+                        </div>
+                    }
                 </li>
             }
         </ul>
     }
 
-    @if (_userId is not null)
+    @if (_userId is not null && _isBanned)
+    {
+        <p class="alert" role="alert">
+            Your account is currently restricted from commenting.
+            Check <a href="/messages">your messages</a> for details.
+        </p>
+    }
+    else if (_userId is not null)
     {
         <div class="comment-form">
             @if (_error is not null)
@@ -97,10 +151,18 @@
     private List<Portfolio.Web.Data.Comment>? _comments;
     private string? _userId;
     private bool _isAdmin;
+    private bool _isBanned;
     private string _draft = string.Empty;
     private bool _postAnonymously;
     private string? _error;
     private bool _busy;
+
+    private int? _reportingCommentId;
+    private int? _reportedCommentId;
+    private string _reportTarget = "comment";
+    private string _reportReason = string.Empty;
+    private string _reportDetails = string.Empty;
+    private string? _reportError;
 
     private static string InitialOf(string name)
         => (name.Length > 0 ? name[..1] : "?").ToUpperInvariant();
@@ -118,6 +180,7 @@
         {
             var profile = await Profiles.GetAsync(_userId);
             _postAnonymously = profile?.PostAnonymouslyByDefault ?? false;
+            _isBanned = profile?.IsBanned ?? false;
         }
 
         _comments = await Comments.GetVisibleForPostAsync(PostId);
@@ -139,6 +202,50 @@
             {
                 _draft = string.Empty;
                 _comments = await Comments.GetVisibleForPostAsync(PostId);
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void ToggleReportForm(int commentId)
+    {
+        _reportError = null;
+        _reportedCommentId = null;
+        if (_reportingCommentId == commentId)
+        {
+            _reportingCommentId = null;
+            return;
+        }
+
+        _reportingCommentId = commentId;
+        _reportTarget = "comment";
+        _reportReason = string.Empty;
+        _reportDetails = string.Empty;
+    }
+
+    private async Task SubmitReportAsync(int commentId)
+    {
+        if (_userId is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var targetType = _reportTarget == "user"
+                ? Portfolio.Web.Data.ReportTargetType.User
+                : Portfolio.Web.Data.ReportTargetType.Comment;
+            var (report, error) = await Reports.CreateAsync(
+                _userId, commentId, targetType, _reportReason, _reportDetails);
+            _reportError = error;
+            if (report is not null)
+            {
+                _reportingCommentId = null;
+                _reportedCommentId = commentId;
             }
         }
         finally
