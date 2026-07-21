@@ -29,7 +29,7 @@
                 <article class="post-card">
                     <h3><a href="/blog/@post.Slug">@post.Title</a></h3>
                     <p class="post-meta">
-                        <time datetime="@post.PublishedAt?.ToString("yyyy-MM-dd")">
+                        <time datetime="@post.PublishedAt?.ToString("o")" data-local="date">
                             @post.PublishedAt?.ToString("MMMM d, yyyy")
                         </time>
                         <span aria-hidden="true">·</span>

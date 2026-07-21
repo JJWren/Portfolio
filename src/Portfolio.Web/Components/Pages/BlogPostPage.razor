@@ -28,7 +28,7 @@ else if (_post is not null)
                 <p class="eyebrow">Blog</p>
                 <h1>@_post.Title</h1>
                 <p class="post-meta">
-                    <time datetime="@_post.PublishedAt?.ToString("yyyy-MM-dd")">
+                    <time datetime="@_post.PublishedAt?.ToString("o")" data-local="date">
                         @_post.PublishedAt?.ToString("MMMM d, yyyy")
                     </time>
                     <span aria-hidden="true">·</span>

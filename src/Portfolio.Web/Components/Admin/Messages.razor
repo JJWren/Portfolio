@@ -30,7 +30,9 @@
                         <button class="inbox-summary" @onclick="() => Toggle(message.Id)">
                             <span class="inbox-from">@message.Name</span>
                             <span class="inbox-subject">@message.Subject</span>
-                            <span class="inbox-date">@message.ReceivedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                            <time class="inbox-date" datetime="@message.ReceivedAt.ToString("o")" data-local="datetime">
+                                @message.ReceivedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                            </time>
                             @if (!message.IsRead)
                             {
                                 <span class="badge badge-draft">New</span>

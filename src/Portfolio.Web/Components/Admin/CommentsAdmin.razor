@@ -47,7 +47,11 @@
                                     <span class="comment-body-cell">@comment.Body</span>
                                 </td>
                                 <td><a href="/blog/@comment.BlogPost.Slug">@comment.BlogPost.Title</a></td>
-                                <td class="muted">@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td class="muted">
+                                    <time datetime="@comment.CreatedAt.ToString("o")" data-local="datetime">
+                                        @comment.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                                    </time>
+                                </td>
                                 <td>
                                     @if (comment.IsHidden)
                                     {
