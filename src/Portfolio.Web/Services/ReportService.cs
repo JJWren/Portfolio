@@ -59,7 +59,16 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
             CreatedAt = DateTime.UtcNow,
         };
         db.Reports.Add(report);
-        await db.SaveChangesAsync();
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Loser of a concurrent duplicate race hits the partial unique index.
+            return (null, "You already have an open report for this — it's in the queue.");
+        }
+
         return (report, null);
     }
 

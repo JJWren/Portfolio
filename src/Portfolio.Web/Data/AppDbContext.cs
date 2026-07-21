@@ -87,6 +87,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .HasForeignKey(r => r.CommentId)
                 .OnDelete(DeleteBehavior.SetNull);
             report.HasIndex(r => r.Status);
+            // Partial unique indexes back up the app-level duplicate check so
+            // concurrent submissions can't create duplicate open reports.
+            report.HasIndex(r => new { r.ReporterId, r.CommentId })
+                .IsUnique()
+                .HasDatabaseName("IX_Reports_OpenCommentReport")
+                .HasFilter("\"Status\" = 0 AND \"TargetType\" = 0");
+            report.HasIndex(r => new { r.ReporterId, r.TargetUserId })
+                .IsUnique()
+                .HasDatabaseName("IX_Reports_OpenUserReport")
+                .HasFilter("\"Status\" = 0 AND \"TargetType\" = 1");
         });
 
         builder.Entity<UserMessage>(message =>

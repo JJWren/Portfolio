@@ -125,8 +125,9 @@ a:hover {
 }
 
 /* FocusOnNavigate moves programmatic focus to the page heading for screen
-   readers; keyboard users never tab to it, so no visible ring is needed. */
-h1:focus {
+   readers; scoped to tabindex="-1" so deliberately keyboard-focusable
+   headings keep their focus ring. */
+h1[tabindex='-1']:focus {
     outline: none;
 }
 
@@ -574,6 +575,11 @@ main {
     grid-template-columns: 1fr 200px;
     gap: 1.5rem;
     align-items: start;
+}
+
+.post-card-thumb {
+    display: block;
+    text-decoration: none;
 }
 
 .post-card-thumb img {

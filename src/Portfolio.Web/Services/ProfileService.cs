@@ -23,20 +23,24 @@ public class ProfileService(IDbContextFactory<AppDbContext> dbFactory, AvatarSer
 
     public async Task<string> SetAvatarAsync(string userId, Stream image, CancellationToken cancellationToken = default)
     {
+        // Save new file → point the DB at it → only then clean up old files,
+        // so a failed DB update never leaves the record referencing a deleted file.
         var path = await avatars.SaveAsync(image, userId, cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync();
         await db.Users
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.AvatarUrl, path), cancellationToken);
+        avatars.Delete(userId, exceptFileName: Path.GetFileName(path));
         return path;
     }
 
     public async Task RemoveAvatarAsync(string userId)
     {
-        avatars.Delete(userId);
+        // Clear the reference first; file deletion is best-effort afterwards.
         await using var db = await dbFactory.CreateDbContextAsync();
         await db.Users
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.AvatarUrl, (string?)null));
+        avatars.Delete(userId);
     }
 }

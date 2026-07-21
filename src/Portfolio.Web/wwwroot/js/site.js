@@ -8,7 +8,11 @@
         var times = document.querySelectorAll('time[data-local]:not([data-localized])');
         for (var i = 0; i < times.length; i++) {
             var el = times[i];
-            var date = new Date(el.getAttribute('datetime'));
+            var iso = el.getAttribute('datetime');
+            if (!iso) {
+                continue;
+            }
+            var date = new Date(iso);
             if (isNaN(date)) {
                 continue;
             }
@@ -19,12 +23,35 @@
         }
     }
 
+    // Coalesce bursts of DOM mutations into one localization pass per frame.
+    var localizePending = false;
+    function scheduleLocalizeTimes() {
+        if (localizePending) {
+            return;
+        }
+        localizePending = true;
+        requestAnimationFrame(function () {
+            localizePending = false;
+            localizeTimes();
+        });
+    }
+
     function onEnhancedLoad() {
-        if (window.__applyTheme) {
+        if (typeof window.__applyTheme === 'function') {
             window.__applyTheme();
         }
         if (window.Prism) {
             window.Prism.highlightAll();
+        }
+        // The merged markup arrives with the mobile menu closed; keep the
+        // burger's state in sync in case the header survived the merge.
+        var nav = document.getElementById('site-nav');
+        if (nav) {
+            nav.classList.remove('open');
+        }
+        var burger = document.querySelector('.nav-burger');
+        if (burger) {
+            burger.setAttribute('aria-expanded', 'false');
         }
         localizeTimes();
     }
@@ -33,7 +60,7 @@
         window.Blazor.addEventListener('enhancedload', onEnhancedLoad);
     }
 
-    new MutationObserver(localizeTimes)
+    new MutationObserver(scheduleLocalizeTimes)
         .observe(document.body, { childList: true, subtree: true });
     localizeTimes();
 
