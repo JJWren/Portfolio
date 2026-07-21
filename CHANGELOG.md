@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/JJWren/Portfolio/compare/v1.2.0...v1.3.0) (2026-07-21)
+
+
+### Features
+
+* MIT license, terms and privacy pages, and configurable sponsor link ([#7](https://github.com/JJWren/Portfolio/issues/7)) ([1ebcce6](https://github.com/JJWren/Portfolio/commit/1ebcce60f44b44fed0bc5b65dfce96d2da8364f5))
+
 ## [1.2.0](https://github.com/JJWren/Portfolio/compare/v1.1.0...v1.2.0) (2026-07-21)
 
 
