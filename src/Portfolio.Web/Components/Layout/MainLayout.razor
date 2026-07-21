@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject SiteConfig Site
+@inject ProfileService Profiles
 
 <header class="site-header">
     <div class="container inner">
@@ -16,6 +17,16 @@
             </AuthorizeView>
             <AuthorizeView>
                 <Authorized>
+                    <a class="nav-profile" href="/profile" title="Your profile">
+                        @if (_avatarUrl is not null)
+                        {
+                            <img class="avatar avatar-sm" src="@_avatarUrl" alt="Your profile" />
+                        }
+                        else
+                        {
+                            <span class="avatar avatar-sm avatar-fallback" aria-hidden="true">@_initial</span>
+                        }
+                    </a>
                     <form class="logout-form" method="post" action="/auth/logout">
                         <AntiforgeryToken />
                         <input type="hidden" name="returnUrl" value="/" />
@@ -70,3 +81,35 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private string? _avatarUrl;
+    private string _initial = "?";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is null)
+        {
+            return;
+        }
+
+        var auth = await AuthState;
+        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null)
+        {
+            return;
+        }
+
+        var profile = await Profiles.GetAsync(userId);
+        if (profile is not null)
+        {
+            _avatarUrl = profile.AvatarUrl;
+            _initial = profile.PublicName is { Length: > 0 } name
+                ? name[..1].ToUpperInvariant()
+                : "?";
+        }
+    }
+}

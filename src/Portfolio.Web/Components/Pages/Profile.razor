@@ -1,0 +1,191 @@
+@page "/profile"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ProfileService Profiles
+@inject SiteConfig Site
+
+<PageTitle>Your profile — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container narrow-form">
+        <p class="eyebrow">Profile</p>
+        <h1>How you appear</h1>
+        <p class="muted">These settings only affect how your comments look on this site.</p>
+
+        @if (_loading)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_user is null)
+        {
+            <p class="alert" role="alert">We couldn't load your profile. Try signing in again.</p>
+        }
+        else
+        {
+            @if (_error is not null)
+            {
+                <p class="alert" role="alert">@_error</p>
+            }
+            @if (_saved)
+            {
+                <p class="saved-note" role="status">Saved.</p>
+            }
+
+            <div class="profile-avatar-row">
+                @if (_avatarUrl is not null)
+                {
+                    <img class="avatar avatar-lg" src="@_avatarUrl" alt="Your avatar" />
+                }
+                else
+                {
+                    <span class="avatar avatar-lg avatar-fallback" aria-hidden="true">@Initial</span>
+                }
+                <div>
+                    <label class="btn btn-ghost avatar-upload">
+                        @(_avatarUrl is null ? "Upload avatar" : "Replace avatar")
+                        <InputFile OnChange="OnAvatarSelected" accept="image/*" />
+                    </label>
+                    @if (_avatarUrl is not null)
+                    {
+                        <button class="btn btn-ghost btn-danger" @onclick="RemoveAvatarAsync" disabled="@_busy">Remove</button>
+                    }
+                    <p class="muted mono-small">Any image up to 5 MB — it's resized to a small square.</p>
+                </div>
+            </div>
+
+            <label class="field">
+                <span>Display name <span class="muted">shown on your comments; blank uses "@(_user.DisplayName ?? _user.Email)"</span></span>
+                <input type="text" maxlength="@ProfileRules.MaxNameLength" @bind="_customDisplayName" />
+            </label>
+
+            <label class="check-field">
+                <input type="checkbox" @bind="_postAnonymouslyByDefault" />
+                <span>Post comments anonymously by default</span>
+            </label>
+
+            <div class="field">
+                <span class="muted mono-small">Signed in as @_user.Email via your linked account. Provider name: @(_user.DisplayName ?? "—")</span>
+            </div>
+
+            <div class="editor-actions">
+                <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
+                    @(_busy ? "Saving…" : "Save")
+                </button>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private bool _loading = true;
+    private bool _busy;
+    private bool _saved;
+    private string? _error;
+
+    private Portfolio.Web.Data.ApplicationUser? _user;
+    private string? _userId;
+    private string _customDisplayName = string.Empty;
+    private bool _postAnonymouslyByDefault;
+    private string? _avatarUrl;
+
+    private string Initial => (_user?.PublicName is { Length: > 0 } name ? name[..1] : "?").ToUpperInvariant();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (_userId is not null)
+        {
+            _user = await Profiles.GetAsync(_userId);
+            if (_user is not null)
+            {
+                _customDisplayName = _user.CustomDisplayName ?? string.Empty;
+                _postAnonymouslyByDefault = _user.PostAnonymouslyByDefault;
+                _avatarUrl = _user.AvatarUrl;
+            }
+        }
+
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_userId is null)
+        {
+            return;
+        }
+
+        _saved = false;
+        if (!ProfileRules.TryNormalizeDisplayName(_customDisplayName, out var normalized, out _error))
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await Profiles.UpdateAsync(_userId, normalized, _postAnonymouslyByDefault);
+            _customDisplayName = normalized ?? string.Empty;
+            _saved = true;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task OnAvatarSelected(InputFileChangeEventArgs e)
+    {
+        if (_userId is null)
+        {
+            return;
+        }
+
+        _error = null;
+        _saved = false;
+        _busy = true;
+        try
+        {
+            await using var stream = e.File.OpenReadStream(AvatarService.MaxBytes);
+            _avatarUrl = await Profiles.SetAvatarAsync(_userId, stream);
+        }
+        catch (IOException)
+        {
+            _error = "That image is over the 5 MB limit.";
+        }
+        catch (Exception)
+        {
+            _error = "That file couldn't be read as an image. Try a PNG, JPEG, or WebP.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task RemoveAvatarAsync()
+    {
+        if (_userId is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await Profiles.RemoveAvatarAsync(_userId);
+            _avatarUrl = null;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

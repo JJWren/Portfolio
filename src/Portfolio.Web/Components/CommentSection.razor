@@ -1,5 +1,6 @@
 @rendermode InteractiveServer
 @inject CommentService Comments
+@inject ProfileService Profiles
 @inject NavigationManager Nav
 
 <section class="section comments" id="comments">
@@ -20,7 +21,25 @@
             {
                 <li class="comment">
                     <div class="comment-head">
-                        <span class="comment-author">@(comment.User.DisplayName ?? comment.User.Email)</span>
+                        @if (comment.IsAnonymous)
+                        {
+                            <span class="avatar avatar-fallback avatar-anon" aria-hidden="true">?</span>
+                            <span class="comment-author">Anonymous</span>
+                        }
+                        else if (!string.IsNullOrEmpty(comment.User.AvatarUrl))
+                        {
+                            <img class="avatar" src="@comment.User.AvatarUrl" alt="" />
+                            <span class="comment-author">@comment.User.PublicName</span>
+                        }
+                        else
+                        {
+                            <span class="avatar avatar-fallback" aria-hidden="true">@InitialOf(comment.User.PublicName)</span>
+                            <span class="comment-author">@comment.User.PublicName</span>
+                        }
+                        @if (_userId is not null && comment.UserId == _userId)
+                        {
+                            <span class="comment-you">you</span>
+                        }
                         <time class="comment-date" datetime="@comment.CreatedAt.ToString("o")">
                             @comment.CreatedAt.ToString("MMM d, yyyy HH:mm") UTC
                         </time>
@@ -46,6 +65,10 @@
             <label class="field">
                 <span>Add a comment</span>
                 <textarea rows="4" maxlength="@CommentRules.MaxLength" @bind="_draft"></textarea>
+            </label>
+            <label class="check-field">
+                <input type="checkbox" @bind="_postAnonymously" />
+                <span>Post anonymously <span class="muted">(the site owner can still see it's you)</span></span>
             </label>
             <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@_busy">
                 @(_busy ? "Posting…" : "Post comment")
@@ -75,8 +98,12 @@
     private string? _userId;
     private bool _isAdmin;
     private string _draft = string.Empty;
+    private bool _postAnonymously;
     private string? _error;
     private bool _busy;
+
+    private static string InitialOf(string name)
+        => (name.Length > 0 ? name[..1] : "?").ToUpperInvariant();
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,6 +112,12 @@
             var auth = await AuthState;
             _userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             _isAdmin = auth.User.IsInRole("Admin");
+        }
+
+        if (_userId is not null)
+        {
+            var profile = await Profiles.GetAsync(_userId);
+            _postAnonymously = profile?.PostAnonymouslyByDefault ?? false;
         }
 
         _comments = await Comments.GetVisibleForPostAsync(PostId);
@@ -100,7 +133,7 @@
         _busy = true;
         try
         {
-            var (comment, error) = await Comments.AddAsync(PostId, _userId, _draft);
+            var (comment, error) = await Comments.AddAsync(PostId, _userId, _draft, _postAnonymously);
             _error = error;
             if (comment is not null)
             {

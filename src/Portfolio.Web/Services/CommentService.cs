@@ -26,7 +26,8 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>Adds a comment; returns null and an error message when the body is invalid.</summary>
-    public async Task<(Comment? Comment, string? Error)> AddAsync(int postId, string userId, string? body)
+    public async Task<(Comment? Comment, string? Error)> AddAsync(
+        int postId, string userId, string? body, bool isAnonymous = false)
     {
         var normalized = CommentRules.Validate(body, out var error);
         if (normalized is null)
@@ -41,6 +42,7 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
             UserId = userId,
             Body = normalized,
             CreatedAt = DateTime.UtcNow,
+            IsAnonymous = isAnonymous,
         };
         db.Comments.Add(comment);
         await db.SaveChangesAsync();
