@@ -230,8 +230,21 @@
 
     private async Task ShowMoreAsync()
     {
-        _visibleTake += PageSizes.Comments;
-        await LoadCommentsAsync();
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            _visibleTake += PageSizes.Comments;
+            await LoadCommentsAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private void ToggleReportForm(int commentId)

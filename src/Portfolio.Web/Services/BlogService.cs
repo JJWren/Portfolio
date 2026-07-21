@@ -43,6 +43,18 @@ public class BlogService(IDbContextFactory<AppDbContext> dbFactory)
         return new PagedResult<BlogPost>(items, page, pageSize, total);
     }
 
+    /// <summary>Latest published posts without the paging COUNT — for the RSS feed.</summary>
+    public async Task<List<BlogPost>> GetLatestPublishedAsync(int count)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        return await db.BlogPosts.AsNoTracking()
+            .Where(p => p.IsPublished)
+            .OrderByDescending(p => p.PublishedAt)
+            .ThenByDescending(p => p.Id)
+            .Take(count)
+            .ToListAsync();
+    }
+
     /// <summary>Distinct publication months (yyyy-MM, newest first) for the filter dropdown.</summary>
     public async Task<List<string>> GetPublishedMonthsAsync()
     {

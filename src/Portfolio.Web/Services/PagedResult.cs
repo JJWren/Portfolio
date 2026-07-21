@@ -9,13 +9,21 @@ public static class PageSizes
 
 public record PagedResult<T>(IReadOnlyList<T> Items, int Page, int PageSize, int TotalCount)
 {
-    public int TotalPages => TotalCount == 0 ? 1 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public int TotalPages
+    {
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(PageSize);
+            return TotalCount == 0 ? 1 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+        }
+    }
 
     public bool HasMore => Page < TotalPages;
 
     /// <summary>Keeps a requested page inside [1, last]; an empty set is page 1 of 1.</summary>
     public static int ClampPage(int page, int totalCount, int pageSize)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
         var totalPages = totalCount == 0 ? 1 : (int)Math.Ceiling(totalCount / (double)pageSize);
         return Math.Clamp(page, 1, totalPages);
     }

@@ -11,7 +11,7 @@ public static class SeoEndpoints
         app.MapGet("/feed.xml", async (HttpContext ctx, BlogService blog, SiteConfig site, IConfiguration config) =>
         {
             var baseUrl = BaseUrl(ctx, config);
-            var posts = (await blog.GetPublishedPageAsync(1, pageSize: 20)).Items;
+            var posts = await blog.GetLatestPublishedAsync(20);
 
             XNamespace atom = "http://www.w3.org/2005/Atom";
             var channel = new XElement("channel",
