@@ -124,6 +124,12 @@ a:hover {
     border-radius: 2px;
 }
 
+/* FocusOnNavigate moves programmatic focus to the page heading for screen
+   readers; keyboard users never tab to it, so no visible ring is needed. */
+h1:focus {
+    outline: none;
+}
+
 ::selection {
     background: var(--c-gold);
     color: #151515;
