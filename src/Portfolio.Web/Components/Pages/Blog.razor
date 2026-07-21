@@ -139,28 +139,27 @@
     /// <summary>Builds /blog hrefs preserving filters; pass an explicit null to drop one.</summary>
     private string BuildHref(int page, string? q = Keep, string? month = Keep, string? tag = Keep)
     {
-        var query = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        var parameters = new Dictionary<string, string?>();
         var effectiveQ = q == Keep ? Q : q;
         var effectiveMonth = month == Keep ? Month : month;
         var effectiveTag = tag == Keep ? Tag : tag;
         if (page > 1)
         {
-            query["page"] = page.ToString();
+            parameters["page"] = page.ToString();
         }
         if (!string.IsNullOrEmpty(effectiveQ))
         {
-            query["q"] = effectiveQ;
+            parameters["q"] = effectiveQ;
         }
         if (!string.IsNullOrEmpty(effectiveMonth))
         {
-            query["month"] = effectiveMonth;
+            parameters["month"] = effectiveMonth;
         }
         if (!string.IsNullOrEmpty(effectiveTag))
         {
-            query["tag"] = effectiveTag;
+            parameters["tag"] = effectiveTag;
         }
 
-        var suffix = query.ToString();
-        return string.IsNullOrEmpty(suffix) ? "/blog" : $"/blog?{suffix}";
+        return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString("/blog", parameters);
     }
 }

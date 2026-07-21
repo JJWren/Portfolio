@@ -36,6 +36,7 @@ public class BlogService(IDbContextFactory<AppDbContext> dbFactory)
         page = PagedResult<BlogPost>.ClampPage(page, total, pageSize);
         var items = await posts
             .OrderByDescending(p => p.PublishedAt)
+            .ThenByDescending(p => p.Id) // deterministic tie-breaker keeps page boundaries stable
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -46,15 +47,13 @@ public class BlogService(IDbContextFactory<AppDbContext> dbFactory)
     public async Task<List<string>> GetPublishedMonthsAsync()
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        var dates = await db.BlogPosts.AsNoTracking()
+        var months = await db.BlogPosts.AsNoTracking()
             .Where(p => p.IsPublished && p.PublishedAt != null)
-            .Select(p => p.PublishedAt!.Value)
-            .ToListAsync();
-        return dates
-            .Select(d => d.ToString("yyyy-MM"))
+            .Select(p => new { p.PublishedAt!.Value.Year, p.PublishedAt.Value.Month })
             .Distinct()
-            .OrderByDescending(m => m)
-            .ToList();
+            .OrderByDescending(m => m.Year).ThenByDescending(m => m.Month)
+            .ToListAsync();
+        return months.Select(m => $"{m.Year:D4}-{m.Month:D2}").ToList();
     }
 
     /// <summary>Lightweight slug listing for the sitemap.</summary>
