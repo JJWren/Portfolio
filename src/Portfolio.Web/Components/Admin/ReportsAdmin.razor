@@ -20,23 +20,41 @@
             </label>
         </div>
 
+        <div class="blog-filters">
+            <input type="text" placeholder="Search target name or email…" aria-label="Search reports"
+                   @bind="_targetSearch" @bind:after="ApplyFiltersAsync" />
+            <select aria-label="Filter by reason" @bind="_reason" @bind:after="ApplyFiltersAsync">
+                <option value="">All reasons</option>
+                @foreach (var reason in ReportRules.Reasons)
+                {
+                    <option value="@reason">@reason</option>
+                }
+            </select>
+        </div>
+
         @if (_status is not null)
         {
             <p class="saved-note" role="status">@_status</p>
         }
 
-        @if (_reports is null)
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_reports.Count == 0)
+        else if (_result.TotalCount == 0)
         {
-            <p class="muted">@(_openOnly ? "No open reports — the queue is clear." : "No reports have ever been filed.")</p>
+            <p class="muted">
+                @(HasFilters
+                    ? "No reports match those filters."
+                    : _openOnly
+                        ? "No open reports — the queue is clear."
+                        : "No reports have ever been filed.")
+            </p>
         }
         else
         {
             <ul class="inbox">
-                @foreach (var report in _reports)
+                @foreach (var report in _result.Items)
                 {
                     <li class="inbox-item @(report.Status == Portfolio.Web.Data.ReportStatus.Open ? "unread" : "read")">
                         <button class="inbox-summary" @onclick="() => Toggle(report.Id)">
@@ -152,6 +170,8 @@
                     </li>
                 }
             </ul>
+
+            <PagerControls TItem="Portfolio.Web.Data.Report" Result="_result" OnPage="GoToPageAsync" />
         }
     </div>
 </section>
@@ -160,12 +180,17 @@
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
 
-    private List<Portfolio.Web.Data.Report>? _reports;
+    private PagedResult<Portfolio.Web.Data.Report>? _result;
     private string? _adminId;
     private bool _openOnly = true;
+    private int _page = 1;
+    private string _reason = string.Empty;
+    private string _targetSearch = string.Empty;
     private int? _expandedId;
     private string? _status;
     private bool _busy;
+
+    private bool HasFilters => _reason.Length > 0 || !string.IsNullOrWhiteSpace(_targetSearch);
 
     private int? _composeForId;
     private string _composeBody = string.Empty;
@@ -187,7 +212,22 @@
     }
 
     private async Task ReloadAsync()
-        => _reports = await Reports.GetAllForAdminAsync(_openOnly);
+    {
+        _result = await Reports.GetAdminPageAsync(_page, _openOnly, _reason, _targetSearch);
+        _page = _result.Page; // service clamps out-of-range pages
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        _page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        await ReloadAsync();
+    }
 
     private async Task ToggleOpenOnlyAsync(ChangeEventArgs e)
     {
@@ -198,7 +238,7 @@
             string s => bool.TryParse(s, out var parsed) && parsed,
             _ => false,
         };
-        await ReloadAsync();
+        await ApplyFiltersAsync();
     }
 
     private void Toggle(int reportId)

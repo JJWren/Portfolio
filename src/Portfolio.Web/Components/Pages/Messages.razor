@@ -12,18 +12,18 @@
         <h1>Your inbox</h1>
         <p class="muted">Notices from the site — moderation outcomes, report responses, and warnings.</p>
 
-        @if (_messages is null)
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_messages.Count == 0)
+        else if (_result.TotalCount == 0)
         {
             <p class="muted">Nothing here — that's usually good news.</p>
         }
         else
         {
             <ul class="inbox">
-                @foreach (var message in _messages)
+                @foreach (var message in _result.Items)
                 {
                     <li class="inbox-item @(message.IsRead ? "read" : "unread")">
                         <button class="inbox-summary" @onclick="() => ToggleAsync(message)">
@@ -54,6 +54,8 @@
                     </li>
                 }
             </ul>
+
+            <PagerControls TItem="Portfolio.Web.Data.UserMessage" Result="_result" OnPage="GoToPageAsync" />
         }
     </div>
 </section>
@@ -62,7 +64,8 @@
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
 
-    private List<Portfolio.Web.Data.UserMessage>? _messages;
+    private PagedResult<Portfolio.Web.Data.UserMessage>? _result;
+    private int _page = 1;
     private string? _userId;
     private int? _expandedId;
 
@@ -79,7 +82,19 @@
 
         if (_userId is not null)
         {
-            _messages = await MessageStore.GetForUserAsync(_userId);
+            _result = await MessageStore.GetForUserPageAsync(_userId, _page);
+            _page = _result.Page; // service clamps out-of-range pages
+        }
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        _expandedId = null;
+        if (_userId is not null)
+        {
+            _result = await MessageStore.GetForUserPageAsync(_userId, _page);
+            _page = _result.Page; // service clamps out-of-range pages
         }
     }
 

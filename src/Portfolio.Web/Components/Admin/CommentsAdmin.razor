@@ -13,13 +13,30 @@
             <h1>Comments</h1>
         </div>
 
-        @if (_comments is null)
+        <div class="blog-filters">
+            <input type="text" placeholder="Search text or author…" aria-label="Search comments"
+                   @bind="_search" @bind:after="ApplyFiltersAsync" />
+            <select aria-label="Filter by state" @bind="_state" @bind:after="ApplyFiltersAsync">
+                <option value="">All states</option>
+                <option value="visible">Visible</option>
+                <option value="hidden">Hidden</option>
+            </select>
+            <select aria-label="Filter by post" @bind="_postId" @bind:after="ApplyFiltersAsync">
+                <option value="">All posts</option>
+                @foreach (var (id, title) in _posts)
+                {
+                    <option value="@id">@title</option>
+                }
+            </select>
+        </div>
+
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_comments.Count == 0)
+        else if (_result.TotalCount == 0)
         {
-            <p class="muted">No comments yet.</p>
+            <p class="muted">@(HasFilters ? "No comments match those filters." : "No comments yet.")</p>
         }
         else
         {
@@ -35,7 +52,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var comment in _comments)
+                        @foreach (var comment in _result.Items)
                         {
                             <tr class="@(comment.IsHidden ? "row-hidden" : null)">
                                 <td>
@@ -73,26 +90,63 @@
                     </tbody>
                 </table>
             </div>
+
+            <PagerControls TItem="Portfolio.Web.Data.Comment" Result="_result" OnPage="GoToPageAsync" />
         }
     </div>
 </section>
 
 @code {
-    private List<Portfolio.Web.Data.Comment>? _comments;
+    private PagedResult<Portfolio.Web.Data.Comment>? _result;
+    private List<(int Id, string Title)> _posts = [];
+    private int _page = 1;
+    private string _search = string.Empty;
+    private string _state = string.Empty;
+    private string _postId = string.Empty;
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_search) || _state.Length > 0 || _postId.Length > 0;
 
     protected override async Task OnInitializedAsync()
-        => _comments = await Comments.GetAllForAdminAsync();
+    {
+        _posts = await Comments.GetPostsWithCommentsAsync();
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        bool? hidden = _state switch
+        {
+            "hidden" => true,
+            "visible" => false,
+            _ => null,
+        };
+        int? postId = int.TryParse(_postId, out var parsed) ? parsed : null;
+        _result = await Comments.GetAdminPageAsync(_page, _search, hidden, postId);
+        _page = _result.Page; // service clamps out-of-range pages
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        _page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        await ReloadAsync();
+    }
 
     private async Task ToggleHiddenAsync(Portfolio.Web.Data.Comment comment)
     {
         await Comments.SetHiddenAsync(comment.Id, !comment.IsHidden);
-        _comments = await Comments.GetAllForAdminAsync();
+        await ReloadAsync();
     }
 
     private async Task DeleteAsync(int id)
     {
         // Admin path: ownership check bypassed by isAdmin.
         await Comments.DeleteAsync(id, requestingUserId: string.Empty, isAdmin: true);
-        _comments = await Comments.GetAllForAdminAsync();
+        await ReloadAsync();
     }
 }

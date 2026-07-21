@@ -13,18 +13,28 @@
             <h1>Messages</h1>
         </div>
 
-        @if (_messages is null)
+        <div class="blog-filters">
+            <input type="text" placeholder="Search name, email, or subject…" aria-label="Search messages"
+                   @bind="_search" @bind:after="ApplyFiltersAsync" />
+            <select aria-label="Filter by state" @bind="_state" @bind:after="ApplyFiltersAsync">
+                <option value="">All</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+            </select>
+        </div>
+
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_messages.Count == 0)
+        else if (_result.TotalCount == 0)
         {
-            <p class="muted">The inbox is empty.</p>
+            <p class="muted">@(HasFilters ? "No messages match those filters." : "The inbox is empty.")</p>
         }
         else
         {
             <ul class="inbox">
-                @foreach (var message in _messages)
+                @foreach (var message in _result.Items)
                 {
                     <li class="inbox-item @(message.IsRead ? "read" : "unread")">
                         <button class="inbox-summary" @onclick="() => Toggle(message.Id)">
@@ -58,16 +68,47 @@
                     </li>
                 }
             </ul>
+
+            <PagerControls TItem="Portfolio.Web.Data.ContactMessage" Result="_result" OnPage="GoToPageAsync" />
         }
     </div>
 </section>
 
 @code {
-    private List<Portfolio.Web.Data.ContactMessage>? _messages;
+    private PagedResult<Portfolio.Web.Data.ContactMessage>? _result;
+    private int _page = 1;
+    private string _search = string.Empty;
+    private string _state = string.Empty;
     private int? _expandedId;
 
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_search) || _state.Length > 0;
+
     protected override async Task OnInitializedAsync()
-        => _messages = await Contact.GetAllAsync();
+        => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        bool? isRead = _state switch
+        {
+            "read" => true,
+            "unread" => false,
+            _ => null,
+        };
+        _result = await Contact.GetAdminPageAsync(_page, _search, isRead);
+        _page = _result.Page; // service clamps out-of-range pages
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        _page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        await ReloadAsync();
+    }
 
     private void Toggle(int id)
         => _expandedId = _expandedId == id ? null : id;
@@ -75,13 +116,13 @@
     private async Task SetReadAsync(Portfolio.Web.Data.ContactMessage message, bool read)
     {
         await Contact.SetReadAsync(message.Id, read);
-        _messages = await Contact.GetAllAsync();
+        await ReloadAsync();
     }
 
     private async Task DeleteAsync(int id)
     {
         await Contact.DeleteAsync(id);
         _expandedId = null;
-        _messages = await Contact.GetAllAsync();
+        await ReloadAsync();
     }
 }

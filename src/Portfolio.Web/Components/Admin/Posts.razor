@@ -1,5 +1,6 @@
 @page "/admin/posts"
 @attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
 @inject BlogService BlogPosts
 @inject SiteConfig Site
 
@@ -13,13 +14,23 @@
             <a class="btn btn-primary" href="/admin/posts/new">New post</a>
         </div>
 
-        @if (_posts is null)
+        <div class="blog-filters">
+            <input type="text" placeholder="Search titles…" aria-label="Search posts"
+                   @bind="_search" @bind:after="ApplyFiltersAsync" />
+            <select aria-label="Filter by status" @bind="_status" @bind:after="ApplyFiltersAsync">
+                <option value="">All</option>
+                <option value="published">Published</option>
+                <option value="draft">Drafts</option>
+            </select>
+        </div>
+
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_posts.Count == 0)
+        else if (_result.TotalCount == 0)
         {
-            <p class="muted">No posts yet. Write the first one.</p>
+            <p class="muted">@(HasFilters ? "No posts match those filters." : "No posts yet. Write the first one.")</p>
         }
         else
         {
@@ -34,7 +45,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var post in _posts)
+                        @foreach (var post in _result.Items)
                         {
                             <tr>
                                 <td>
@@ -68,13 +79,44 @@
                     </tbody>
                 </table>
             </div>
+
+            <PagerControls TItem="Portfolio.Web.Data.BlogPost" Result="_result" OnPage="GoToPageAsync" />
         }
     </div>
 </section>
 
 @code {
-    private List<Portfolio.Web.Data.BlogPost>? _posts;
+    private PagedResult<Portfolio.Web.Data.BlogPost>? _result;
+    private int _page = 1;
+    private string _search = string.Empty;
+    private string _status = string.Empty;
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_search) || _status.Length > 0;
 
     protected override async Task OnInitializedAsync()
-        => _posts = await BlogPosts.GetAllForAdminAsync();
+        => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        bool? published = _status switch
+        {
+            "published" => true,
+            "draft" => false,
+            _ => null,
+        };
+        _result = await BlogPosts.GetAdminPageAsync(_page, _search, published);
+        _page = _result.Page; // service clamps out-of-range pages
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        _page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        await ReloadAsync();
+    }
 }

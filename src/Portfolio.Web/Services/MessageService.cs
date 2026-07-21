@@ -30,14 +30,20 @@ public class MessageService(IDbContextFactory<AppDbContext> dbFactory)
         return (message, null);
     }
 
-    public async Task<List<UserMessage>> GetForUserAsync(string userId)
+    public async Task<PagedResult<UserMessage>> GetForUserPageAsync(string userId, int page)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        return await db.UserMessages.AsNoTracking()
+        var inbox = db.UserMessages.AsNoTracking().Where(m => m.RecipientId == userId);
+        var total = await inbox.CountAsync();
+        page = PagedResult<UserMessage>.ClampPage(page, total, PageSizes.Admin);
+        var items = await inbox
             .Include(m => m.Sender)
-            .Where(m => m.RecipientId == userId)
             .OrderByDescending(m => m.CreatedAt)
+            .ThenByDescending(m => m.Id)
+            .Skip((page - 1) * PageSizes.Admin)
+            .Take(PageSizes.Admin)
             .ToListAsync();
+        return new PagedResult<UserMessage>(items, page, PageSizes.Admin, total);
     }
 
     public async Task<List<UserMessage>> GetForReportAsync(int reportId, string recipientId)

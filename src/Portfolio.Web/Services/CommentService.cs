@@ -20,14 +20,56 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
         return (items, total);
     }
 
-    public async Task<List<Comment>> GetAllForAdminAsync()
+    public async Task<PagedResult<Comment>> GetAdminPageAsync(
+        int page, string? search = null, bool? hidden = null, int? postId = null)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Comments.AsNoTracking()
+        var comments = db.Comments.AsNoTracking().AsQueryable();
+
+        search = BlogFilters.Normalize(search);
+        if (search is not null)
+        {
+            var pattern = $"%{BlogFilters.EscapeLike(search)}%";
+            comments = comments.Where(c =>
+                EF.Functions.ILike(c.Body, pattern, "\\")
+                || (c.User.DisplayName != null && EF.Functions.ILike(c.User.DisplayName, pattern, "\\"))
+                || (c.User.CustomDisplayName != null && EF.Functions.ILike(c.User.CustomDisplayName, pattern, "\\"))
+                || (c.User.Email != null && EF.Functions.ILike(c.User.Email, pattern, "\\")));
+        }
+
+        if (hidden is not null)
+        {
+            comments = comments.Where(c => c.IsHidden == hidden.Value);
+        }
+
+        if (postId is not null)
+        {
+            comments = comments.Where(c => c.BlogPostId == postId);
+        }
+
+        var total = await comments.CountAsync();
+        page = PagedResult<Comment>.ClampPage(page, total, PageSizes.Admin);
+        var items = await comments
             .Include(c => c.User)
             .Include(c => c.BlogPost)
             .OrderByDescending(c => c.CreatedAt)
+            .ThenByDescending(c => c.Id)
+            .Skip((page - 1) * PageSizes.Admin)
+            .Take(PageSizes.Admin)
             .ToListAsync();
+        return new PagedResult<Comment>(items, page, PageSizes.Admin, total);
+    }
+
+    /// <summary>Posts that have at least one comment — for the admin filter picker.</summary>
+    public async Task<List<(int Id, string Title)>> GetPostsWithCommentsAsync()
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var rows = await db.BlogPosts.AsNoTracking()
+            .Where(p => db.Comments.Any(c => c.BlogPostId == p.Id))
+            .OrderBy(p => p.Title)
+            .Select(p => new { p.Id, p.Title })
+            .ToListAsync();
+        return rows.Select(r => (r.Id, r.Title)).ToList();
     }
 
     /// <summary>Adds a comment; returns null and an error message when the body is invalid.</summary>

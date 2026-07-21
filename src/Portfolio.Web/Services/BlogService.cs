@@ -87,12 +87,33 @@ public class BlogService(IDbContextFactory<AppDbContext> dbFactory)
             .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished);
     }
 
-    public async Task<List<BlogPost>> GetAllForAdminAsync()
+    public async Task<PagedResult<BlogPost>> GetAdminPageAsync(
+        int page, string? search = null, bool? published = null)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        return await db.BlogPosts.AsNoTracking()
+        var posts = db.BlogPosts.AsNoTracking().AsQueryable();
+
+        search = BlogFilters.Normalize(search);
+        if (search is not null)
+        {
+            var pattern = $"%{BlogFilters.EscapeLike(search)}%";
+            posts = posts.Where(p => EF.Functions.ILike(p.Title, pattern, "\\"));
+        }
+
+        if (published is not null)
+        {
+            posts = posts.Where(p => p.IsPublished == published.Value);
+        }
+
+        var total = await posts.CountAsync();
+        page = PagedResult<BlogPost>.ClampPage(page, total, PageSizes.Admin);
+        var items = await posts
             .OrderByDescending(p => p.UpdatedAt)
+            .ThenByDescending(p => p.Id)
+            .Skip((page - 1) * PageSizes.Admin)
+            .Take(PageSizes.Admin)
             .ToListAsync();
+        return new PagedResult<BlogPost>(items, page, PageSizes.Admin, total);
     }
 
     public async Task<BlogPost?> GetByIdAsync(int id)
