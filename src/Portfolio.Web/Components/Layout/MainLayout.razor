@@ -5,10 +5,17 @@
 <header class="site-header">
     <div class="container inner">
         <a class="brand" href="/">
-            <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <img class="brand-logo" src="logo.png" alt="" />
             @Site.OwnerName
         </a>
-        <nav class="site-nav" aria-label="Main">
+        <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false"
+                aria-controls="site-nav" onclick="__toggleNav(this)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Main">
             <NavLink href="/projects">Projects</NavLink>
             <NavLink href="/blog">Blog</NavLink>
             <NavLink href="/contact">Contact</NavLink>

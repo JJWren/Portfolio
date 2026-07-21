@@ -40,7 +40,7 @@
                         {
                             <span class="comment-you">you</span>
                         }
-                        <time class="comment-date" datetime="@comment.CreatedAt.ToString("o")">
+                        <time class="comment-date" datetime="@comment.CreatedAt.ToString("o")" data-local="datetime">
                             @comment.CreatedAt.ToString("MMM d, yyyy HH:mm") UTC
                         </time>
                         @if (_userId is not null && (_isAdmin || comment.UserId == _userId))

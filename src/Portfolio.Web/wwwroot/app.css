@@ -157,6 +157,7 @@ main {
    Header / nav
    ================================================================ */
 .site-header {
+    position: relative;
     border-bottom: 1px solid var(--border);
 }
 
@@ -179,21 +180,28 @@ main {
     text-decoration: none;
 }
 
-.brand-mark {
-    display: inline-flex;
-    gap: 3px;
+.brand-logo {
+    height: 28px;
+    width: auto;
 }
 
-.brand-mark i {
-    width: 5px;
-    height: 18px;
-    border-radius: 2px;
+.nav-burger {
+    display: none;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0;
 }
 
-.brand-mark i:nth-child(1) { background: var(--c-red); }
-.brand-mark i:nth-child(2) { background: var(--c-gold); }
-.brand-mark i:nth-child(3) { background: var(--c-green); }
-.brand-mark i:nth-child(4) { background: var(--c-blue); }
+.nav-burger:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
 
 .site-nav {
     display: flex;
@@ -428,8 +436,34 @@ main {
         width: 7px;
     }
 
+    /* Collapse the nav behind a hamburger; the panel drops below the header. */
+    .nav-burger {
+        display: grid;
+    }
+
     .site-nav {
-        gap: 1rem;
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.9rem;
+        padding: 1rem 4vw 1.3rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 12px 24px rgb(0 0 0 / 0.25);
+    }
+
+    .site-nav.open {
+        display: flex;
+    }
+
+    .site-nav a,
+    .signout {
+        font-size: 0.9rem;
     }
 }
 
