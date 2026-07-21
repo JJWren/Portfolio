@@ -105,6 +105,7 @@
             _ => null,
         };
         _result = await BlogPosts.GetAdminPageAsync(_page, _search, published);
+        _page = _result.Page; // service clamps out-of-range pages
     }
 
     private async Task ApplyFiltersAsync()

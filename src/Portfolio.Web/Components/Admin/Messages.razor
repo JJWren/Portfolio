@@ -95,6 +95,7 @@
             _ => null,
         };
         _result = await Contact.GetAdminPageAsync(_page, _search, isRead);
+        _page = _result.Page; // service clamps out-of-range pages
     }
 
     private async Task ApplyFiltersAsync()

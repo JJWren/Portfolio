@@ -122,6 +122,7 @@
         };
         int? postId = int.TryParse(_postId, out var parsed) ? parsed : null;
         _result = await Comments.GetAdminPageAsync(_page, _search, hidden, postId);
+        _page = _result.Page; // service clamps out-of-range pages
     }
 
     private async Task ApplyFiltersAsync()

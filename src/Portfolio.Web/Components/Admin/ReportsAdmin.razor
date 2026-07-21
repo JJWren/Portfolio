@@ -212,7 +212,10 @@
     }
 
     private async Task ReloadAsync()
-        => _result = await Reports.GetAdminPageAsync(_page, _openOnly, _reason, _targetSearch);
+    {
+        _result = await Reports.GetAdminPageAsync(_page, _openOnly, _reason, _targetSearch);
+        _page = _result.Page; // service clamps out-of-range pages
+    }
 
     private async Task ApplyFiltersAsync()
     {

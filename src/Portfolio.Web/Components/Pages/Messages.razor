@@ -83,6 +83,7 @@
         if (_userId is not null)
         {
             _result = await MessageStore.GetForUserPageAsync(_userId, _page);
+            _page = _result.Page; // service clamps out-of-range pages
         }
     }
 
@@ -93,6 +94,7 @@
         if (_userId is not null)
         {
             _result = await MessageStore.GetForUserPageAsync(_userId, _page);
+            _page = _result.Page; // service clamps out-of-range pages
         }
     }
 
