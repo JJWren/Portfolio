@@ -143,3 +143,19 @@
 **Context**: Construction — Unit 7 → Unit 8 transition
 
 ---
+
+## Construction — Unit 8: Extras + polish + CI
+**Timestamp**: 2026-07-21T03:55:00Z
+**User Input**: (none — autonomous execution of approved plan)
+**AI Response**: RSS feed (/feed.xml), sitemap.xml, robots.txt (admin/auth disallowed) with PUBLIC_BASE_URL support; OpenGraph meta (site-wide + per-post article/og:image) and RSS alternate link; SEED_DEMO_DATA startup seeder; /healthz with DB check + curl-based compose healthcheck; GitHub Actions CI (build/test on push+PR, GHCR publish latest on master and semver on v* tags); full self-hosting README. Verified clean-slate: down -v → up --build reran migrations, seeded demo content, all endpoints 200, both containers healthy. Created public repo JJWren/Portfolio, initial commit of 97 files, pushed; first CI run started.
+**Context**: Unit 8 code generation complete; presenting 2-option checkpoint
+
+---
+
+## Unit 8 Checkpoint Approval
+**Timestamp**: 2026-07-21T04:00:00Z
+**User Input**: "B) Continue to Next Stage"
+**AI Response**: Unit 8 approved. Beginning Build and Test stage (instruction docs + closing verification).
+**Context**: Construction — Unit 8 → Build and Test transition
+
+---

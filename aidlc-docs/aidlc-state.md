@@ -29,7 +29,7 @@
 - [x] Unit 5: Comments + moderation (COMPLETE — see construction/plans/unit5-comments-plan.md)
 - [x] Unit 6: Projects (COMPLETE — see construction/plans/unit6-projects-plan.md)
 - [x] Unit 7: Contact form (COMPLETE — see construction/plans/unit7-contact-plan.md)
-- [ ] Unit 8: Extras + polish + CI (RSS, SEO, seed data, healthchecks, GHCR)
+- [x] Unit 8: Extras + polish + CI (COMPLETE — repo live at github.com/JJWren/Portfolio; see construction/plans/unit8-extras-plan.md)
 - [ ] Build and Test — final end-to-end verification
 
 ## Key Decisions
