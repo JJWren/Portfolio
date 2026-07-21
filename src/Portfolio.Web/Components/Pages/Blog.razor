@@ -124,10 +124,12 @@
         !string.IsNullOrEmpty(Q) || !string.IsNullOrEmpty(Month) || !string.IsNullOrEmpty(Tag);
 
     protected override async Task OnInitializedAsync()
-    {
-        _months = await BlogPosts.GetPublishedMonthsAsync();
-        _result = await BlogPosts.GetPublishedPageAsync(PageNumber ?? 1, Q, Month, Tag);
-    }
+        => _months = await BlogPosts.GetPublishedMonthsAsync();
+
+    // Query parameters land here, so the result refreshes on querystring
+    // changes even if this page is ever made interactive.
+    protected override async Task OnParametersSetAsync()
+        => _result = await BlogPosts.GetPublishedPageAsync(PageNumber ?? 1, Q, Month, Tag);
 
     private static string MonthLabel(string month)
         => BlogFilters.TryParseMonth(month, out var start, out _)
