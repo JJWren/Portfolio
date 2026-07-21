@@ -1,0 +1,87 @@
+@page "/privacy"
+@inject SiteConfig Site
+
+<PageTitle>Privacy Notice — @Site.SiteTitle</PageTitle>
+<HeadContent>
+    <meta name="description" content="Privacy notice for @Site.SiteTitle" />
+</HeadContent>
+
+<section class="section page-head">
+    <div class="container">
+        <p class="eyebrow">Privacy Notice</p>
+        <h1>What this site knows about you</h1>
+        <p class="muted">The complete list — it's short. No ads, no analytics trackers, no data sales. Ever.</p>
+    </div>
+</section>
+
+<section class="legal">
+    <div class="container prose">
+        <h2>If you just browse</h2>
+        <p>
+            Nothing is collected about you. There are no third-party trackers, ad networks, or
+            analytics scripts on this site. Your theme choice (dark/light) is stored in your own
+            browser's localStorage and never leaves your device.
+        </p>
+
+        <h2>If you sign in</h2>
+        <p>
+            Sign-in uses a provider you already trust (GitHub, Google, or Discord). This site
+            receives and stores only your <strong>email address</strong> and <strong>display
+            name</strong> from that provider — never a password. Your email is used to identify
+            your account across providers and is not shown publicly or shared with anyone.
+        </p>
+        <p>
+            If you set a custom display name or upload an avatar, those are stored too. Avatars
+            are resized on the server and stripped of embedded photo metadata (EXIF) before being
+            saved.
+        </p>
+
+        <h2>If you comment</h2>
+        <p>
+            Your comment text, the time you posted it, and your account are stored so the comment
+            can be displayed and so you can delete it later.
+        </p>
+        <p>
+            <strong>About anonymous comments</strong>: choosing "post anonymously" hides your name
+            and avatar from other visitors, but the comment remains linked to your account in the
+            database — the site owner can see who wrote it. This exists so moderation works;
+            it is not a promise of anonymity from the site owner.
+        </p>
+
+        <h2>If you use the contact form</h2>
+        <p>
+            The name, email address, subject, and message you submit are stored in the site's
+            database and also delivered to @Site.OwnerName by email. They're used solely to read
+            and reply to your message.
+        </p>
+
+        <h2>Cookies</h2>
+        <p>
+            One kind: a sign-in session cookie, set only after you sign in, so the site remembers
+            who you are. No tracking or advertising cookies exist here.
+        </p>
+
+        <h2>Where data lives &amp; how long</h2>
+        <p>
+            Everything is stored on infrastructure operated by the site owner — no third-party
+            data processors beyond your chosen sign-in provider and the email delivery of contact
+            messages. Data is kept until you delete it or ask for it to be deleted.
+        </p>
+
+        <h2>Your choices</h2>
+        <ul>
+            <li>Delete any of your own comments directly on the page they appear.</li>
+            <li>Remove your avatar or display name on your profile page.</li>
+            <li>
+                Ask for your account and everything tied to it to be deleted by emailing
+                <a href="mailto:@Site.ContactEmail">@Site.ContactEmail</a> — this is honored
+                without fuss.
+            </li>
+        </ul>
+
+        <p class="muted">
+            This notice is written in good faith by @Site.OwnerName and reflects exactly how the
+            software behaves. It is not legal advice.
+        </p>
+    </div>
+</section>

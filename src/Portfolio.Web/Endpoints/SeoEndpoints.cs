@@ -49,7 +49,7 @@ public static class SeoEndpoints
             XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
 
             var urls = new List<XElement>();
-            foreach (var path in new[] { "/", "/projects", "/blog", "/contact" })
+            foreach (var path in new[] { "/", "/projects", "/blog", "/contact", "/terms", "/privacy" })
             {
                 urls.Add(new XElement(ns + "url", new XElement(ns + "loc", $"{baseUrl}{path.TrimEnd('/')}")));
             }

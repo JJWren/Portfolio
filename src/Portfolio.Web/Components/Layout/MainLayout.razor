@@ -79,6 +79,18 @@
                 <a href="@Site.LinkedInUrl" rel="me noopener" target="_blank">LinkedIn</a>
             }
             <a href="mailto:@Site.ContactEmail">Email</a>
+            @if (Site.SponsorUrl is not null)
+            {
+                <a class="sponsor-link" href="@Site.SponsorUrl" rel="noopener" target="_blank">
+                    <span aria-hidden="true">♥</span> @Site.SponsorText
+                </a>
+            }
+        </nav>
+        <nav class="footer-links footer-legal" aria-label="Legal">
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
+            <a href="https://github.com/JJWren/Portfolio/blob/master/LICENSE"
+               rel="noopener" target="_blank" title="This site runs on an open-source project">MIT</a>
         </nav>
     </div>
 </footer>

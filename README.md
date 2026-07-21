@@ -91,3 +91,14 @@ dotnet test                        # unit tests
 
 Requires the .NET 10 SDK (pinned in `global.json`). EF migrations:
 `dotnet ef migrations add <Name> --project src/Portfolio.Web`.
+
+## License & sponsoring
+
+MIT — see [`LICENSE`](LICENSE). The site ships built-in [terms](/terms) and
+[privacy](/privacy) pages that describe exactly what the software stores,
+auto-personalized from your `.env`.
+
+If this project is useful to you, you can
+[buy me a coffee](https://buymeacoffee.com/jmykitta) ☕ — and self-hosters can
+point the footer's sponsor link at their own page via `SPONSOR_URL` /
+`SPONSOR_TEXT` (or leave it blank to hide it).
