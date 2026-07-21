@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/JJWren/Portfolio/compare/v1.5.1...v1.6.0) (2026-07-21)
+
+
+### Features
+
+* blog pagination with search, month, and tag filters ([#17](https://github.com/JJWren/Portfolio/issues/17)) ([94bf699](https://github.com/JJWren/Portfolio/commit/94bf6994440c4313c77cd61f09fdb78d2f6d1a1a))
+* pagination and filters for admin and user list views ([#19](https://github.com/JJWren/Portfolio/issues/19)) ([2d4eeff](https://github.com/JJWren/Portfolio/commit/2d4eeff238a90f5c4724576a3efe11cf84b5cf04))
+
 ## [1.5.1](https://github.com/JJWren/Portfolio/compare/v1.5.0...v1.5.1) (2026-07-21)
 
 
