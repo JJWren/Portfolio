@@ -1,0 +1,129 @@
+@page "/my-reports"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ReportService Reports
+@inject MessageService MessageStore
+@inject SiteConfig Site
+
+<PageTitle>Your reports — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container narrow-form">
+        <p class="eyebrow">Reports</p>
+        <h1>Reports you've filed</h1>
+
+        @if (_reports is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_reports.Count == 0)
+        {
+            <p class="muted">You haven't reported anything.</p>
+        }
+        else
+        {
+            <ul class="inbox">
+                @foreach (var report in _reports)
+                {
+                    <li class="inbox-item">
+                        <button class="inbox-summary" @onclick="() => ToggleAsync(report)">
+                            <span class="inbox-from">@report.Reason</span>
+                            <span class="inbox-subject">@(report.TargetType == Portfolio.Web.Data.ReportTargetType.User ? "User report" : "Comment report")</span>
+                            <time class="inbox-date" datetime="@report.CreatedAt.ToString("o")" data-local="datetime">
+                                @report.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                            </time>
+                            @switch (report.Status)
+                            {
+                                case Portfolio.Web.Data.ReportStatus.Open:
+                                    <span class="badge badge-draft">Open</span>
+                                    break;
+                                case Portfolio.Web.Data.ReportStatus.Resolved:
+                                    <span class="badge badge-published">Resolved</span>
+                                    break;
+                                default:
+                                    <span class="badge">Dismissed</span>
+                                    break;
+                            }
+                        </button>
+                        @if (_expandedId == report.Id)
+                        {
+                            <div class="inbox-body">
+                                @if (report.CommentExcerpt is not null)
+                                {
+                                    <blockquote class="quoted-comment">@report.CommentExcerpt</blockquote>
+                                }
+                                @if (report.Details is not null)
+                                {
+                                    <p class="inbox-text">Your note: @report.Details</p>
+                                }
+                                @if (_responses is null)
+                                {
+                                    <p class="muted">Loading responses…</p>
+                                }
+                                else if (_responses.Count == 0)
+                                {
+                                    <p class="muted">No responses yet — you'll get a message here if the moderator replies.</p>
+                                }
+                                else
+                                {
+                                    @foreach (var response in _responses)
+                                    {
+                                        <div class="report-response">
+                                            <p class="muted mono-small">
+                                                @(response.Sender?.PublicName ?? "Site notice") ·
+                                                <time datetime="@response.CreatedAt.ToString("o")" data-local="datetime">
+                                                    @response.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                                                </time>
+                                            </p>
+                                            <p class="inbox-text">@response.Body</p>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</section>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<Portfolio.Web.Data.Report>? _reports;
+    private List<Portfolio.Web.Data.UserMessage>? _responses;
+    private string? _userId;
+    private int? _expandedId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        if (_userId is not null)
+        {
+            _reports = await Reports.GetMineAsync(_userId);
+        }
+    }
+
+    private async Task ToggleAsync(Portfolio.Web.Data.Report report)
+    {
+        if (_expandedId == report.Id)
+        {
+            _expandedId = null;
+            return;
+        }
+
+        _expandedId = report.Id;
+        _responses = null;
+        if (_userId is not null)
+        {
+            _responses = await MessageStore.GetForReportAsync(report.Id, _userId);
+        }
+    }
+}

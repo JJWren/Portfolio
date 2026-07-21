@@ -36,6 +36,13 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
         }
 
         await using var db = await dbFactory.CreateDbContextAsync();
+
+        var banned = await db.Users.AnyAsync(u => u.Id == userId && u.IsBanned);
+        if (banned)
+        {
+            return (null, "Your account is currently restricted from commenting.");
+        }
+
         var comment = new Comment
         {
             BlogPostId = postId,

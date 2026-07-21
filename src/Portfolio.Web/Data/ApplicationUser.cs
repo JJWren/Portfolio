@@ -16,6 +16,13 @@ public class ApplicationUser : IdentityUser
     /// <summary>Pre-checks "post anonymously" on the comment form.</summary>
     public bool PostAnonymouslyByDefault { get; set; }
 
+    /// <summary>Banned users can sign in and read, but not comment or report.</summary>
+    public bool IsBanned { get; set; }
+
+    public DateTime? BannedAt { get; set; }
+
+    public string? BanReason { get; set; }
+
     /// <summary>Name shown publicly on comments.</summary>
     public string PublicName => CustomDisplayName ?? DisplayName ?? Email ?? "User";
 }

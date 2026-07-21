@@ -14,6 +14,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 
+    public DbSet<Report> Reports => Set<Report>();
+
+    public DbSet<UserMessage> UserMessages => Set<UserMessage>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -22,6 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         {
             user.Property(u => u.CustomDisplayName).HasMaxLength(40);
             user.Property(u => u.AvatarUrl).HasMaxLength(400);
+            user.Property(u => u.BanReason).HasMaxLength(300);
         });
 
         builder.Entity<BlogPost>(post =>
@@ -62,6 +67,45 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             message.Property(m => m.Email).HasMaxLength(254);
             message.Property(m => m.Subject).HasMaxLength(200);
             message.Property(m => m.Body).HasMaxLength(4000);
+        });
+
+        builder.Entity<Report>(report =>
+        {
+            report.Property(r => r.Reason).HasMaxLength(60);
+            report.Property(r => r.Details).HasMaxLength(1000);
+            report.Property(r => r.CommentExcerpt).HasMaxLength(300);
+            report.HasOne(r => r.Reporter)
+                .WithMany()
+                .HasForeignKey(r => r.ReporterId)
+                .OnDelete(DeleteBehavior.Cascade);
+            report.HasOne(r => r.TargetUser)
+                .WithMany()
+                .HasForeignKey(r => r.TargetUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            report.HasOne(r => r.Comment)
+                .WithMany()
+                .HasForeignKey(r => r.CommentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            report.HasIndex(r => r.Status);
+        });
+
+        builder.Entity<UserMessage>(message =>
+        {
+            message.Property(m => m.Body).HasMaxLength(2000);
+            message.Property(m => m.QuotedComment).HasMaxLength(300);
+            message.HasOne(m => m.Recipient)
+                .WithMany()
+                .HasForeignKey(m => m.RecipientId)
+                .OnDelete(DeleteBehavior.Cascade);
+            message.HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.SetNull);
+            message.HasOne(m => m.Report)
+                .WithMany()
+                .HasForeignKey(m => m.ReportId)
+                .OnDelete(DeleteBehavior.SetNull);
+            message.HasIndex(m => new { m.RecipientId, m.IsRead });
         });
     }
 }

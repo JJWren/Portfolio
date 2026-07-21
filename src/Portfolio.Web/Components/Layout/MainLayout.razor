@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject SiteConfig Site
 @inject ProfileService Profiles
+@inject MessageService MessageStore
 
 <header class="site-header">
     <div class="container inner">
@@ -24,7 +25,8 @@
             </AuthorizeView>
             <AuthorizeView>
                 <Authorized>
-                    <a class="nav-profile" href="/profile" title="Your profile">
+                    <a class="nav-profile" href="/profile"
+                       title="@(_unreadCount > 0 ? $"Your profile — {_unreadCount} unread message(s)" : "Your profile")">
                         @if (_avatarUrl is not null)
                         {
                             <img class="avatar avatar-sm" src="@_avatarUrl" alt="Your profile" />
@@ -32,6 +34,10 @@
                         else
                         {
                             <span class="avatar avatar-sm avatar-fallback" aria-hidden="true">@_initial</span>
+                        }
+                        @if (_unreadCount > 0)
+                        {
+                            <span class="unread-badge" aria-label="@_unreadCount unread messages">@(_unreadCount > 9 ? "9+" : _unreadCount.ToString())</span>
                         }
                     </a>
                     <form class="logout-form" method="post" action="/auth/logout">
@@ -107,6 +113,7 @@
 
     private string? _avatarUrl;
     private string _initial = "?";
+    private int _unreadCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,5 +137,7 @@
                 ? name[..1].ToUpperInvariant()
                 : "?";
         }
+
+        _unreadCount = await MessageStore.UnreadCountAsync(userId);
     }
 }
