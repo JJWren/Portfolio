@@ -569,6 +569,38 @@ main {
     border-top: 1px solid var(--border);
 }
 
+.post-card.has-image {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.post-card-thumb img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    display: block;
+}
+
+.edit-post-link {
+    margin-top: 0.9rem;
+}
+
+@media (max-width: 720px) {
+    .post-card.has-image {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    /* Thumbnail leads on mobile, like a social card. */
+    .post-card-thumb {
+        order: -1;
+    }
+}
+
 .post-card h3 {
     margin: 0 0 0.35rem;
     font-size: 1.35rem;
