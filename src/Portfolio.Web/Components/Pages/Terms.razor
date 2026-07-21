@@ -1,0 +1,69 @@
+@page "/terms"
+@inject SiteConfig Site
+
+<PageTitle>Terms of Service — @Site.SiteTitle</PageTitle>
+<HeadContent>
+    <meta name="description" content="Terms of service for @Site.SiteTitle" />
+</HeadContent>
+
+<section class="section page-head">
+    <div class="container">
+        <p class="eyebrow">Terms of Service</p>
+        <h1>The house rules</h1>
+        <p class="muted">Plain language, no gotchas. This page describes the terms for using this site.</p>
+    </div>
+</section>
+
+<section class="legal">
+    <div class="container prose">
+        <h2>Accepting these terms</h2>
+        <p>
+            By browsing this site, signing in, or posting a comment, you agree to these terms.
+            If you don't agree with something here, the remedy is simple: don't use the site.
+        </p>
+
+        <h2>Your account</h2>
+        <p>
+            Signing in happens through a third-party provider (such as GitHub, Google, or Discord) —
+            this site never sees or stores a password. You're responsible for the security of the
+            provider account you sign in with. You can stop using the site at any time, and you can
+            ask for your account and content to be deleted (see the contact section below).
+        </p>
+
+        <h2>Comments and content you post</h2>
+        <p>
+            Comments should stay civil. Content that is illegal, harassing, hateful, spammy, or
+            malicious (including attempts to inject code) may be hidden or deleted, and repeat
+            offenders may have their accounts removed — at the site owner's sole discretion,
+            with or without notice.
+        </p>
+        <p>
+            You keep ownership of what you write. By posting, you give this site permission to
+            display your comment alongside your chosen display name or anonymously if you selected
+            that option. You can delete your own comments at any time.
+        </p>
+
+        <h2>No warranty</h2>
+        <p>
+            This site is a personal project, provided "as is" without warranties of any kind.
+            It may go down, change, or be discontinued at any time. The site owner is not liable
+            for any damages arising from its use, to the maximum extent permitted by law.
+        </p>
+
+        <h2>Changes</h2>
+        <p>
+            These terms may change as the site evolves. The version published on this page is
+            always the current one.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+            Questions about these terms go to
+            <a href="mailto:@Site.ContactEmail">@Site.ContactEmail</a>.
+        </p>
+
+        <p class="muted">
+            This page is written in good faith by @Site.OwnerName and is not legal advice.
+        </p>
+    </div>
+</section>

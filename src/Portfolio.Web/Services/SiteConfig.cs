@@ -14,7 +14,9 @@ public record SiteConfig(
     string? LinkedInUrl,
     string? GitHubUrl,
     string? About,
-    IReadOnlyList<string> Skills)
+    IReadOnlyList<string> Skills,
+    string? SponsorUrl,
+    string SponsorText)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -51,7 +53,9 @@ public record SiteConfig(
             GitHubUrl: NullIfEmpty(config["GITHUB_URL"]),
             // .env files can't hold real newlines, so a literal "\n" splits paragraphs.
             About: NullIfEmpty(config["SITE_ABOUT"])?.Replace("\\n", "\n"),
-            Skills: skills);
+            Skills: skills,
+            SponsorUrl: NullIfEmpty(config["SPONSOR_URL"]),
+            SponsorText: NullIfEmpty(config["SPONSOR_TEXT"]) ?? "Buy me a coffee");
     }
 
     private static string? NullIfEmpty(string? value)

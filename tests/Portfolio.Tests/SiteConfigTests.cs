@@ -38,6 +38,25 @@ public class SiteConfigTests
         Assert.Null(site.GitHubUrl);
         Assert.Null(site.About);
         Assert.Empty(site.Skills);
+        Assert.Null(site.SponsorUrl);
+        Assert.Equal("Buy me a coffee", site.SponsorText);
+    }
+
+    [Fact]
+    public void FromConfiguration_SponsorLinkIsConfigurable()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SPONSOR_URL"] = "https://ko-fi.com/jane",
+            ["SPONSOR_TEXT"] = "Support my work",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal("https://ko-fi.com/jane", site.SponsorUrl);
+        Assert.Equal("Support my work", site.SponsorText);
     }
 
     [Fact]
