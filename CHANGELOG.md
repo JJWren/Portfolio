@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/JJWren/Portfolio/compare/v1.5.0...v1.5.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* address Copilot review findings from merged PRs ([#13](https://github.com/JJWren/Portfolio/issues/13)) ([089959e](https://github.com/JJWren/Portfolio/commit/089959e9db4ecdf3d69e5039c408c36df6968d49))
+
 ## [1.5.0](https://github.com/JJWren/Portfolio/compare/v1.4.0...v1.5.0) (2026-07-21)
 
 
