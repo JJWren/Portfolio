@@ -1,0 +1,76 @@
+@page "/admin/posts"
+@attribute [Authorize(Roles = "Admin")]
+@inject BlogService BlogPosts
+@inject SiteConfig Site
+
+<PageTitle>Posts — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Blog posts</h1>
+            <a class="btn btn-primary" href="/admin/posts/new">New post</a>
+        </div>
+
+        @if (_posts is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_posts.Count == 0)
+        {
+            <p class="muted">No posts yet. Write the first one.</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Updated</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var post in _posts)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@post.Title</strong>
+                                    <span class="muted mono-small">/blog/@post.Slug</span>
+                                </td>
+                                <td>
+                                    @if (post.IsPublished)
+                                    {
+                                        <span class="badge badge-published">Published @post.PublishedAt?.ToString("yyyy-MM-dd")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-draft">Draft</span>
+                                    }
+                                </td>
+                                <td class="muted">@post.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td class="actions">
+                                    <a href="/admin/posts/@post.Id/edit">Edit</a>
+                                    @if (post.IsPublished)
+                                    {
+                                        <a href="/blog/@post.Slug">View</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Portfolio.Web.Data.BlogPost>? _posts;
+
+    protected override async Task OnInitializedAsync()
+        => _posts = await BlogPosts.GetAllForAdminAsync();
+}

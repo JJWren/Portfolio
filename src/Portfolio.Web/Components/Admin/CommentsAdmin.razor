@@ -1,0 +1,90 @@
+@page "/admin/comments"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject CommentService Comments
+@inject SiteConfig Site
+
+<PageTitle>Comments — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Comments</h1>
+        </div>
+
+        @if (_comments is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_comments.Count == 0)
+        {
+            <p class="muted">No comments yet.</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Comment</th>
+                            <th>Post</th>
+                            <th>When</th>
+                            <th>State</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var comment in _comments)
+                        {
+                            <tr class="@(comment.IsHidden ? "row-hidden" : null)">
+                                <td>
+                                    <strong>@(comment.User.DisplayName ?? comment.User.Email)</strong>
+                                    <span class="comment-body-cell">@comment.Body</span>
+                                </td>
+                                <td><a href="/blog/@comment.BlogPost.Slug">@comment.BlogPost.Title</a></td>
+                                <td class="muted">@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    @if (comment.IsHidden)
+                                    {
+                                        <span class="badge badge-draft">Hidden</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-published">Visible</span>
+                                    }
+                                </td>
+                                <td class="actions">
+                                    <button class="link-button" @onclick="() => ToggleHiddenAsync(comment)">
+                                        @(comment.IsHidden ? "Unhide" : "Hide")
+                                    </button>
+                                    <button class="link-button danger" @onclick="() => DeleteAsync(comment.Id)">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Portfolio.Web.Data.Comment>? _comments;
+
+    protected override async Task OnInitializedAsync()
+        => _comments = await Comments.GetAllForAdminAsync();
+
+    private async Task ToggleHiddenAsync(Portfolio.Web.Data.Comment comment)
+    {
+        await Comments.SetHiddenAsync(comment.Id, !comment.IsHidden);
+        _comments = await Comments.GetAllForAdminAsync();
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        // Admin path: ownership check bypassed by isAdmin.
+        await Comments.DeleteAsync(id, requestingUserId: string.Empty, isAdmin: true);
+        _comments = await Comments.GetAllForAdminAsync();
+    }
+}

@@ -1,0 +1,127 @@
+@rendermode InteractiveServer
+@inject CommentService Comments
+@inject NavigationManager Nav
+
+<section class="section comments" id="comments">
+    <p class="eyebrow">Comments</p>
+
+    @if (_comments is null)
+    {
+        <p class="muted">Loading comments…</p>
+    }
+    else if (_comments.Count == 0)
+    {
+        <p class="muted">No comments yet — start the conversation.</p>
+    }
+    else
+    {
+        <ul class="comment-list">
+            @foreach (var comment in _comments)
+            {
+                <li class="comment">
+                    <div class="comment-head">
+                        <span class="comment-author">@(comment.User.DisplayName ?? comment.User.Email)</span>
+                        <time class="comment-date" datetime="@comment.CreatedAt.ToString("o")">
+                            @comment.CreatedAt.ToString("MMM d, yyyy HH:mm") UTC
+                        </time>
+                        @if (_userId is not null && (_isAdmin || comment.UserId == _userId))
+                        {
+                            <button class="comment-delete" title="Delete comment"
+                                    @onclick="() => DeleteAsync(comment.Id)">Delete</button>
+                        }
+                    </div>
+                    <p class="comment-body">@comment.Body</p>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (_userId is not null)
+    {
+        <div class="comment-form">
+            @if (_error is not null)
+            {
+                <p class="alert" role="alert">@_error</p>
+            }
+            <label class="field">
+                <span>Add a comment</span>
+                <textarea rows="4" maxlength="@CommentRules.MaxLength" @bind="_draft"></textarea>
+            </label>
+            <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@_busy">
+                @(_busy ? "Posting…" : "Post comment")
+            </button>
+        </div>
+    }
+    else
+    {
+        <p class="comment-signin">
+            <a href="/signin?returnUrl=@Uri.EscapeDataString($"/blog/{PostSlug}#comments")">Sign in</a>
+            to join the conversation.
+        </p>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public int PostId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string PostSlug { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private List<Portfolio.Web.Data.Comment>? _comments;
+    private string? _userId;
+    private bool _isAdmin;
+    private string _draft = string.Empty;
+    private string? _error;
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState is not null)
+        {
+            var auth = await AuthState;
+            _userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            _isAdmin = auth.User.IsInRole("Admin");
+        }
+
+        _comments = await Comments.GetVisibleForPostAsync(PostId);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_userId is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var (comment, error) = await Comments.AddAsync(PostId, _userId, _draft);
+            _error = error;
+            if (comment is not null)
+            {
+                _draft = string.Empty;
+                _comments = await Comments.GetVisibleForPostAsync(PostId);
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteAsync(int commentId)
+    {
+        if (_userId is null)
+        {
+            return;
+        }
+
+        await Comments.DeleteAsync(commentId, _userId, _isAdmin);
+        _comments = await Comments.GetVisibleForPostAsync(PostId);
+    }
+}

@@ -1,0 +1,85 @@
+@page "/admin/messages"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject ContactService Contact
+@inject SiteConfig Site
+
+<PageTitle>Messages — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Messages</h1>
+        </div>
+
+        @if (_messages is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_messages.Count == 0)
+        {
+            <p class="muted">The inbox is empty.</p>
+        }
+        else
+        {
+            <ul class="inbox">
+                @foreach (var message in _messages)
+                {
+                    <li class="inbox-item @(message.IsRead ? "read" : "unread")">
+                        <button class="inbox-summary" @onclick="() => Toggle(message.Id)">
+                            <span class="inbox-from">@message.Name</span>
+                            <span class="inbox-subject">@message.Subject</span>
+                            <span class="inbox-date">@message.ReceivedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                            @if (!message.IsRead)
+                            {
+                                <span class="badge badge-draft">New</span>
+                            }
+                        </button>
+                        @if (_expandedId == message.Id)
+                        {
+                            <div class="inbox-body">
+                                <p class="muted mono-small">
+                                    From @message.Name &lt;<a href="mailto:@message.Email">@message.Email</a>&gt;
+                                </p>
+                                <p class="inbox-text">@message.Body</p>
+                                <div class="editor-actions">
+                                    <button class="btn btn-ghost"
+                                            @onclick="() => SetReadAsync(message, !message.IsRead)">
+                                        Mark @(message.IsRead ? "unread" : "read")
+                                    </button>
+                                    <a class="btn btn-ghost" href="mailto:@message.Email?subject=Re: @message.Subject">Reply by email</a>
+                                    <button class="btn btn-ghost btn-danger" @onclick="() => DeleteAsync(message.Id)">Delete</button>
+                                </div>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Portfolio.Web.Data.ContactMessage>? _messages;
+    private int? _expandedId;
+
+    protected override async Task OnInitializedAsync()
+        => _messages = await Contact.GetAllAsync();
+
+    private void Toggle(int id)
+        => _expandedId = _expandedId == id ? null : id;
+
+    private async Task SetReadAsync(Portfolio.Web.Data.ContactMessage message, bool read)
+    {
+        await Contact.SetReadAsync(message.Id, read);
+        _messages = await Contact.GetAllAsync();
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        await Contact.DeleteAsync(id);
+        _expandedId = null;
+        _messages = await Contact.GetAllAsync();
+    }
+}

@@ -1,0 +1,62 @@
+@page "/blog"
+@inject BlogService BlogPosts
+@inject MarkdownService Markdown
+@inject SiteConfig Site
+
+<PageTitle>Blog — @Site.SiteTitle</PageTitle>
+
+<section class="section page-head">
+    <div class="container">
+        <p class="eyebrow">Blog</p>
+        <h1>Notes &amp; write-ups</h1>
+    </div>
+</section>
+
+<section class="post-list">
+    <div class="container">
+        @if (_posts is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_posts.Count == 0)
+        {
+            <p class="muted">Nothing published yet — check back soon.</p>
+        }
+        else
+        {
+            @foreach (var post in _posts)
+            {
+                <article class="post-card">
+                    <h3><a href="/blog/@post.Slug">@post.Title</a></h3>
+                    <p class="post-meta">
+                        <time datetime="@post.PublishedAt?.ToString("yyyy-MM-dd")">
+                            @post.PublishedAt?.ToString("MMMM d, yyyy")
+                        </time>
+                        <span aria-hidden="true">·</span>
+                        <span>@Markdown.ReadingTimeMinutes(post.BodyMarkdown) min read</span>
+                    </p>
+                    @if (!string.IsNullOrEmpty(post.Summary))
+                    {
+                        <p class="post-summary">@post.Summary</p>
+                    }
+                    @if (post.Tags.Count > 0)
+                    {
+                        <ul class="tags">
+                            @foreach (var tag in post.Tags)
+                            {
+                                <li>@tag</li>
+                            }
+                        </ul>
+                    }
+                </article>
+            }
+        }
+    </div>
+</section>
+
+@code {
+    private List<Portfolio.Web.Data.BlogPost>? _posts;
+
+    protected override async Task OnInitializedAsync()
+        => _posts = await BlogPosts.GetPublishedAsync();
+}

@@ -1,0 +1,90 @@
+@page "/blog/{Slug}"
+@inject BlogService BlogPosts
+@inject MarkdownService Markdown
+@inject SiteConfig Site
+
+@if (_notFound)
+{
+    <PageTitle>Not found — @Site.SiteTitle</PageTitle>
+    <NotFoundContent />
+}
+else if (_post is not null)
+{
+    <PageTitle>@_post.Title — @Site.SiteTitle</PageTitle>
+    <HeadContent>
+        <meta name="description" content="@_post.Summary" />
+        <meta property="og:title" content="@_post.Title" />
+        <meta property="og:description" content="@_post.Summary" />
+        <meta property="og:type" content="article" />
+        @if (!string.IsNullOrEmpty(_post.HeaderImagePath))
+        {
+            <meta property="og:image" content="@_post.HeaderImagePath" />
+        }
+    </HeadContent>
+
+    <article>
+        <header class="section page-head post-head">
+            <div class="container">
+                <p class="eyebrow">Blog</p>
+                <h1>@_post.Title</h1>
+                <p class="post-meta">
+                    <time datetime="@_post.PublishedAt?.ToString("yyyy-MM-dd")">
+                        @_post.PublishedAt?.ToString("MMMM d, yyyy")
+                    </time>
+                    <span aria-hidden="true">·</span>
+                    <span>@Markdown.ReadingTimeMinutes(_post.BodyMarkdown) min read</span>
+                </p>
+                @if (_post.Tags.Count > 0)
+                {
+                    <ul class="tags">
+                        @foreach (var tag in _post.Tags)
+                        {
+                            <li>@tag</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </header>
+
+        @if (!string.IsNullOrEmpty(_post.HeaderImagePath))
+        {
+            <div class="container">
+                <img class="post-hero-image" src="@_post.HeaderImagePath" alt="" />
+            </div>
+        }
+
+        <div class="container">
+            <div class="prose">
+                @((MarkupString)Markdown.ToHtml(_post.BodyMarkdown))
+            </div>
+        </div>
+
+        <div class="container">
+            <CommentSection PostId="_post.Id" PostSlug="@_post.Slug" />
+        </div>
+    </article>
+}
+
+@code {
+    [Parameter]
+    public required string Slug { get; set; }
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private Portfolio.Web.Data.BlogPost? _post;
+    private bool _notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _post = await BlogPosts.GetPublishedBySlugAsync(Slug);
+        if (_post is null)
+        {
+            _notFound = true;
+            if (HttpContext is not null)
+            {
+                HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+        }
+    }
+}

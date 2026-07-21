@@ -1,0 +1,61 @@
+@page "/"
+@inject SiteConfig Site
+
+<PageTitle>@Site.SiteTitle</PageTitle>
+<HeadContent>
+    <meta name="description" content="@Site.Tagline" />
+    <meta property="og:title" content="@Site.SiteTitle" />
+    <meta property="og:description" content="@Site.Tagline" />
+    <meta property="og:type" content="website" />
+</HeadContent>
+
+<section class="hero">
+    <div class="container">
+        <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <h1>@Site.OwnerName</h1>
+        @if (!string.IsNullOrEmpty(Site.Tagline))
+        {
+            <p class="tagline">@Site.Tagline</p>
+        }
+        <div class="actions">
+            @if (Site.GitHubUrl is not null)
+            {
+                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank">GitHub</a>
+            }
+            @if (Site.LinkedInUrl is not null)
+            {
+                <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank">LinkedIn</a>
+            }
+            <a class="btn btn-ghost" href="/contact">Get in touch</a>
+        </div>
+    </div>
+</section>
+
+@if (Site.About is not null || Site.Skills.Count > 0)
+{
+    <section class="section">
+        <div class="container">
+            <p class="eyebrow">About</p>
+            <div class="about-grid">
+                @if (Site.About is not null)
+                {
+                    <div class="about-text">
+                        @foreach (var paragraph in Site.About.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            <p>@paragraph</p>
+                        }
+                    </div>
+                }
+                @if (Site.Skills.Count > 0)
+                {
+                    <ul class="skills">
+                        @foreach (var skill in Site.Skills)
+                        {
+                            <li>@skill</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </section>
+}

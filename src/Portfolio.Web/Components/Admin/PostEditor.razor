@@ -1,0 +1,251 @@
+@page "/admin/posts/new"
+@page "/admin/posts/{Id:int}/edit"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject BlogService BlogPosts
+@inject MarkdownService Markdown
+@inject ImageUploadService Uploads
+@inject NavigationManager Nav
+@inject SiteConfig Site
+
+<PageTitle>@(_isNew ? "New post" : "Edit post") — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>@(_isNew ? "New post" : "Edit post")</h1>
+            <a class="btn btn-ghost" href="/admin/posts">Back to posts</a>
+        </div>
+
+        @if (_loading)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else
+        {
+            @if (_error is not null)
+            {
+                <p class="alert" role="alert">@_error</p>
+            }
+
+            <div class="editor-grid">
+                <div class="editor-form">
+                    <label class="field">
+                        <span>Title</span>
+                        <input type="text" value="@_title" @oninput="OnTitleInput" />
+                    </label>
+
+                    <label class="field">
+                        <span>Slug <span class="muted">/blog/…</span></span>
+                        <input type="text" value="@_slug" @oninput="OnSlugInput" />
+                    </label>
+
+                    <label class="field">
+                        <span>Summary <span class="muted">shown in the list and feed</span></span>
+                        <textarea rows="2" @bind="_summary"></textarea>
+                    </label>
+
+                    <label class="field">
+                        <span>Tags <span class="muted">comma-separated</span></span>
+                        <input type="text" @bind="_tagsText" />
+                    </label>
+
+                    <div class="field">
+                        <span>Header image <span class="muted">optional</span></span>
+                        @if (!string.IsNullOrEmpty(_headerImagePath))
+                        {
+                            <div class="upload-preview">
+                                <img src="@_headerImagePath" alt="Header image preview" />
+                                <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
+                            </div>
+                        }
+                        <InputFile OnChange="OnHeaderImageSelected" accept="image/*" />
+                    </div>
+
+                    <label class="field">
+                        <span>Body <span class="muted">markdown</span></span>
+                        <textarea class="editor-body" rows="18" value="@_body" @oninput="OnBodyInput"></textarea>
+                    </label>
+
+                    <label class="check-field">
+                        <input type="checkbox" @bind="_isPublished" />
+                        <span>Published</span>
+                    </label>
+
+                    <div class="editor-actions">
+                        <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
+                            @(_busy ? "Saving…" : "Save")
+                        </button>
+                        @if (!_isNew && !_confirmingDelete)
+                        {
+                            <button class="btn btn-ghost btn-danger" @onclick="() => _confirmingDelete = true">Delete</button>
+                        }
+                        @if (_confirmingDelete)
+                        {
+                            <span class="confirm-delete">
+                                Delete this post permanently?
+                                <button class="btn btn-ghost btn-danger" @onclick="DeleteAsync" disabled="@_busy">Yes, delete</button>
+                                <button class="btn btn-ghost" @onclick="() => _confirmingDelete = false">Cancel</button>
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="editor-preview">
+                    <p class="preview-label mono-small">Preview</p>
+                    <div class="prose">
+                        @((MarkupString)Markdown.ToHtml(_body))
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private bool _isNew => Id is null;
+    private bool _loading = true;
+    private bool _busy;
+    private bool _confirmingDelete;
+    private string? _error;
+
+    private Portfolio.Web.Data.BlogPost? _existing;
+    private string _title = string.Empty;
+    private string _slug = string.Empty;
+    private bool _slugEdited;
+    private string _summary = string.Empty;
+    private string _tagsText = string.Empty;
+    private string? _headerImagePath;
+    private string _body = string.Empty;
+    private bool _isPublished;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id is not null)
+        {
+            _existing = await BlogPosts.GetByIdAsync(Id.Value);
+            if (_existing is null)
+            {
+                Nav.NavigateTo("/admin/posts");
+                return;
+            }
+
+            _title = _existing.Title;
+            _slug = _existing.Slug;
+            _slugEdited = true;
+            _summary = _existing.Summary;
+            _tagsText = string.Join(", ", _existing.Tags);
+            _headerImagePath = _existing.HeaderImagePath;
+            _body = _existing.BodyMarkdown;
+            _isPublished = _existing.IsPublished;
+        }
+
+        _loading = false;
+    }
+
+    private void OnTitleInput(ChangeEventArgs e)
+    {
+        _title = e.Value?.ToString() ?? string.Empty;
+        if (!_slugEdited)
+        {
+            _slug = SlugHelper.Slugify(_title);
+        }
+    }
+
+    private void OnSlugInput(ChangeEventArgs e)
+    {
+        _slug = e.Value?.ToString() ?? string.Empty;
+        _slugEdited = !string.IsNullOrEmpty(_slug);
+    }
+
+    private void OnBodyInput(ChangeEventArgs e)
+        => _body = e.Value?.ToString() ?? string.Empty;
+
+    private async Task OnHeaderImageSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        try
+        {
+            _headerImagePath = await Uploads.SaveAsync(e.File);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = null;
+        _title = _title.Trim();
+        _slug = SlugHelper.Slugify(_slug);
+
+        if (_title.Length == 0)
+        {
+            _error = "A title is required.";
+            return;
+        }
+
+        if (_slug.Length == 0)
+        {
+            _slug = SlugHelper.Slugify(_title);
+        }
+
+        if (_slug.Length == 0)
+        {
+            _error = "A slug is required — it becomes the post's URL.";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            if (await BlogPosts.SlugExistsAsync(_slug, Id))
+            {
+                _error = $"The slug \"{_slug}\" is already used by another post.";
+                return;
+            }
+
+            var post = _existing ?? new Portfolio.Web.Data.BlogPost { Slug = _slug, Title = _title };
+            post.Slug = _slug;
+            post.Title = _title;
+            post.Summary = _summary.Trim();
+            post.Tags = _tagsText
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+            post.HeaderImagePath = _headerImagePath;
+            post.BodyMarkdown = _body;
+            post.IsPublished = _isPublished;
+
+            await BlogPosts.SaveAsync(post);
+            Nav.NavigateTo("/admin/posts");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (Id is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await BlogPosts.DeleteAsync(Id.Value);
+            Nav.NavigateTo("/admin/posts");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

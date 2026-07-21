@@ -1,0 +1,95 @@
+@page "/projects"
+@inject ProjectService ProjectStore
+@inject SiteConfig Site
+
+<PageTitle>Projects — @Site.SiteTitle</PageTitle>
+
+<section class="section page-head">
+    <div class="container">
+        <p class="eyebrow">Projects</p>
+        <h1>Things I've built</h1>
+        @if (Site.GitHubUrl is not null)
+        {
+            <p class="muted">
+                A curated selection — the full history lives on
+                <a href="@Site.GitHubUrl" rel="me noopener" target="_blank">GitHub</a>.
+            </p>
+        }
+    </div>
+</section>
+
+<section class="projects">
+    <div class="container">
+        @if (_projects is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_projects.Count == 0)
+        {
+            <p class="muted">Projects are on their way — check back soon.</p>
+        }
+        else
+        {
+            <div class="carousel-wrap">
+                <button class="carousel-btn" type="button" onclick="__scrollProjects(-1)"
+                        aria-label="Scroll to previous projects">‹</button>
+                <ul class="carousel" id="projects-carousel">
+                    @foreach (var project in _projects)
+                    {
+                        <li class="project-card">
+                            @if (!string.IsNullOrEmpty(project.HeaderImagePath))
+                            {
+                                <img class="project-image" src="@project.HeaderImagePath" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="project-image project-image-fallback" aria-hidden="true">
+                                    <span>@project.Title[..1]</span>
+                                </div>
+                            }
+                            <div class="project-body">
+                                <h3>@project.Title</h3>
+                                @if (!string.IsNullOrEmpty(project.Summary))
+                                {
+                                    <p>@project.Summary</p>
+                                }
+                                <p class="project-links">
+                                    @if (project.HomepageUrl is not null)
+                                    {
+                                        <a href="@project.HomepageUrl" rel="noopener" target="_blank">Homepage</a>
+                                    }
+                                    @if (project.HomepageUrl is not null && project.RepoUrl is not null)
+                                    {
+                                        <span aria-hidden="true">|</span>
+                                    }
+                                    @if (project.RepoUrl is not null)
+                                    {
+                                        <a href="@project.RepoUrl" rel="noopener" target="_blank">Repo</a>
+                                    }
+                                </p>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                <button class="carousel-btn" type="button" onclick="__scrollProjects(1)"
+                        aria-label="Scroll to more projects">›</button>
+            </div>
+        }
+
+        @if (Site.GitHubUrl is not null)
+        {
+            <p class="projects-cta">
+                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank">
+                    See everything on GitHub
+                </a>
+            </p>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Portfolio.Web.Data.Project>? _projects;
+
+    protected override async Task OnInitializedAsync()
+        => _projects = await ProjectStore.GetVisibleAsync();
+}

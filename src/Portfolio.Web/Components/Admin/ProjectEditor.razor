@@ -1,0 +1,193 @@
+@page "/admin/projects/new"
+@page "/admin/projects/{Id:int}/edit"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject ProjectService ProjectStore
+@inject ImageUploadService Uploads
+@inject NavigationManager Nav
+@inject SiteConfig Site
+
+<PageTitle>@(_isNew ? "New project" : "Edit project") — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container narrow-form">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>@(_isNew ? "New project" : "Edit project")</h1>
+            <a class="btn btn-ghost" href="/admin/projects">Back to projects</a>
+        </div>
+
+        @if (_loading)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else
+        {
+            @if (_error is not null)
+            {
+                <p class="alert" role="alert">@_error</p>
+            }
+
+            <label class="field">
+                <span>Title</span>
+                <input type="text" @bind="_title" />
+            </label>
+
+            <label class="field">
+                <span>Summary <span class="muted">short description on the card</span></span>
+                <textarea rows="3" maxlength="500" @bind="_summary"></textarea>
+            </label>
+
+            <label class="field">
+                <span>Homepage URL <span class="muted">optional</span></span>
+                <input type="url" @bind="_homepageUrl" placeholder="https://…" />
+            </label>
+
+            <label class="field">
+                <span>Repo URL <span class="muted">optional</span></span>
+                <input type="url" @bind="_repoUrl" placeholder="https://github.com/…" />
+            </label>
+
+            <div class="field">
+                <span>Card image <span class="muted">optional — palette placeholder otherwise</span></span>
+                @if (!string.IsNullOrEmpty(_headerImagePath))
+                {
+                    <div class="upload-preview">
+                        <img src="@_headerImagePath" alt="Card image preview" />
+                        <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
+                    </div>
+                }
+                <InputFile OnChange="OnImageSelected" accept="image/*" />
+            </div>
+
+            <label class="check-field">
+                <input type="checkbox" @bind="_isVisible" />
+                <span>Visible on the projects page</span>
+            </label>
+
+            <div class="editor-actions">
+                <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
+                    @(_busy ? "Saving…" : "Save")
+                </button>
+                @if (!_isNew && !_confirmingDelete)
+                {
+                    <button class="btn btn-ghost btn-danger" @onclick="() => _confirmingDelete = true">Delete</button>
+                }
+                @if (_confirmingDelete)
+                {
+                    <span class="confirm-delete">
+                        Delete this project permanently?
+                        <button class="btn btn-ghost btn-danger" @onclick="DeleteAsync" disabled="@_busy">Yes, delete</button>
+                        <button class="btn btn-ghost" @onclick="() => _confirmingDelete = false">Cancel</button>
+                    </span>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private bool _isNew => Id is null;
+    private bool _loading = true;
+    private bool _busy;
+    private bool _confirmingDelete;
+    private string? _error;
+
+    private Portfolio.Web.Data.Project? _existing;
+    private string _title = string.Empty;
+    private string _summary = string.Empty;
+    private string? _homepageUrl;
+    private string? _repoUrl;
+    private string? _headerImagePath;
+    private bool _isVisible = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id is not null)
+        {
+            _existing = await ProjectStore.GetByIdAsync(Id.Value);
+            if (_existing is null)
+            {
+                Nav.NavigateTo("/admin/projects");
+                return;
+            }
+
+            _title = _existing.Title;
+            _summary = _existing.Summary;
+            _homepageUrl = _existing.HomepageUrl;
+            _repoUrl = _existing.RepoUrl;
+            _headerImagePath = _existing.HeaderImagePath;
+            _isVisible = _existing.IsVisible;
+        }
+
+        _loading = false;
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        try
+        {
+            _headerImagePath = await Uploads.SaveAsync(e.File);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _error = null;
+        _title = _title.Trim();
+        if (_title.Length == 0)
+        {
+            _error = "A title is required.";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var project = _existing ?? new Portfolio.Web.Data.Project { Title = _title };
+            project.Title = _title;
+            project.Summary = _summary.Trim();
+            project.HomepageUrl = NullIfEmpty(_homepageUrl);
+            project.RepoUrl = NullIfEmpty(_repoUrl);
+            project.HeaderImagePath = _headerImagePath;
+            project.IsVisible = _isVisible;
+
+            await ProjectStore.SaveAsync(project);
+            Nav.NavigateTo("/admin/projects");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (Id is null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await ProjectStore.DeleteAsync(Id.Value);
+            Nav.NavigateTo("/admin/projects");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static string? NullIfEmpty(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+}

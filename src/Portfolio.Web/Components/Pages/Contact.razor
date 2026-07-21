@@ -1,0 +1,149 @@
+﻿@page "/contact"
+@using System.ComponentModel.DataAnnotations
+@inject ContactService ContactStore
+@inject ContactRateLimiter RateLimiter
+@inject SiteConfig Site
+
+<PageTitle>Contact — @Site.SiteTitle</PageTitle>
+
+<section class="section page-head">
+    <div class="container">
+        <p class="eyebrow">Contact</p>
+        <h1>Say hello</h1>
+    </div>
+</section>
+
+<section class="contact">
+    <div class="container contact-grid">
+        <div>
+            @if (_sent)
+            {
+                <div class="sent-note">
+                    <h2>Message sent</h2>
+                    <p class="muted">Thanks for reaching out — I read everything and reply when I can.</p>
+                    <a class="btn btn-ghost" href="/">Back to home</a>
+                </div>
+            }
+            else
+            {
+                @if (_error is not null)
+                {
+                    <p class="alert" role="alert">@_error</p>
+                }
+
+                <EditForm Model="Model" OnValidSubmit="HandleSubmitAsync" FormName="contact">
+                    <DataAnnotationsValidator />
+
+                    <label class="field">
+                        <span>Name</span>
+                        <InputText @bind-Value="Model!.Name" />
+                        <ValidationMessage For="() => Model!.Name" />
+                    </label>
+
+                    <label class="field">
+                        <span>Email <span class="muted">for the reply</span></span>
+                        <InputText @bind-Value="Model!.Email" type="email" />
+                        <ValidationMessage For="() => Model!.Email" />
+                    </label>
+
+                    <label class="field">
+                        <span>Subject</span>
+                        <InputText @bind-Value="Model!.Subject" />
+                        <ValidationMessage For="() => Model!.Subject" />
+                    </label>
+
+                    <label class="field">
+                        <span>Message</span>
+                        <InputTextArea @bind-Value="Model!.Message" rows="7" />
+                        <ValidationMessage For="() => Model!.Message" />
+                    </label>
+
+                    @* Honeypot: invisible to people, irresistible to bots. *@
+                    <div class="hp-field" aria-hidden="true">
+                        <label>
+                            Website
+                            <InputText @bind-Value="Model!.Website" tabindex="-1" autocomplete="off" />
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Send message</button>
+                </EditForm>
+            }
+        </div>
+
+        <aside class="contact-aside">
+            <p class="eyebrow">Elsewhere</p>
+            <ul class="contact-links">
+                <li><a href="mailto:@Site.ContactEmail">@Site.ContactEmail</a></li>
+                @if (Site.ContactPhone is not null)
+                {
+                    <li><a href="tel:@Site.ContactPhone">@Site.ContactPhone</a></li>
+                }
+                @if (Site.LinkedInUrl is not null)
+                {
+                    <li><a href="@Site.LinkedInUrl" rel="me noopener" target="_blank">LinkedIn</a></li>
+                }
+                @if (Site.GitHubUrl is not null)
+                {
+                    <li><a href="@Site.GitHubUrl" rel="me noopener" target="_blank">GitHub</a></li>
+                }
+            </ul>
+        </aside>
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromForm]
+    private ContactFormModel? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    private bool _sent;
+    private string? _error;
+
+    private async Task HandleSubmitAsync()
+    {
+        // Bots that fill the honeypot get a quiet "success".
+        if (!string.IsNullOrEmpty(Model!.Website))
+        {
+            _sent = true;
+            return;
+        }
+
+        var ip = HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        if (!RateLimiter.Allow(ip))
+        {
+            _error = "That's a few messages in a row — give it a little while and try again.";
+            return;
+        }
+
+        await ContactStore.SubmitAsync(Model!.Name, Model!.Email, Model!.Subject, Model!.Message);
+        _sent = true;
+    }
+
+    public class ContactFormModel
+    {
+        [Required(ErrorMessage = "Your name helps me say hello back.")]
+        [StringLength(120)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "An email address is needed for the reply.")]
+        [EmailAddress(ErrorMessage = "That doesn't look like an email address.")]
+        [StringLength(254)]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "A subject makes the inbox easier to scan.")]
+        [StringLength(200)]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "The message is the important part!")]
+        [StringLength(4000)]
+        public string Message { get; set; } = string.Empty;
+
+        public string? Website { get; set; }
+    }
+}
+

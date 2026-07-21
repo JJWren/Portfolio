@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+.git/
+.env
+.env.example
+aidlc-docs/
+README.md
+docker-compose.yml
+Dockerfile

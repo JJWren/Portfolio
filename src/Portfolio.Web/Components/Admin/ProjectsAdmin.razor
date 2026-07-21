@@ -1,0 +1,98 @@
+@page "/admin/projects"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject ProjectService ProjectStore
+@inject SiteConfig Site
+
+<PageTitle>Projects — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Projects</h1>
+            <a class="btn btn-primary" href="/admin/projects/new">New project</a>
+        </div>
+
+        @if (_projects is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (_projects.Count == 0)
+        {
+            <p class="muted">No projects yet. Add the first one.</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Project</th>
+                            <th>Links</th>
+                            <th>State</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var project in _projects)
+                        {
+                            <tr class="@(project.IsVisible ? null : "row-hidden")">
+                                <td class="order-cell">
+                                    <button class="link-button" title="Move up"
+                                            @onclick="() => MoveAsync(project.Id, -1)">↑</button>
+                                    <button class="link-button" title="Move down"
+                                            @onclick="() => MoveAsync(project.Id, 1)">↓</button>
+                                </td>
+                                <td>
+                                    <strong>@project.Title</strong>
+                                    @if (!string.IsNullOrEmpty(project.Summary))
+                                    {
+                                        <span class="comment-body-cell">@project.Summary</span>
+                                    }
+                                </td>
+                                <td class="muted mono-small">
+                                    @if (project.HomepageUrl is not null)
+                                    {
+                                        <span>home</span>
+                                    }
+                                    @if (project.RepoUrl is not null)
+                                    {
+                                        <span>repo</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (project.IsVisible)
+                                    {
+                                        <span class="badge badge-published">Visible</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-draft">Hidden</span>
+                                    }
+                                </td>
+                                <td class="actions">
+                                    <a href="/admin/projects/@project.Id/edit">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Portfolio.Web.Data.Project>? _projects;
+
+    protected override async Task OnInitializedAsync()
+        => _projects = await ProjectStore.GetAllForAdminAsync();
+
+    private async Task MoveAsync(int id, int direction)
+    {
+        await ProjectStore.MoveAsync(id, direction);
+        _projects = await ProjectStore.GetAllForAdminAsync();
+    }
+}

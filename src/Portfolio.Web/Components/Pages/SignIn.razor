@@ -1,0 +1,53 @@
+@page "/signin"
+@inject OAuthProviders Providers
+@inject SiteConfig Site
+
+<PageTitle>Sign in — @Site.SiteTitle</PageTitle>
+
+<section class="section auth-section">
+    <div class="container narrow">
+        <p class="eyebrow">Sign in</p>
+        <h1>Join the conversation</h1>
+        <p class="muted">
+            Signing in lets you comment on blog posts. No password to remember —
+            use an account you already have:
+        </p>
+
+        @if (Error is not null)
+        {
+            <p class="alert" role="alert">@ErrorMessage</p>
+        }
+
+        @if (Providers.Any)
+        {
+            <div class="provider-list">
+                @foreach (var provider in Providers.Enabled)
+                {
+                    <a class="btn btn-ghost provider-btn"
+                       href="/auth/login/@provider.Scheme?returnUrl=@Uri.EscapeDataString(ReturnUrl ?? "/")">
+                        Continue with @provider.DisplayName
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="alert">Sign-in isn't set up on this site yet — no providers are configured.</p>
+        }
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    private string ErrorMessage => Error switch
+    {
+        "noemail" => "That account didn't share an email address, which we need to sign you in. Try another provider.",
+        "create" => "We couldn't create your account. Try again, or use a different provider.",
+        _ => "Sign-in didn't complete. Please try again.",
+    };
+}

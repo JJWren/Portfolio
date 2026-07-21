@@ -1,0 +1,31 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject SiteConfig Site
+
+<PageTitle>Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <h1>Dashboard</h1>
+        <p class="muted">Manage the content on this site. More arrives as each area is built.</p>
+        <div class="admin-cards">
+            <a class="card card-link" href="/admin/posts">
+                <h3>Blog posts</h3>
+                <p class="muted">Write, edit, and publish posts.</p>
+            </a>
+            <a class="card card-link" href="/admin/projects">
+                <h3>Projects</h3>
+                <p class="muted">Curate the projects carousel.</p>
+            </a>
+            <a class="card card-link" href="/admin/comments">
+                <h3>Comments</h3>
+                <p class="muted">Moderate the conversation.</p>
+            </a>
+            <a class="card card-link" href="/admin/messages">
+                <h3>Messages</h3>
+                <p class="muted">Read contact-form messages.</p>
+            </a>
+        </div>
+    </div>
+</section>
