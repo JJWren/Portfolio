@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/JJWren/Portfolio/compare/v1.4.0...v1.5.0) (2026-07-21)
+
+
+### Features
+
+* comment reporting, moderation queue, bans, and user messages ([#11](https://github.com/JJWren/Portfolio/issues/11)) ([cc3d62f](https://github.com/JJWren/Portfolio/commit/cc3d62f88a4809f5265cfea9425161a5f2620d05))
+
 ## [1.4.0](https://github.com/JJWren/Portfolio/compare/v1.3.0...v1.4.0) (2026-07-21)
 
 
