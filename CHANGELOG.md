@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/JJWren/Portfolio/compare/v1.1.0...v1.2.0) (2026-07-21)
+
+
+### Features
+
+* official logo, mobile hamburger nav, and local-time timestamps ([#5](https://github.com/JJWren/Portfolio/issues/5)) ([9aa89c9](https://github.com/JJWren/Portfolio/commit/9aa89c9bbbd43e71ff5b6d15fb9e63c457ca8d18))
+
 ## [1.1.0](https://github.com/JJWren/Portfolio/compare/v1.0.0...v1.1.0) (2026-07-21)
 
 
