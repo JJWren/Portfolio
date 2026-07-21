@@ -100,6 +100,13 @@
                 </li>
             }
         </ul>
+
+        @if (_comments.Count < _totalComments)
+        {
+            <button class="btn btn-ghost show-more" @onclick="ShowMoreAsync" disabled="@_busy">
+                Show more (@(_totalComments - _comments.Count) remaining)
+            </button>
+        }
     }
 
     @if (_userId is not null && _isBanned)
@@ -149,6 +156,8 @@
     private Task<AuthenticationState>? AuthState { get; set; }
 
     private List<Portfolio.Web.Data.Comment>? _comments;
+    private int _visibleTake = PageSizes.Comments;
+    private int _totalComments;
     private string? _userId;
     private bool _isAdmin;
     private bool _isBanned;
@@ -183,7 +192,7 @@
             _isBanned = profile?.IsBanned ?? false;
         }
 
-        _comments = await Comments.GetVisibleForPostAsync(PostId);
+        await LoadCommentsAsync();
     }
 
     private async Task SubmitAsync()
@@ -201,13 +210,28 @@
             if (comment is not null)
             {
                 _draft = string.Empty;
-                _comments = await Comments.GetVisibleForPostAsync(PostId);
+                // The new comment sorts last; widen the window so its author sees it.
+                _visibleTake = Math.Max(_visibleTake, _totalComments + 1);
+                await LoadCommentsAsync();
             }
         }
         finally
         {
             _busy = false;
         }
+    }
+
+    private async Task LoadCommentsAsync()
+    {
+        var (items, total) = await Comments.GetVisibleForPostWindowAsync(PostId, _visibleTake);
+        _comments = items;
+        _totalComments = total;
+    }
+
+    private async Task ShowMoreAsync()
+    {
+        _visibleTake += PageSizes.Comments;
+        await LoadCommentsAsync();
     }
 
     private void ToggleReportForm(int commentId)
@@ -262,6 +286,6 @@
         }
 
         await Comments.DeleteAsync(commentId, _userId, _isAdmin);
-        _comments = await Comments.GetVisibleForPostAsync(PostId);
+        await LoadCommentsAsync();
     }
 }

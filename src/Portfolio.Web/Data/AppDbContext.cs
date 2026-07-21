@@ -32,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<BlogPost>(post =>
         {
             post.HasIndex(p => p.Slug).IsUnique();
+            post.HasIndex(p => new { p.IsPublished, p.PublishedAt });
             post.Property(p => p.Slug).HasMaxLength(160);
             post.Property(p => p.Title).HasMaxLength(200);
             post.Property(p => p.Summary).HasMaxLength(500);

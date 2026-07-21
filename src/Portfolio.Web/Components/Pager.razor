@@ -1,0 +1,85 @@
+@typeparam TItem
+
+@* Link-based pager for statically rendered pages: every target is a plain
+   href built by the caller so filters survive and no JS is required. *@
+@if (Result.TotalPages > 1)
+{
+    <nav class="pager" aria-label="Pagination">
+        @if (Result.Page > 1)
+        {
+            <a class="pager-link" href="@HrefFor(Result.Page - 1)" rel="prev">‹</a>
+        }
+        else
+        {
+            <span class="pager-link disabled" aria-hidden="true">‹</span>
+        }
+
+        @foreach (var number in PageNumbers())
+        {
+            @if (number is null)
+            {
+                <span class="pager-link disabled" aria-hidden="true">…</span>
+            }
+            else if (number == Result.Page)
+            {
+                <span class="pager-link current" aria-current="page">@number</span>
+            }
+            else
+            {
+                <a class="pager-link" href="@HrefFor(number.Value)">@number</a>
+            }
+        }
+
+        @if (Result.HasMore)
+        {
+            <a class="pager-link" href="@HrefFor(Result.Page + 1)" rel="next">›</a>
+        }
+        else
+        {
+            <span class="pager-link disabled" aria-hidden="true">›</span>
+        }
+    </nav>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required PagedResult<TItem> Result { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<int, string> HrefFor { get; set; }
+
+    /// <summary>Full run for ≤7 pages; otherwise first/last plus a window around
+    /// the current page, with nulls where an ellipsis belongs.</summary>
+    private IEnumerable<int?> PageNumbers()
+    {
+        var total = Result.TotalPages;
+        if (total <= 7)
+        {
+            for (var i = 1; i <= total; i++)
+            {
+                yield return i;
+            }
+            yield break;
+        }
+
+        var window = new SortedSet<int> { 1, total };
+        for (var i = Result.Page - 1; i <= Result.Page + 1; i++)
+        {
+            if (i >= 1 && i <= total)
+            {
+                window.Add(i);
+            }
+        }
+
+        int? previous = null;
+        foreach (var number in window)
+        {
+            if (previous is not null && number - previous > 1)
+            {
+                yield return null;
+            }
+            yield return number;
+            previous = number;
+        }
+    }
+}

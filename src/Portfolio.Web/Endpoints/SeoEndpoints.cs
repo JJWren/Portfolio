@@ -11,7 +11,7 @@ public static class SeoEndpoints
         app.MapGet("/feed.xml", async (HttpContext ctx, BlogService blog, SiteConfig site, IConfiguration config) =>
         {
             var baseUrl = BaseUrl(ctx, config);
-            var posts = await blog.GetPublishedAsync();
+            var posts = (await blog.GetPublishedPageAsync(1, pageSize: 20)).Items;
 
             XNamespace atom = "http://www.w3.org/2005/Atom";
             var channel = new XElement("channel",
@@ -54,11 +54,11 @@ public static class SeoEndpoints
                 urls.Add(new XElement(ns + "url", new XElement(ns + "loc", $"{baseUrl}{path.TrimEnd('/')}")));
             }
 
-            foreach (var post in await blog.GetPublishedAsync())
+            foreach (var (slug, updatedAt) in await blog.GetPublishedSlugsAsync())
             {
                 urls.Add(new XElement(ns + "url",
-                    new XElement(ns + "loc", $"{baseUrl}/blog/{post.Slug}"),
-                    new XElement(ns + "lastmod", post.UpdatedAt.ToString("yyyy-MM-dd"))));
+                    new XElement(ns + "loc", $"{baseUrl}/blog/{slug}"),
+                    new XElement(ns + "lastmod", updatedAt.ToString("yyyy-MM-dd"))));
             }
 
             var sitemap = new XDocument(new XElement(ns + "urlset", urls));
