@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/JJWren/Portfolio/compare/v1.0.0...v1.1.0) (2026-07-21)
+
+
+### Features
+
+* user profiles with display names, avatars, and anonymous commenting ([#4](https://github.com/JJWren/Portfolio/issues/4)) ([5c5e904](https://github.com/JJWren/Portfolio/commit/5c5e904843e4e716d974819ae755abdcbd13f5e3))
+
+
+### Bug Fixes
+
+* heading focus outline and theme persistence across enhanced navigation ([#2](https://github.com/JJWren/Portfolio/issues/2)) ([f0b7ec1](https://github.com/JJWren/Portfolio/commit/f0b7ec129905c94954d24f7f68e6cc8a0e8bc49f))
+
 ## 1.0.0 (2026-07-21)
 
 
