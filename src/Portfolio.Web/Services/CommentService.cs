@@ -5,14 +5,19 @@ namespace Portfolio.Web.Services;
 
 public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
 {
-    public async Task<List<Comment>> GetVisibleForPostAsync(int postId)
+    /// <summary>Oldest-first window for incremental "show more" loading.</summary>
+    public async Task<(List<Comment> Items, int TotalCount)> GetVisibleForPostWindowAsync(int postId, int take)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Comments.AsNoTracking()
+        var visible = db.Comments.AsNoTracking()
+            .Where(c => c.BlogPostId == postId && !c.IsHidden);
+        var total = await visible.CountAsync();
+        var items = await visible
             .Include(c => c.User)
-            .Where(c => c.BlogPostId == postId && !c.IsHidden)
             .OrderBy(c => c.CreatedAt)
+            .Take(take)
             .ToListAsync();
+        return (items, total);
     }
 
     public async Task<List<Comment>> GetAllForAdminAsync()

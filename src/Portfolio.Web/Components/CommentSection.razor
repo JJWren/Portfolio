@@ -100,6 +100,13 @@
                 </li>
             }
         </ul>
+
+        @if (_comments.Count < _totalComments)
+        {
+            <button class="btn btn-ghost show-more" @onclick="ShowMoreAsync" disabled="@_busy">
+                Show more (@(_totalComments - _comments.Count) remaining)
+            </button>
+        }
     }
 
     @if (_userId is not null && _isBanned)
@@ -149,6 +156,12 @@
     private Task<AuthenticationState>? AuthState { get; set; }
 
     private List<Portfolio.Web.Data.Comment>? _comments;
+    // Own comments posted this session that sit beyond the loaded window;
+    // shown appended at the end and absorbed once the window reaches them.
+    private readonly List<Portfolio.Web.Data.Comment> _appendedOwn = [];
+    private Portfolio.Web.Data.ApplicationUser? _profile;
+    private int _visibleTake = PageSizes.Comments;
+    private int _totalComments;
     private string? _userId;
     private bool _isAdmin;
     private bool _isBanned;
@@ -178,12 +191,12 @@
 
         if (_userId is not null)
         {
-            var profile = await Profiles.GetAsync(_userId);
-            _postAnonymously = profile?.PostAnonymouslyByDefault ?? false;
-            _isBanned = profile?.IsBanned ?? false;
+            _profile = await Profiles.GetAsync(_userId);
+            _postAnonymously = _profile?.PostAnonymouslyByDefault ?? false;
+            _isBanned = _profile?.IsBanned ?? false;
         }
 
-        _comments = await Comments.GetVisibleForPostAsync(PostId);
+        await LoadCommentsAsync();
     }
 
     private async Task SubmitAsync()
@@ -201,8 +214,42 @@
             if (comment is not null)
             {
                 _draft = string.Empty;
-                _comments = await Comments.GetVisibleForPostAsync(PostId);
+                // The new comment sorts last (beyond the loaded window on long
+                // threads); append it locally instead of loading the whole thread.
+                if (_profile is not null)
+                {
+                    comment.User = _profile;
+                    _appendedOwn.Add(comment);
+                }
+                await LoadCommentsAsync();
             }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task LoadCommentsAsync()
+    {
+        var (items, total) = await Comments.GetVisibleForPostWindowAsync(PostId, _visibleTake);
+        _appendedOwn.RemoveAll(a => items.Any(i => i.Id == a.Id)); // absorbed by the window
+        _comments = [.. items, .. _appendedOwn];
+        _totalComments = total;
+    }
+
+    private async Task ShowMoreAsync()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            _visibleTake += PageSizes.Comments;
+            await LoadCommentsAsync();
         }
         finally
         {
@@ -262,6 +309,7 @@
         }
 
         await Comments.DeleteAsync(commentId, _userId, _isAdmin);
-        _comments = await Comments.GetVisibleForPostAsync(PostId);
+        _appendedOwn.RemoveAll(a => a.Id == commentId);
+        await LoadCommentsAsync();
     }
 }

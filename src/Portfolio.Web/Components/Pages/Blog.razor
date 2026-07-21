@@ -14,17 +14,57 @@
 
 <section class="post-list">
     <div class="container">
-        @if (_posts is null)
+        <form class="blog-filters" method="get" action="/blog">
+            <input type="text" name="q" value="@Q" placeholder="Search title or description…"
+                   aria-label="Search posts" />
+            <select name="month" aria-label="Filter by month">
+                <option value="">All months</option>
+                @foreach (var month in _months)
+                {
+                    <option value="@month" selected="@(month == Month)">@MonthLabel(month)</option>
+                }
+            </select>
+            @if (!string.IsNullOrEmpty(Tag))
+            {
+                <input type="hidden" name="tag" value="@Tag" />
+            }
+            <button class="btn btn-primary" type="submit">Filter</button>
+        </form>
+
+        @if (HasActiveFilters)
+        {
+            <p class="filter-chips">
+                @if (!string.IsNullOrEmpty(Q))
+                {
+                    <a class="filter-chip" href="@BuildHref(1, q: null)">search: "@Q" ✕</a>
+                }
+                @if (!string.IsNullOrEmpty(Month))
+                {
+                    <a class="filter-chip" href="@BuildHref(1, month: null)">@MonthLabel(Month) ✕</a>
+                }
+                @if (!string.IsNullOrEmpty(Tag))
+                {
+                    <a class="filter-chip" href="@BuildHref(1, tag: null)">tag: @Tag ✕</a>
+                }
+                <a class="filter-chip clear-all" href="/blog">clear all</a>
+            </p>
+        }
+
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_posts.Count == 0)
+        else if (_result.TotalCount == 0)
         {
-            <p class="muted">Nothing published yet — check back soon.</p>
+            <p class="muted">
+                @(HasActiveFilters
+                    ? "No posts match those filters — try loosening them."
+                    : "Nothing published yet — check back soon.")
+            </p>
         }
         else
         {
-            @foreach (var post in _posts)
+            @foreach (var post in _result.Items)
             {
                 <article class="post-card @(string.IsNullOrEmpty(post.HeaderImagePath) ? null : "has-image")">
                     <div class="post-card-text">
@@ -45,7 +85,7 @@
                             <ul class="tags">
                                 @foreach (var tag in post.Tags)
                                 {
-                                    <li>@tag</li>
+                                    <li><a href="/blog?tag=@Uri.EscapeDataString(tag)">@tag</a></li>
                                 }
                             </ul>
                         }
@@ -58,13 +98,70 @@
                     }
                 </article>
             }
+
+            <Pager TItem="Portfolio.Web.Data.BlogPost" Result="_result" HrefFor="page => BuildHref(page)" />
         }
     </div>
 </section>
 
 @code {
-    private List<Portfolio.Web.Data.BlogPost>? _posts;
+    [SupplyParameterFromQuery(Name = "page")]
+    public int? PageNumber { get; set; }
+
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Q { get; set; }
+
+    [SupplyParameterFromQuery(Name = "month")]
+    public string? Month { get; set; }
+
+    [SupplyParameterFromQuery(Name = "tag")]
+    public string? Tag { get; set; }
+
+    private PagedResult<Portfolio.Web.Data.BlogPost>? _result;
+    private List<string> _months = [];
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrEmpty(Q) || !string.IsNullOrEmpty(Month) || !string.IsNullOrEmpty(Tag);
 
     protected override async Task OnInitializedAsync()
-        => _posts = await BlogPosts.GetPublishedAsync();
+        => _months = await BlogPosts.GetPublishedMonthsAsync();
+
+    // Query parameters land here, so the result refreshes on querystring
+    // changes even if this page is ever made interactive.
+    protected override async Task OnParametersSetAsync()
+        => _result = await BlogPosts.GetPublishedPageAsync(PageNumber ?? 1, Q, Month, Tag);
+
+    private static string MonthLabel(string month)
+        => BlogFilters.TryParseMonth(month, out var start, out _)
+            ? start.ToString("MMMM yyyy")
+            : month;
+
+    private const string Keep = "\0";
+
+    /// <summary>Builds /blog hrefs preserving filters; pass an explicit null to drop one.</summary>
+    private string BuildHref(int page, string? q = Keep, string? month = Keep, string? tag = Keep)
+    {
+        var parameters = new Dictionary<string, string?>();
+        var effectiveQ = q == Keep ? Q : q;
+        var effectiveMonth = month == Keep ? Month : month;
+        var effectiveTag = tag == Keep ? Tag : tag;
+        if (page > 1)
+        {
+            parameters["page"] = page.ToString();
+        }
+        if (!string.IsNullOrEmpty(effectiveQ))
+        {
+            parameters["q"] = effectiveQ;
+        }
+        if (!string.IsNullOrEmpty(effectiveMonth))
+        {
+            parameters["month"] = effectiveMonth;
+        }
+        if (!string.IsNullOrEmpty(effectiveTag))
+        {
+            parameters["tag"] = effectiveTag;
+        }
+
+        return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString("/blog", parameters);
+    }
 }
