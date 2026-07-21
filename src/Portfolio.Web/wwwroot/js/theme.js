@@ -6,6 +6,9 @@
     function currentTheme() {
         var stored = null;
         try { stored = localStorage.getItem('theme'); } catch (e) { /* storage blocked */ }
+        if (stored !== 'light' && stored !== 'dark') {
+            stored = null; // ignore corrupted/unknown values
+        }
         return stored ||
             (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
     }

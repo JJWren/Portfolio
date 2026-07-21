@@ -191,7 +191,13 @@
 
     private async Task ToggleOpenOnlyAsync(ChangeEventArgs e)
     {
-        _openOnly = e.Value is true;
+        // Checkbox change values can arrive as bool or the string "true".
+        _openOnly = e.Value switch
+        {
+            bool b => b,
+            string s => bool.TryParse(s, out var parsed) && parsed,
+            _ => false,
+        };
         await ReloadAsync();
     }
 

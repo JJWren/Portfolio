@@ -48,8 +48,10 @@ public class AvatarServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task SaveAsync_ReplacesThePreviousAvatar()
+    public async Task Delete_KeepsOnlyTheExceptedFile()
     {
+        // SaveAsync intentionally keeps old files; the caller deletes them
+        // after its own bookkeeping succeeds (see ProfileService.SetAvatarAsync).
         var service = CreateService();
 
         await using (var first = PngImage(300, 300))
@@ -60,9 +62,22 @@ public class AvatarServiceTests : IDisposable
         await using var second = PngImage(300, 300);
         var newPath = await service.SaveAsync(second, "user-2");
 
-        var files = Directory.GetFiles(Path.Combine(_tempDir, "avatars"), "user-2-*.webp");
+        service.Delete("user-2", exceptFileName: Path.GetFileName(newPath));
+
+        var files = Directory.GetFiles(Path.Combine(_tempDir, "avatars"), "*.webp")
+            .Where(f => Path.GetFileName(f).StartsWith("user-2-", StringComparison.Ordinal))
+            .ToArray();
         Assert.Single(files);
         Assert.Equal(Path.GetFileName(newPath), Path.GetFileName(files[0]));
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsStreamsOverTheSizeLimit()
+    {
+        var service = CreateService();
+
+        await using var oversized = new MemoryStream(new byte[AvatarService.MaxBytes + 1]);
+        await Assert.ThrowsAsync<IOException>(() => service.SaveAsync(oversized, "user-5"));
     }
 
     [Fact]

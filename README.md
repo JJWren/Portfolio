@@ -94,8 +94,8 @@ Requires the .NET 10 SDK (pinned in `global.json`). EF migrations:
 
 ## License & sponsoring
 
-MIT — see [`LICENSE`](LICENSE). The site ships built-in [terms](/terms) and
-[privacy](/privacy) pages that describe exactly what the software stores,
+MIT — see [`LICENSE`](LICENSE). The site ships built-in `/terms` and
+`/privacy` pages that describe exactly what the software stores,
 auto-personalized from your `.env`.
 
 If this project is useful to you, you can
