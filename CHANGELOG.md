@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/JJWren/Portfolio/compare/v1.3.0...v1.4.0) (2026-07-21)
+
+
+### Features
+
+* blog list images and admin edit shortcut ([#9](https://github.com/JJWren/Portfolio/issues/9)) ([26297fd](https://github.com/JJWren/Portfolio/commit/26297fdf3671dff7d3d0bea8427e6a4c9792cd4d))
+
 ## [1.3.0](https://github.com/JJWren/Portfolio/compare/v1.2.0...v1.3.0) (2026-07-21)
 
 
