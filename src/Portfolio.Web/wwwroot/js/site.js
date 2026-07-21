@@ -1,13 +1,17 @@
-// Re-run syntax highlighting after Blazor enhanced navigations swap the DOM.
+// After Blazor enhanced navigations swap the DOM: restore the theme attribute
+// (the merged server markup doesn't carry data-theme) and re-run highlighting.
 (function () {
-    function highlightAll() {
+    function onEnhancedLoad() {
+        if (window.__applyTheme) {
+            window.__applyTheme();
+        }
         if (window.Prism) {
             window.Prism.highlightAll();
         }
     }
 
     if (window.Blazor && window.Blazor.addEventListener) {
-        window.Blazor.addEventListener('enhancedload', highlightAll);
+        window.Blazor.addEventListener('enhancedload', onEnhancedLoad);
     }
 
     window.__scrollProjects = function (direction) {
