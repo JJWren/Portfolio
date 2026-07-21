@@ -77,20 +77,44 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
         return (report, null);
     }
 
-    public async Task<List<Report>> GetAllForAdminAsync(bool openOnly)
+    public async Task<PagedResult<Report>> GetAdminPageAsync(
+        int page, bool openOnly, string? reason = null, string? targetSearch = null)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        var query = db.Reports.AsNoTracking()
+        var reports = db.Reports.AsNoTracking().AsQueryable();
+        if (openOnly)
+        {
+            reports = reports.Where(r => r.Status == ReportStatus.Open);
+        }
+
+        reason = BlogFilters.Normalize(reason);
+        if (reason is not null)
+        {
+            reports = reports.Where(r => r.Reason == reason);
+        }
+
+        targetSearch = BlogFilters.Normalize(targetSearch);
+        if (targetSearch is not null)
+        {
+            var pattern = $"%{BlogFilters.EscapeLike(targetSearch)}%";
+            reports = reports.Where(r =>
+                (r.TargetUser.DisplayName != null && EF.Functions.ILike(r.TargetUser.DisplayName, pattern, "\\"))
+                || (r.TargetUser.CustomDisplayName != null && EF.Functions.ILike(r.TargetUser.CustomDisplayName, pattern, "\\"))
+                || (r.TargetUser.Email != null && EF.Functions.ILike(r.TargetUser.Email, pattern, "\\")));
+        }
+
+        var total = await reports.CountAsync();
+        page = PagedResult<Report>.ClampPage(page, total, PageSizes.Admin);
+        var items = await reports
             .Include(r => r.Reporter)
             .Include(r => r.TargetUser)
             .Include(r => r.Comment!).ThenInclude(c => c.BlogPost)
-            .AsQueryable();
-        if (openOnly)
-        {
-            query = query.Where(r => r.Status == ReportStatus.Open);
-        }
-
-        return await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
+            .OrderByDescending(r => r.CreatedAt)
+            .ThenByDescending(r => r.Id)
+            .Skip((page - 1) * PageSizes.Admin)
+            .Take(PageSizes.Admin)
+            .ToListAsync();
+        return new PagedResult<Report>(items, page, PageSizes.Admin, total);
     }
 
     public async Task<int> OpenCountAsync()
@@ -99,13 +123,19 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
         return await db.Reports.CountAsync(r => r.Status == ReportStatus.Open);
     }
 
-    public async Task<List<Report>> GetMineAsync(string userId)
+    public async Task<PagedResult<Report>> GetMinePageAsync(string userId, int page)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Reports.AsNoTracking()
-            .Where(r => r.ReporterId == userId)
+        var mine = db.Reports.AsNoTracking().Where(r => r.ReporterId == userId);
+        var total = await mine.CountAsync();
+        page = PagedResult<Report>.ClampPage(page, total, PageSizes.Admin);
+        var items = await mine
             .OrderByDescending(r => r.CreatedAt)
+            .ThenByDescending(r => r.Id)
+            .Skip((page - 1) * PageSizes.Admin)
+            .Take(PageSizes.Admin)
             .ToListAsync();
+        return new PagedResult<Report>(items, page, PageSizes.Admin, total);
     }
 
     /// <summary>Closes a report; an optional note is delivered to the reporter's inbox.</summary>

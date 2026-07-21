@@ -14,7 +14,7 @@
             <span class="pager-link disabled" aria-hidden="true">‹</span>
         }
 
-        @foreach (var number in PageNumbers())
+        @foreach (var number in PagerWindow.Numbers(Result.Page, Result.TotalPages))
         {
             @if (number is null)
             {
@@ -47,39 +47,4 @@
 
     [Parameter, EditorRequired]
     public required Func<int, string> HrefFor { get; set; }
-
-    /// <summary>Full run for ≤7 pages; otherwise first/last plus a window around
-    /// the current page, with nulls where an ellipsis belongs.</summary>
-    private IEnumerable<int?> PageNumbers()
-    {
-        var total = Result.TotalPages;
-        if (total <= 7)
-        {
-            for (var i = 1; i <= total; i++)
-            {
-                yield return i;
-            }
-            yield break;
-        }
-
-        var window = new SortedSet<int> { 1, total };
-        for (var i = Result.Page - 1; i <= Result.Page + 1; i++)
-        {
-            if (i >= 1 && i <= total)
-            {
-                window.Add(i);
-            }
-        }
-
-        int? previous = null;
-        foreach (var number in window)
-        {
-            if (previous is not null && number - previous > 1)
-            {
-                yield return null;
-            }
-            yield return number;
-            previous = number;
-        }
-    }
 }

@@ -22,12 +22,36 @@ public class ContactService(IDbContextFactory<AppDbContext> dbFactory, EmailServ
         await email.TrySendContactNotificationAsync(name, senderEmail, subject, body);
     }
 
-    public async Task<List<ContactMessage>> GetAllAsync()
+    public async Task<PagedResult<ContactMessage>> GetAdminPageAsync(
+        int page, string? search = null, bool? isRead = null)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
-        return await db.ContactMessages.AsNoTracking()
+        var messages = db.ContactMessages.AsNoTracking().AsQueryable();
+
+        search = BlogFilters.Normalize(search);
+        if (search is not null)
+        {
+            var pattern = $"%{BlogFilters.EscapeLike(search)}%";
+            messages = messages.Where(m =>
+                EF.Functions.ILike(m.Name, pattern, "\\")
+                || EF.Functions.ILike(m.Email, pattern, "\\")
+                || EF.Functions.ILike(m.Subject, pattern, "\\"));
+        }
+
+        if (isRead is not null)
+        {
+            messages = messages.Where(m => m.IsRead == isRead);
+        }
+
+        var total = await messages.CountAsync();
+        page = PagedResult<ContactMessage>.ClampPage(page, total, PageSizes.Admin);
+        var items = await messages
             .OrderByDescending(m => m.ReceivedAt)
+            .ThenByDescending(m => m.Id)
+            .Skip((page - 1) * PageSizes.Admin)
+            .Take(PageSizes.Admin)
             .ToListAsync();
+        return new PagedResult<ContactMessage>(items, page, PageSizes.Admin, total);
     }
 
     public async Task SetReadAsync(int id, bool read)

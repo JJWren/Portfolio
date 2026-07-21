@@ -1,0 +1,43 @@
+@typeparam TItem
+
+@* Callback-based pager for interactive views. *@
+@if (Result.TotalPages > 1)
+{
+    <nav class="pager" aria-label="Pagination">
+        <button type="button" class="pager-link" disabled="@(Result.Page <= 1)"
+                @onclick="() => GoAsync(Result.Page - 1)" aria-label="Previous page">‹</button>
+
+        @foreach (var number in PagerWindow.Numbers(Result.Page, Result.TotalPages))
+        {
+            @if (number is null)
+            {
+                <span class="pager-link disabled" aria-hidden="true">…</span>
+            }
+            else if (number == Result.Page)
+            {
+                <span class="pager-link current" aria-current="page">@number</span>
+            }
+            else
+            {
+                var target = number.Value;
+                <button type="button" class="pager-link" @onclick="() => GoAsync(target)">@target</button>
+            }
+        }
+
+        <button type="button" class="pager-link" disabled="@(!Result.HasMore)"
+                @onclick="() => GoAsync(Result.Page + 1)" aria-label="Next page">›</button>
+    </nav>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required PagedResult<TItem> Result { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPage { get; set; }
+
+    private Task GoAsync(int page)
+        => page >= 1 && page <= Result.TotalPages && page != Result.Page
+            ? OnPage.InvokeAsync(page)
+            : Task.CompletedTask;
+}

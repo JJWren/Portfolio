@@ -643,6 +643,19 @@ a.pager-link:hover {
     opacity: 0.45;
 }
 
+button.pager-link {
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+}
+
+button.pager-link:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
 .show-more {
     margin-top: 0.5rem;
 }

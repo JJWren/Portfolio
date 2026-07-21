@@ -12,18 +12,18 @@
         <p class="eyebrow">Reports</p>
         <h1>Reports you've filed</h1>
 
-        @if (_reports is null)
+        @if (_result is null)
         {
             <p class="muted">Loading…</p>
         }
-        else if (_reports.Count == 0)
+        else if (_result.TotalCount == 0)
         {
             <p class="muted">You haven't reported anything.</p>
         }
         else
         {
             <ul class="inbox">
-                @foreach (var report in _reports)
+                @foreach (var report in _result.Items)
                 {
                     <li class="inbox-item">
                         <button class="inbox-summary" @onclick="() => ToggleAsync(report)">
@@ -84,6 +84,8 @@
                     </li>
                 }
             </ul>
+
+            <PagerControls TItem="Portfolio.Web.Data.Report" Result="_result" OnPage="GoToPageAsync" />
         }
     </div>
 </section>
@@ -92,8 +94,9 @@
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
 
-    private List<Portfolio.Web.Data.Report>? _reports;
+    private PagedResult<Portfolio.Web.Data.Report>? _result;
     private List<Portfolio.Web.Data.UserMessage>? _responses;
+    private int _page = 1;
     private string? _userId;
     private int? _expandedId;
 
@@ -107,7 +110,17 @@
 
         if (_userId is not null)
         {
-            _reports = await Reports.GetMineAsync(_userId);
+            _result = await Reports.GetMinePageAsync(_userId, _page);
+        }
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        _expandedId = null;
+        if (_userId is not null)
+        {
+            _result = await Reports.GetMinePageAsync(_userId, _page);
         }
     }
 
