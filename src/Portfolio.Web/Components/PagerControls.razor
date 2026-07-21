@@ -33,7 +33,7 @@
     [Parameter, EditorRequired]
     public required PagedResult<TItem> Result { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public EventCallback<int> OnPage { get; set; }
 
     private Task GoAsync(int page)
