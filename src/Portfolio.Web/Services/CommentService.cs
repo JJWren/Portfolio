@@ -39,7 +39,7 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
 
         if (hidden is not null)
         {
-            comments = comments.Where(c => c.IsHidden == hidden);
+            comments = comments.Where(c => c.IsHidden == hidden.Value);
         }
 
         if (postId is not null)

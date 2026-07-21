@@ -40,7 +40,7 @@ public class ContactService(IDbContextFactory<AppDbContext> dbFactory, EmailServ
 
         if (isRead is not null)
         {
-            messages = messages.Where(m => m.IsRead == isRead);
+            messages = messages.Where(m => m.IsRead == isRead.Value);
         }
 
         var total = await messages.CountAsync();

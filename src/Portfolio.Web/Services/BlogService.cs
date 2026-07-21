@@ -102,7 +102,7 @@ public class BlogService(IDbContextFactory<AppDbContext> dbFactory)
 
         if (published is not null)
         {
-            posts = posts.Where(p => p.IsPublished == published);
+            posts = posts.Where(p => p.IsPublished == published.Value);
         }
 
         var total = await posts.CountAsync();
