@@ -25,6 +25,8 @@ builder.Services.AddSingleton<ContactRateLimiter>();
 builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton<ContactService>();
 builder.Services.AddSingleton<ImageUploadService>();
+builder.Services.AddSingleton<AvatarService>();
+builder.Services.AddSingleton<ProfileService>();
 
 // Factory for interactive components; scoped context for Identity stores.
 builder.Services.AddDbContextFactory<AppDbContext>(options =>

@@ -18,6 +18,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<ApplicationUser>(user =>
+        {
+            user.Property(u => u.CustomDisplayName).HasMaxLength(40);
+            user.Property(u => u.AvatarUrl).HasMaxLength(400);
+        });
+
         builder.Entity<BlogPost>(post =>
         {
             post.HasIndex(p => p.Slug).IsUnique();

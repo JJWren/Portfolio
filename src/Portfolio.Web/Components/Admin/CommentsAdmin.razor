@@ -40,6 +40,10 @@
                             <tr class="@(comment.IsHidden ? "row-hidden" : null)">
                                 <td>
                                     <strong>@(comment.User.DisplayName ?? comment.User.Email)</strong>
+                                    @if (comment.IsAnonymous)
+                                    {
+                                        <span class="badge badge-draft" title="Shown publicly as Anonymous">Anonymous</span>
+                                    }
                                     <span class="comment-body-cell">@comment.Body</span>
                                 </td>
                                 <td><a href="/blog/@comment.BlogPost.Slug">@comment.BlogPost.Title</a></td>
