@@ -43,6 +43,9 @@ else if (_post is not null)
                         }
                     </ul>
                 }
+                <AuthorizeView Roles="Admin">
+                    <a class="btn btn-ghost edit-post-link" href="/admin/posts/@_post.Id/edit">Edit post</a>
+                </AuthorizeView>
             </div>
         </header>
 

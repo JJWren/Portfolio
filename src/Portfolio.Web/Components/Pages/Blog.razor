@@ -26,27 +26,35 @@
         {
             @foreach (var post in _posts)
             {
-                <article class="post-card">
-                    <h3><a href="/blog/@post.Slug">@post.Title</a></h3>
-                    <p class="post-meta">
-                        <time datetime="@post.PublishedAt?.ToString("o")" data-local="date">
-                            @post.PublishedAt?.ToString("MMMM d, yyyy")
-                        </time>
-                        <span aria-hidden="true">·</span>
-                        <span>@Markdown.ReadingTimeMinutes(post.BodyMarkdown) min read</span>
-                    </p>
-                    @if (!string.IsNullOrEmpty(post.Summary))
+                <article class="post-card @(string.IsNullOrEmpty(post.HeaderImagePath) ? null : "has-image")">
+                    <div class="post-card-text">
+                        <h3><a href="/blog/@post.Slug">@post.Title</a></h3>
+                        <p class="post-meta">
+                            <time datetime="@post.PublishedAt?.ToString("o")" data-local="date">
+                                @post.PublishedAt?.ToString("MMMM d, yyyy")
+                            </time>
+                            <span aria-hidden="true">·</span>
+                            <span>@Markdown.ReadingTimeMinutes(post.BodyMarkdown) min read</span>
+                        </p>
+                        @if (!string.IsNullOrEmpty(post.Summary))
+                        {
+                            <p class="post-summary">@post.Summary</p>
+                        }
+                        @if (post.Tags.Count > 0)
+                        {
+                            <ul class="tags">
+                                @foreach (var tag in post.Tags)
+                                {
+                                    <li>@tag</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(post.HeaderImagePath))
                     {
-                        <p class="post-summary">@post.Summary</p>
-                    }
-                    @if (post.Tags.Count > 0)
-                    {
-                        <ul class="tags">
-                            @foreach (var tag in post.Tags)
-                            {
-                                <li>@tag</li>
-                            }
-                        </ul>
+                        <a class="post-card-thumb" href="/blog/@post.Slug" tabindex="-1" aria-hidden="true">
+                            <img src="@post.HeaderImagePath" alt="" loading="lazy" />
+                        </a>
                     }
                 </article>
             }
