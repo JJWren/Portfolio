@@ -43,7 +43,13 @@
         }
         else if (_result.TotalCount == 0)
         {
-            <p class="muted">@(_openOnly ? "No open reports — the queue is clear." : "No reports match.")</p>
+            <p class="muted">
+                @(HasFilters
+                    ? "No reports match those filters."
+                    : _openOnly
+                        ? "No open reports — the queue is clear."
+                        : "No reports have ever been filed.")
+            </p>
         }
         else
         {
@@ -183,6 +189,8 @@
     private int? _expandedId;
     private string? _status;
     private bool _busy;
+
+    private bool HasFilters => _reason.Length > 0 || !string.IsNullOrWhiteSpace(_targetSearch);
 
     private int? _composeForId;
     private string _composeBody = string.Empty;

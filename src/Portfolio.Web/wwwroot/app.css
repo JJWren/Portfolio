@@ -656,6 +656,11 @@ button.pager-link:disabled {
     cursor: default;
 }
 
+button.pager-link:not(:disabled):hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
 .show-more {
     margin-top: 0.5rem;
 }
