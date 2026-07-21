@@ -87,6 +87,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .HasForeignKey(r => r.CommentId)
                 .OnDelete(DeleteBehavior.SetNull);
             report.HasIndex(r => r.Status);
+            // Plain ReporterId index serves all-status queries (GetMineAsync);
+            // the filtered composites below can't, since they only cover open rows.
+            report.HasIndex(r => r.ReporterId);
             // Partial unique indexes back up the app-level duplicate check so
             // concurrent submissions can't create duplicate open reports.
             report.HasIndex(r => new { r.ReporterId, r.CommentId })

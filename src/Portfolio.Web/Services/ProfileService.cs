@@ -27,9 +27,17 @@ public class ProfileService(IDbContextFactory<AppDbContext> dbFactory, AvatarSer
         // so a failed DB update never leaves the record referencing a deleted file.
         var path = await avatars.SaveAsync(image, userId, cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync();
-        await db.Users
+        var updated = await db.Users
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.AvatarUrl, path), cancellationToken);
+        if (updated == 0)
+        {
+            // User vanished (concurrent delete): discard the orphan we just
+            // wrote and keep any existing files untouched.
+            avatars.Delete(userId, exceptFileName: null);
+            throw new InvalidOperationException("The user no longer exists.");
+        }
+
         avatars.Delete(userId, exceptFileName: Path.GetFileName(path));
         return path;
     }

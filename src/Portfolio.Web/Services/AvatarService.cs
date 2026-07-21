@@ -81,7 +81,7 @@ public class AvatarService(IConfiguration config, IWebHostEnvironment env)
             {
                 File.Delete(file);
             }
-            catch (IOException)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 // Orphaned files are harmless; the next replace retries.
             }

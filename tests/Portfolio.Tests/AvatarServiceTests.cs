@@ -48,7 +48,7 @@ public class AvatarServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteWithException_RemovesAllButTheKeptFile()
+    public async Task Delete_KeepsOnlyTheExceptedFile()
     {
         // SaveAsync intentionally keeps old files; the caller deletes them
         // after its own bookkeeping succeeds (see ProfileService.SetAvatarAsync).

@@ -63,9 +63,14 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
         {
             await db.SaveChangesAsync();
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex) when (
+            ex.InnerException is Npgsql.PostgresException
+            {
+                SqlState: Npgsql.PostgresErrorCodes.UniqueViolation,
+            } pg && pg.ConstraintName?.StartsWith("IX_Reports_Open", StringComparison.Ordinal) == true)
         {
-            // Loser of a concurrent duplicate race hits the partial unique index.
+            // Loser of a concurrent duplicate race hits the partial unique index;
+            // anything else bubbles for diagnosis.
             return (null, "You already have an open report for this — it's in the queue.");
         }
 
