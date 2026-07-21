@@ -30,7 +30,7 @@
 - [x] Unit 6: Projects (COMPLETE — see construction/plans/unit6-projects-plan.md)
 - [x] Unit 7: Contact form (COMPLETE — see construction/plans/unit7-contact-plan.md)
 - [x] Unit 8: Extras + polish + CI (COMPLETE — repo live at github.com/JJWren/Portfolio; see construction/plans/unit8-extras-plan.md)
-- [ ] Build and Test — final end-to-end verification
+- [x] Build and Test — instruction docs written; CI run 1 SUCCESS (build + 41 tests + GHCR publish); clean-slate compose verified. User-only items listed in build-and-test-summary.md.
 
 ## Key Decisions
 - OAuth-only sign-in (no passwords); providers conditionally registered from env creds
