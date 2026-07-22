@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/JJWren/Portfolio/compare/v1.7.0...v1.8.0) (2026-07-22)
+
+
+### Features
+
+* stacked link anchors and clickable visibility badge on admin projects ([#23](https://github.com/JJWren/Portfolio/issues/23)) ([c61e684](https://github.com/JJWren/Portfolio/commit/c61e68429d9b9815da0d000247668818bdf7f46f))
+
 ## [1.7.0](https://github.com/JJWren/Portfolio/compare/v1.6.0...v1.7.0) (2026-07-22)
 
 
