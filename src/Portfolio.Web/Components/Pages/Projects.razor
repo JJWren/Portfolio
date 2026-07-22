@@ -54,15 +54,17 @@
                                     <p>@project.Summary</p>
                                 }
                                 <p class="project-links">
-                                    @if (project.HomepageUrl is not null)
+                                    @{ var showHomepage = ProjectUrlRules.IsHttp(project.HomepageUrl); }
+                                    @{ var showRepo = ProjectUrlRules.IsHttp(project.RepoUrl); }
+                                    @if (showHomepage)
                                     {
                                         <a href="@project.HomepageUrl" rel="noopener" target="_blank">Homepage</a>
                                     }
-                                    @if (project.HomepageUrl is not null && project.RepoUrl is not null)
+                                    @if (showHomepage && showRepo)
                                     {
                                         <span aria-hidden="true">|</span>
                                     }
-                                    @if (project.RepoUrl is not null)
+                                    @if (showRepo)
                                     {
                                         <a href="@project.RepoUrl" rel="noopener" target="_blank">Repo</a>
                                     }

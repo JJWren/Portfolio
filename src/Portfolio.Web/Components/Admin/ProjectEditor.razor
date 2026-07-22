@@ -149,14 +149,21 @@
             return;
         }
 
+        if (!ProjectUrlRules.TryNormalize(_homepageUrl, "Homepage URL", out var homepageUrl, out var urlError)
+            || !ProjectUrlRules.TryNormalize(_repoUrl, "Repo URL", out var repoUrl, out urlError))
+        {
+            _error = urlError;
+            return;
+        }
+
         _busy = true;
         try
         {
             var project = _existing ?? new Portfolio.Web.Data.Project { Title = _title };
             project.Title = _title;
             project.Summary = _summary.Trim();
-            project.HomepageUrl = NullIfEmpty(_homepageUrl);
-            project.RepoUrl = NullIfEmpty(_repoUrl);
+            project.HomepageUrl = homepageUrl;
+            project.RepoUrl = repoUrl;
             project.HeaderImagePath = _headerImagePath;
             project.IsVisible = _isVisible;
 
@@ -187,7 +194,4 @@
             _busy = false;
         }
     }
-
-    private static string? NullIfEmpty(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

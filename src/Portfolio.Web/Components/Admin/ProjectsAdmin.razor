@@ -53,18 +53,20 @@
                                     }
                                 </td>
                                 <td class="muted">
-                                    @if (project.HomepageUrl is not null)
+                                    @if (ProjectUrlRules.IsHttp(project.HomepageUrl))
                                     {
                                         <a class="mono-small" href="@project.HomepageUrl" target="_blank" rel="noopener">home</a>
                                     }
-                                    @if (project.RepoUrl is not null)
+                                    @if (ProjectUrlRules.IsHttp(project.RepoUrl))
                                     {
                                         <a class="mono-small" href="@project.RepoUrl" target="_blank" rel="noopener">repo</a>
                                     }
                                 </td>
                                 <td>
-                                    <button class="badge badge-toggle @(project.IsVisible ? "badge-published" : "badge-draft")"
+                                    <button type="button"
+                                            class="badge badge-toggle @(project.IsVisible ? "badge-published" : "badge-draft")"
                                             title="@(project.IsVisible ? "Hide from the site" : "Show on the site")"
+                                            aria-pressed="@(project.IsVisible ? "true" : "false")"
                                             @onclick="() => ToggleVisibilityAsync(project.Id)">
                                         @(project.IsVisible ? "Visible" : "Hidden")
                                     </button>
