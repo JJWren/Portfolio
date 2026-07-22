@@ -151,9 +151,8 @@
 
         if (auth.User.IsInRole("Admin"))
         {
-            var openReports = Reports.OpenCountAsync();
-            var unreadContacts = Contacts.UnreadCountAsync();
-            _adminAttentionCount = await openReports + await unreadContacts;
+            var counts = await Task.WhenAll(Reports.OpenCountAsync(), Contacts.UnreadCountAsync());
+            _adminAttentionCount = counts[0] + counts[1];
         }
     }
 }
