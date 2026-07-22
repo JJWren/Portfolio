@@ -25,6 +25,6 @@ public static class ProjectUrlRules
 
     /// <summary>Render guard for stored URLs that predate save-time validation.</summary>
     public static bool IsHttp(string? url)
-        => Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        => Uri.TryCreate(url?.Trim(), UriKind.Absolute, out var uri)
            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 }

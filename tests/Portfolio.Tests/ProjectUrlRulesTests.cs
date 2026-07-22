@@ -47,6 +47,7 @@ public class ProjectUrlRulesTests
     [Theory]
     [InlineData("https://example.com", true)]
     [InlineData("http://example.com", true)]
+    [InlineData("  https://example.com  ", true)]
     [InlineData("javascript:alert(1)", false)]
     [InlineData("data:text/html,hi", false)]
     [InlineData(null, false)]
