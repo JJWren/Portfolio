@@ -27,7 +27,7 @@
                     Admin
                     @if (_adminAttentionCount > 0)
                     {
-                        <span class="unread-badge" aria-label="@_adminAttentionCount items need attention">@BadgeLabel.Format(_adminAttentionCount)</span>
+                        <span class="unread-badge" aria-label="@(_adminAttentionCount == 1 ? "1 item needs attention" : $"{_adminAttentionCount} items need attention")">@BadgeLabel.Format(_adminAttentionCount)</span>
                     }
                 </NavLink>
             </AuthorizeView>
@@ -45,7 +45,7 @@
                         }
                         @if (_unreadCount > 0)
                         {
-                            <span class="unread-badge" aria-label="@_unreadCount unread messages">@BadgeLabel.Format(_unreadCount)</span>
+                            <span class="unread-badge" aria-label="@(_unreadCount == 1 ? "1 unread message" : $"{_unreadCount} unread messages")">@BadgeLabel.Format(_unreadCount)</span>
                         }
                     </a>
                     <form class="logout-form" method="post" action="/auth/logout">
@@ -151,7 +151,9 @@
 
         if (auth.User.IsInRole("Admin"))
         {
-            _adminAttentionCount = await Reports.OpenCountAsync() + await Contacts.UnreadCountAsync();
+            var openReports = Reports.OpenCountAsync();
+            var unreadContacts = Contacts.UnreadCountAsync();
+            _adminAttentionCount = await openReports + await unreadContacts;
         }
     }
 }

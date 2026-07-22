@@ -54,7 +54,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _openReports = await Reports.OpenCountAsync();
-        _unreadMessages = await Contacts.UnreadCountAsync();
+        var openReports = Reports.OpenCountAsync();
+        var unreadMessages = Contacts.UnreadCountAsync();
+        _openReports = await openReports;
+        _unreadMessages = await unreadMessages;
     }
 }

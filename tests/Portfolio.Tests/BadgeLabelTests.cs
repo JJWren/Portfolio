@@ -10,6 +10,6 @@ public class BadgeLabelTests
     [InlineData(9, "9")]
     [InlineData(10, "9+")]
     [InlineData(150, "9+")]
-    public void Format_caps_at_nine_plus(int count, string expected)
+    public void Format_CapsCountAtNinePlus(int count, string expected)
         => Assert.Equal(expected, BadgeLabel.Format(count));
 }
