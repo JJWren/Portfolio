@@ -175,3 +175,11 @@
 **Context**: AIDLC workflow complete — all Inception and Construction stages done
 
 ---
+
+## Issue #22 Fix — Admin Projects Links + Visibility Toggle
+**Timestamp**: 2026-07-22T21:40:00Z
+**User Input**: "I see. They are visually smashing together to look like homerepo instead of looking like home repo or stacked home on top of repo, etc. I agree with the plan. I think while this page is being tweaked that the "visibile" badge should be clickable and switch to hidden or invisible and vice versa."
+**AI Response**: Implemented on fix/admin-projects-links-badge from master: links cell renders home/repo as stacked mono-small anchors (mono-small removed from the td, fixing the block-display border break), Visible/Hidden badge became a toggle button backed by new ProjectService.ToggleVisibilityAsync, .badge-toggle CSS added. Research + plan recorded in LlmWiki decision Portfolio-Admin-Projects-Links-Fix (issue #22 root cause: mono-small display:block on td + unseparated inline spans).
+**Context**: Brownfield bug fix, minimal depth — research done via LlmWiki research workflow; plan approved by user in chat
+
+---

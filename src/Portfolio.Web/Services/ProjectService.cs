@@ -59,6 +59,15 @@ public class ProjectService(IDbContextFactory<AppDbContext> dbFactory)
         await db.Projects.Where(p => p.Id == id).ExecuteDeleteAsync();
     }
 
+    public async Task ToggleVisibilityAsync(int id)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        await db.Projects.Where(p => p.Id == id)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.IsVisible, p => !p.IsVisible)
+                .SetProperty(p => p.UpdatedAt, DateTime.UtcNow));
+    }
+
     /// <summary>Swaps carousel position with the neighbor above (-1) or below (+1).</summary>
     public async Task MoveAsync(int id, int direction)
     {

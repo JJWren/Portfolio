@@ -1339,6 +1339,11 @@ select:focus {
     font-size: 0.72rem;
 }
 
+.badge-toggle {
+    background: transparent;
+    cursor: pointer;
+}
+
 .badge-published {
     border: 1px solid var(--positive);
     color: var(--positive);
