@@ -1058,7 +1058,8 @@ button.pager-link:not(:disabled):hover {
     font-size: 0.95rem;
 }
 
-.nav-profile {
+.nav-profile,
+.site-nav .nav-admin {
     position: relative;
 }
 

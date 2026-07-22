@@ -2,6 +2,7 @@
 @attribute [Authorize(Roles = "Admin")]
 @inject SiteConfig Site
 @inject ReportService Reports
+@inject ContactService Contacts
 
 <PageTitle>Admin — @Site.SiteTitle</PageTitle>
 
@@ -24,7 +25,13 @@
                 <p class="muted">Moderate the conversation.</p>
             </a>
             <a class="card card-link" href="/admin/messages">
-                <h3>Messages</h3>
+                <h3>
+                    Messages
+                    @if (_unreadMessages > 0)
+                    {
+                        <span class="badge badge-draft">@_unreadMessages unread</span>
+                    }
+                </h3>
                 <p class="muted">Read contact-form messages.</p>
             </a>
             <a class="card card-link" href="/admin/reports">
@@ -43,7 +50,12 @@
 
 @code {
     private int _openReports;
+    private int _unreadMessages;
 
     protected override async Task OnInitializedAsync()
-        => _openReports = await Reports.OpenCountAsync();
+    {
+        var counts = await Task.WhenAll(Reports.OpenCountAsync(), Contacts.UnreadCountAsync());
+        _openReports = counts[0];
+        _unreadMessages = counts[1];
+    }
 }
