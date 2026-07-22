@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/JJWren/Portfolio/compare/v1.6.0...v1.7.0) (2026-07-22)
+
+
+### Features
+
+* admin notification badges for open reports and unread messages ([#20](https://github.com/JJWren/Portfolio/issues/20)) ([695eda1](https://github.com/JJWren/Portfolio/commit/695eda193099c85d72e86e27cba14079f48cffad))
+
 ## [1.6.0](https://github.com/JJWren/Portfolio/compare/v1.5.1...v1.6.0) (2026-07-21)
 
 
