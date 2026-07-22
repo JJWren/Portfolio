@@ -2,6 +2,8 @@
 @inject SiteConfig Site
 @inject ProfileService Profiles
 @inject MessageService MessageStore
+@inject ReportService Reports
+@inject ContactService Contacts
 
 <header class="site-header">
     <div class="container inner">
@@ -21,7 +23,13 @@
             <NavLink href="/blog">Blog</NavLink>
             <NavLink href="/contact">Contact</NavLink>
             <AuthorizeView Roles="Admin">
-                <NavLink href="/admin">Admin</NavLink>
+                <NavLink class="nav-admin" href="/admin">
+                    Admin
+                    @if (_adminAttentionCount > 0)
+                    {
+                        <span class="unread-badge" aria-label="@_adminAttentionCount items need attention">@BadgeLabel.Format(_adminAttentionCount)</span>
+                    }
+                </NavLink>
             </AuthorizeView>
             <AuthorizeView>
                 <Authorized>
@@ -37,7 +45,7 @@
                         }
                         @if (_unreadCount > 0)
                         {
-                            <span class="unread-badge" aria-label="@_unreadCount unread messages">@(_unreadCount > 9 ? "9+" : _unreadCount.ToString())</span>
+                            <span class="unread-badge" aria-label="@_unreadCount unread messages">@BadgeLabel.Format(_unreadCount)</span>
                         }
                     </a>
                     <form class="logout-form" method="post" action="/auth/logout">
@@ -114,6 +122,7 @@
     private string? _avatarUrl;
     private string _initial = "?";
     private int _unreadCount;
+    private int _adminAttentionCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -139,5 +148,10 @@
         }
 
         _unreadCount = await MessageStore.UnreadCountAsync(userId);
+
+        if (auth.User.IsInRole("Admin"))
+        {
+            _adminAttentionCount = await Reports.OpenCountAsync() + await Contacts.UnreadCountAsync();
+        }
     }
 }

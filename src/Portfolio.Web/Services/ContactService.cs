@@ -54,6 +54,12 @@ public class ContactService(IDbContextFactory<AppDbContext> dbFactory, EmailServ
         return new PagedResult<ContactMessage>(items, page, PageSizes.Admin, total);
     }
 
+    public async Task<int> UnreadCountAsync()
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        return await db.ContactMessages.CountAsync(m => !m.IsRead);
+    }
+
     public async Task SetReadAsync(int id, bool read)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
