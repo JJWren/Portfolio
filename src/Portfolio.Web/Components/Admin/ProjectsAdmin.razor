@@ -52,25 +52,22 @@
                                         <span class="comment-body-cell">@project.Summary</span>
                                     }
                                 </td>
-                                <td class="muted mono-small">
+                                <td class="muted">
                                     @if (project.HomepageUrl is not null)
                                     {
-                                        <span>home</span>
+                                        <a class="mono-small" href="@project.HomepageUrl" target="_blank" rel="noopener">home</a>
                                     }
                                     @if (project.RepoUrl is not null)
                                     {
-                                        <span>repo</span>
+                                        <a class="mono-small" href="@project.RepoUrl" target="_blank" rel="noopener">repo</a>
                                     }
                                 </td>
                                 <td>
-                                    @if (project.IsVisible)
-                                    {
-                                        <span class="badge badge-published">Visible</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-draft">Hidden</span>
-                                    }
+                                    <button class="badge badge-toggle @(project.IsVisible ? "badge-published" : "badge-draft")"
+                                            title="@(project.IsVisible ? "Hide from the site" : "Show on the site")"
+                                            @onclick="() => ToggleVisibilityAsync(project.Id)">
+                                        @(project.IsVisible ? "Visible" : "Hidden")
+                                    </button>
                                 </td>
                                 <td class="actions">
                                     <a href="/admin/projects/@project.Id/edit">Edit</a>
@@ -93,6 +90,12 @@
     private async Task MoveAsync(int id, int direction)
     {
         await ProjectStore.MoveAsync(id, direction);
+        _projects = await ProjectStore.GetAllForAdminAsync();
+    }
+
+    private async Task ToggleVisibilityAsync(int id)
+    {
+        await ProjectStore.ToggleVisibilityAsync(id);
         _projects = await ProjectStore.GetAllForAdminAsync();
     }
 }
