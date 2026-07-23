@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Portfolio.Web.Services;
 
 namespace Portfolio.Web.Data;
 
@@ -33,10 +34,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         {
             post.HasIndex(p => p.Slug).IsUnique();
             post.HasIndex(p => new { p.IsPublished, p.PublishedAt });
-            post.Property(p => p.Slug).HasMaxLength(160);
-            post.Property(p => p.Title).HasMaxLength(200);
-            post.Property(p => p.Summary).HasMaxLength(500);
-            post.Property(p => p.HeaderImagePath).HasMaxLength(400);
+            post.Property(p => p.Slug).HasMaxLength(PostRules.SlugMaxLength);
+            post.Property(p => p.Title).HasMaxLength(PostRules.TitleMaxLength);
+            post.Property(p => p.Summary).HasMaxLength(PostRules.SummaryMaxLength);
+            post.Property(p => p.HeaderImagePath).HasMaxLength(PostRules.HeaderImagePathMaxLength);
         });
 
         builder.Entity<Comment>(comment =>
