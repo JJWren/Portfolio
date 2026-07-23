@@ -56,11 +56,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.Entity<Project>(project =>
         {
-            project.Property(p => p.Title).HasMaxLength(120);
-            project.Property(p => p.Summary).HasMaxLength(500);
-            project.Property(p => p.HeaderImagePath).HasMaxLength(400);
-            project.Property(p => p.HomepageUrl).HasMaxLength(400);
-            project.Property(p => p.RepoUrl).HasMaxLength(400);
+            project.Property(p => p.Title).HasMaxLength(ProjectRules.TitleMaxLength);
+            project.Property(p => p.Summary).HasMaxLength(ProjectRules.SummaryMaxLength);
+            project.Property(p => p.HeaderImagePath).HasMaxLength(ProjectRules.HeaderImagePathMaxLength);
+            project.Property(p => p.HomepageUrl).HasMaxLength(ProjectRules.HomepageUrlMaxLength);
+            project.Property(p => p.RepoUrl).HasMaxLength(ProjectRules.RepoUrlMaxLength);
         });
 
         builder.Entity<ContactMessage>(message =>

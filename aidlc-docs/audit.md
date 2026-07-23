@@ -191,3 +191,11 @@
 **Context**: Brownfield bug fix via research workflow; fix PR from fix/blog-post-length-validation, Copilot review gate before squash merge
 
 ---
+
+## Issue #28 Fix — Project Length Validation
+**Timestamp**: 2026-07-23T13:44:29Z
+**User Input**: "do it. open the issue and then resolve it just as we did for the previous issue."
+**AI Response**: Opened issue #28 (ProjectEditor same save-crash class as #25: Title 120 and both URLs 400 fully unguarded, Summary maxlength hardcoded client-side only, no server-side checks, no DbUpdateException fallback). Mirrored the #26 fix: ProjectRules single-sources the five Project column sizes + CheckLengths friendly validation, AppDbContext derives from the constants (values unchanged, no migration), ProjectEditor gains maxlength on title/summary/URLs + save-time guard on normalized values + DbUpdateException fallback error, ProjectRulesTests added (125 tests green). Research recorded in LlmWiki decision Portfolio-Blog-Post-Length-Validation (follow-up noted) and this fix's PR.
+**Context**: Brownfield bug fix mirroring #26; fix PR from fix/project-length-validation, Copilot review gate before squash merge
+
+---

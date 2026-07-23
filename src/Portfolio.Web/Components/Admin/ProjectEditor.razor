@@ -2,6 +2,7 @@
 @page "/admin/projects/{Id:int}/edit"
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
 @inject ProjectService ProjectStore
 @inject ImageUploadService Uploads
 @inject NavigationManager Nav
@@ -30,22 +31,22 @@
 
             <label class="field">
                 <span>Title</span>
-                <input type="text" @bind="_title" />
+                <input type="text" maxlength="@ProjectRules.TitleMaxLength" @bind="_title" />
             </label>
 
             <label class="field">
                 <span>Summary <span class="muted">short description on the card</span></span>
-                <textarea rows="3" maxlength="500" @bind="_summary"></textarea>
+                <textarea rows="3" maxlength="@ProjectRules.SummaryMaxLength" @bind="_summary"></textarea>
             </label>
 
             <label class="field">
                 <span>Homepage URL <span class="muted">optional</span></span>
-                <input type="url" @bind="_homepageUrl" placeholder="https://…" />
+                <input type="url" maxlength="@ProjectRules.HomepageUrlMaxLength" @bind="_homepageUrl" placeholder="https://…" />
             </label>
 
             <label class="field">
                 <span>Repo URL <span class="muted">optional</span></span>
-                <input type="url" @bind="_repoUrl" placeholder="https://github.com/…" />
+                <input type="url" maxlength="@ProjectRules.RepoUrlMaxLength" @bind="_repoUrl" placeholder="https://github.com/…" />
             </label>
 
             <div class="field">
@@ -143,6 +144,7 @@
     {
         _error = null;
         _title = _title.Trim();
+        _summary = _summary.Trim();
         if (_title.Length == 0)
         {
             _error = "A title is required.";
@@ -156,12 +158,18 @@
             return;
         }
 
+        if (ProjectRules.CheckLengths(_title, _summary, _headerImagePath, homepageUrl, repoUrl) is { } lengthError)
+        {
+            _error = lengthError;
+            return;
+        }
+
         _busy = true;
         try
         {
             var project = _existing ?? new Portfolio.Web.Data.Project { Title = _title };
             project.Title = _title;
-            project.Summary = _summary.Trim();
+            project.Summary = _summary;
             project.HomepageUrl = homepageUrl;
             project.RepoUrl = repoUrl;
             project.HeaderImagePath = _headerImagePath;
@@ -169,6 +177,10 @@
 
             await ProjectStore.SaveAsync(project);
             Nav.NavigateTo("/admin/projects");
+        }
+        catch (DbUpdateException)
+        {
+            _error = "Saving failed — the database rejected the project. Check the field lengths, then try again.";
         }
         finally
         {
