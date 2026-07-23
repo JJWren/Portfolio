@@ -146,11 +146,14 @@
     private bool _busy;
     private bool _confirmingDelete;
     private bool _cropInitialized;
+    private bool _cropReady;
     private bool _cropUnavailable;
     private string? _error;
 
+    // Gated on _cropReady: the button must not render before a successful
+    // __cropTool.init, or an early click would throw "not initialized".
     private bool _canAdjustFraming =>
-        !_cropUnavailable
+        _cropReady
         && !string.IsNullOrEmpty(_headerImagePath)
         && !_headerImagePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
         && !_headerImagePath.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
@@ -202,6 +205,8 @@
             try
             {
                 await JS.InvokeVoidAsync("__cropTool.init", "post", ImageUploadService.MaxBytes);
+                _cropReady = true;
+                StateHasChanged();
             }
             catch (JSException ex)
             {
