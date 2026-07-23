@@ -135,7 +135,14 @@
             }
             current = { file: file, url: URL.createObjectURL(file), scale: 1, x: 0, y: 0 };
             zoom.value = '1';
+            var loadedUrl = current.url;
             image.onload = function () {
+                // No-op when the load is stale: Cancel may have reset the
+                // tool (or a newer pick replaced the image) before this
+                // decode completed — center() must not run against null.
+                if (!current || current.url !== loadedUrl) {
+                    return;
+                }
                 panel.classList.add('open');
                 center();
             };
