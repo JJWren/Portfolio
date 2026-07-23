@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/JJWren/Portfolio/compare/v1.8.2...v1.9.0) (2026-07-23)
+
+
+### Features
+
+* header image crop tool and visible upload constraints in admin editors ([#32](https://github.com/JJWren/Portfolio/issues/32)) ([2817d0f](https://github.com/JJWren/Portfolio/commit/2817d0f7c2f83eb3076bc35c632f83ef671b1032)), closes [#31](https://github.com/JJWren/Portfolio/issues/31)
+
 ## [1.8.2](https://github.com/JJWren/Portfolio/compare/v1.8.1...v1.8.2) (2026-07-23)
 
 
