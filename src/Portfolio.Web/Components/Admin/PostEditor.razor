@@ -55,10 +55,10 @@
 
                     <div class="field">
                         <span>Header image <span class="muted">optional</span></span>
-                        <span class="muted mono-small">
+                        <p class="muted mono-small">
                             @ImageUploadService.AllowedTypesDisplay — up to @ImageUploadService.MaxMegabytes MB.
                             Shown at 16:9; 1280×720 or larger recommended. SVG and GIF upload as-is (no crop).
-                        </span>
+                        </p>
                         @if (!string.IsNullOrEmpty(_headerImagePath))
                         {
                             <div class="upload-preview">
@@ -66,7 +66,7 @@
                                 <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
                             </div>
                         }
-                        <input type="file" id="post-crop-source" accept="@ImageUploadService.AcceptList" />
+                        <input type="file" id="post-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Header image" />
                         <div class="crop-panel" id="post-crop-panel" hidden>
                             <div class="crop-box" id="post-crop-box">
                                 <img id="post-crop-image" alt="" draggable="false" />
@@ -173,11 +173,20 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         // The crop DOM only exists once loading finishes, so init on the
-        // first render after that rather than strictly on firstRender.
+        // first render after that rather than strictly on firstRender. The
+        // flag is set before awaiting so overlapping renders can't
+        // double-bind, and cleared on failure so a later render retries.
         if (!_loading && !_cropInitialized)
         {
             _cropInitialized = true;
-            await JS.InvokeVoidAsync("__cropTool.init", "post", ImageUploadService.MaxBytes);
+            try
+            {
+                await JS.InvokeVoidAsync("__cropTool.init", "post", ImageUploadService.MaxBytes);
+            }
+            catch (JSException)
+            {
+                _cropInitialized = false;
+            }
         }
     }
 

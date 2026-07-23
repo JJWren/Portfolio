@@ -34,6 +34,12 @@
             || !applyButton || !fullButton || !cancelButton) {
             return;
         }
+        // Re-running init (e.g. after a retried interop call) must not
+        // stack duplicate listeners.
+        if (source.dataset.cropInitialized) {
+            return;
+        }
+        source.dataset.cropInitialized = 'true';
 
         var guide = panel.querySelector('.crop-hero-guide');
         if (guide) {
@@ -179,15 +185,20 @@
             var sourceY = -current.y / scale;
             var sourceWidth = rect.width / scale;
             var sourceHeight = rect.height / scale;
-            // Never upscale: output is the framed region capped at 1920×1080.
-            var outputWidth = Math.round(Math.min(1920, sourceWidth));
+            // Never upscale: output is the framed region capped at 1920×1080
+            // (floor so rounding can't nudge the output above the source).
+            var outputWidth = Math.floor(Math.min(1920, sourceWidth));
             var outputHeight = Math.round(outputWidth * 9 / 16);
             var canvas = document.createElement('canvas');
             canvas.width = outputWidth;
             canvas.height = outputHeight;
+            var context = canvas.getContext('2d');
+            if (!context) {
+                return;
+            }
             // The browser decodes EXIF orientation into the <img>, so drawing
             // from it keeps preview and output consistent.
-            canvas.getContext('2d').drawImage(
+            context.drawImage(
                 image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputWidth, outputHeight);
             var type = current.file.type === 'image/jpeg' || current.file.type === 'image/webp'
                 ? current.file.type
