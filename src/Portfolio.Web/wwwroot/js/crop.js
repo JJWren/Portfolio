@@ -32,7 +32,9 @@
         var cancelButton = document.getElementById(prefix + '-crop-cancel');
         if (!source || !target || !panel || !box || !image || !zoom
             || !applyButton || !fullButton || !cancelButton) {
-            return;
+            // Throwing surfaces a JSException to the invoking component so it
+            // renders its plain-uploader fallback instead of a dead field.
+            throw new Error('cropTool: missing crop element for prefix "' + prefix + '"');
         }
         // Re-running init (e.g. after a retried interop call) must not
         // stack duplicate listeners.
@@ -200,6 +202,7 @@
             canvas.height = outputHeight;
             var context = canvas.getContext('2d');
             if (!context) {
+                fallbackToOriginal();
                 return;
             }
             // The browser decodes EXIF orientation into the <img>, so drawing
@@ -221,6 +224,7 @@
         function encode(canvas, type, done) {
             canvas.toBlob(function (blob) {
                 if (!blob) {
+                    fallbackToOriginal();
                     return;
                 }
                 // Canvas PNGs of photographic crops can outgrow the upload
@@ -229,12 +233,22 @@
                     canvas.toBlob(function (jpeg) {
                         if (jpeg) {
                             done(jpeg, 'image/jpeg');
+                        } else {
+                            fallbackToOriginal();
                         }
                     }, 'image/jpeg', 0.9);
                     return;
                 }
                 done(blob, type);
             }, type, 0.9);
+        }
+
+        // Canvas export failed: upload the original uncropped rather than
+        // leaving the Apply click with no effect.
+        function fallbackToOriginal() {
+            if (current) {
+                handOff(current.file);
+            }
         }
 
         fullButton.addEventListener('click', function () {
