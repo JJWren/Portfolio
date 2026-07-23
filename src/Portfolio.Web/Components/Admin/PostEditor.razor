@@ -2,6 +2,7 @@
 @page "/admin/posts/{Id:int}/edit"
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
 @inject BlogService BlogPosts
 @inject MarkdownService Markdown
 @inject ImageUploadService Uploads
@@ -33,17 +34,17 @@
                 <div class="editor-form">
                     <label class="field">
                         <span>Title</span>
-                        <input type="text" value="@_title" @oninput="OnTitleInput" />
+                        <input type="text" value="@_title" maxlength="@PostRules.TitleMaxLength" @oninput="OnTitleInput" />
                     </label>
 
                     <label class="field">
                         <span>Slug <span class="muted">/blog/…</span></span>
-                        <input type="text" value="@_slug" @oninput="OnSlugInput" />
+                        <input type="text" value="@_slug" maxlength="@PostRules.SlugMaxLength" @oninput="OnSlugInput" />
                     </label>
 
                     <label class="field">
                         <span>Summary <span class="muted">shown in the list and feed</span></span>
-                        <textarea rows="2" @bind="_summary"></textarea>
+                        <textarea rows="2" maxlength="@PostRules.SummaryMaxLength" @bind="_summary"></textarea>
                     </label>
 
                     <label class="field">
@@ -182,6 +183,7 @@
     {
         _error = null;
         _title = _title.Trim();
+        _summary = _summary.Trim();
         _slug = SlugHelper.Slugify(_slug);
 
         if (_title.Length == 0)
@@ -201,6 +203,12 @@
             return;
         }
 
+        if (PostRules.CheckLengths(_title, _slug, _summary, _headerImagePath) is { } lengthError)
+        {
+            _error = lengthError;
+            return;
+        }
+
         _busy = true;
         try
         {
@@ -213,7 +221,7 @@
             var post = _existing ?? new Portfolio.Web.Data.BlogPost { Slug = _slug, Title = _title };
             post.Slug = _slug;
             post.Title = _title;
-            post.Summary = _summary.Trim();
+            post.Summary = _summary;
             post.Tags = _tagsText
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToList();
@@ -223,6 +231,10 @@
 
             await BlogPosts.SaveAsync(post);
             Nav.NavigateTo("/admin/posts");
+        }
+        catch (DbUpdateException)
+        {
+            _error = "Saving failed — the database rejected the post. Check the field lengths and slug, then try again.";
         }
         finally
         {

@@ -25,7 +25,9 @@ public static partial class SlugHelper
 
         var slug = NonSlugCharacters().Replace(ascii.ToString().ToLowerInvariant(), "-");
         slug = RepeatedDashes().Replace(slug, "-").Trim('-');
-        return slug.Length > 160 ? slug[..160].Trim('-') : slug;
+        return slug.Length > PostRules.SlugMaxLength
+            ? slug[..PostRules.SlugMaxLength].Trim('-')
+            : slug;
     }
 
     [GeneratedRegex("[^a-z0-9]+")]

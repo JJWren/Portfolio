@@ -183,3 +183,11 @@
 **Context**: Brownfield bug fix, minimal depth — research done via LlmWiki research workflow; plan approved by user in chat
 
 ---
+
+## Issue #25 Fix — Blog Post Length Validation
+**Timestamp**: 2026-07-23T10:49:35Z
+**User Input**: "on issue https://github.com/JJWren/Portfolio/issues/25. remediate finding. push changes and create fix pr. Wait for copilot's automated review (poll every 2min). review and remediate comments it leaves if necessary. push remediation. loop this process until copilot leave 0 comments. merge pr."
+**AI Response**: Root cause: PostEditor enforced no field length limits while BlogPosts columns are capped (Slug 160, Title 200, Summary 500, HeaderImagePath 400) — an over-length summary reached SaveChanges and Postgres rejected the INSERT with 22001, crashing the save with an unhandled DbUpdateException. Added PostRules (single source for BlogPost column sizes + CheckLengths friendly validation), pointed AppDbContext and SlugHelper's 160 cap at the constants (values unchanged, no migration), added maxlength attributes + save-time guard + DbUpdateException fallback error to PostEditor, and PostRulesTests (118 tests green). Research recorded in LlmWiki decision Portfolio-Blog-Post-Length-Validation.
+**Context**: Brownfield bug fix via research workflow; fix PR from fix/blog-post-length-validation, Copilot review gate before squash merge
+
+---
