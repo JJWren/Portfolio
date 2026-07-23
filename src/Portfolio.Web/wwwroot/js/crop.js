@@ -42,12 +42,18 @@ export function init(prefix, maxBytes) {
         // renders its plain-uploader fallback instead of a dead field.
         throw new Error('cropTool: missing crop element for prefix "' + prefix + '"');
     }
-    // Re-running init (e.g. after a retried interop call) must not
-    // stack duplicate listeners.
-    if (source.dataset.cropInitialized) {
-        return;
+    // Re-running init must not stack duplicate listeners — neither a
+    // retried interop call from this module nor a leftover binding from a
+    // previous module generation (a surviving tab can import a new
+    // fingerprint whose module scope cannot reach the old one's closures).
+    // The controller rides on the element so any generation can abort its
+    // predecessor's listeners before binding fresh.
+    if (source.__cropAbort) {
+        source.__cropAbort.abort();
     }
-    source.dataset.cropInitialized = 'true';
+    var abort = new AbortController();
+    source.__cropAbort = abort;
+    var listen = { signal: abort.signal };
 
     var guide = panel.querySelector('.crop-hero-guide');
     if (guide) {
@@ -163,11 +169,11 @@ export function init(prefix, maxBytes) {
             return;
         }
         show(file);
-    });
+    }, listen);
 
     zoom.addEventListener('input', function () {
         setZoom(parseFloat(zoom.value));
-    });
+    }, listen);
 
     box.addEventListener('wheel', function (event) {
         if (!current) {
@@ -177,7 +183,7 @@ export function init(prefix, maxBytes) {
         var rect = box.getBoundingClientRect();
         setZoom(current.scale * (event.deltaY < 0 ? 1.1 : 1 / 1.1),
             event.clientX - rect.left, event.clientY - rect.top);
-    }, { passive: false });
+    }, { passive: false, signal: abort.signal });
 
     var drag = null;
     box.addEventListener('pointerdown', function (event) {
@@ -187,7 +193,7 @@ export function init(prefix, maxBytes) {
         event.preventDefault();
         drag = { x: event.clientX - current.x, y: event.clientY - current.y };
         box.setPointerCapture(event.pointerId);
-    });
+    }, listen);
     box.addEventListener('pointermove', function (event) {
         if (!current || !drag) {
             return;
@@ -195,13 +201,13 @@ export function init(prefix, maxBytes) {
         current.x = event.clientX - drag.x;
         current.y = event.clientY - drag.y;
         layout();
-    });
+    }, listen);
     box.addEventListener('pointerup', function () {
         drag = null;
-    });
+    }, listen);
     box.addEventListener('pointercancel', function () {
         drag = null;
-    });
+    }, listen);
 
     applyButton.addEventListener('click', function () {
         if (!current) {
@@ -239,7 +245,7 @@ export function init(prefix, maxBytes) {
                 : '.png';
             handOff(new File([blob], baseName + extension, { type: finalType }));
         });
-    });
+    }, listen);
 
     function encode(canvas, type, done) {
         canvas.toBlob(function (blob) {
@@ -276,9 +282,14 @@ export function init(prefix, maxBytes) {
             return;
         }
         handOff(current.file);
-    });
+    }, listen);
 
-    cancelButton.addEventListener('click', reset);
+    cancelButton.addEventListener('click', reset, listen);
+
+    // Clear anything a displaced generation left behind (open panel, image
+    // src, pending source value) — its state is unreachable, but its DOM
+    // leftovers are ours now. No-op on freshly rendered elements.
+    reset();
 
     tools[prefix] = { show: show };
 }
