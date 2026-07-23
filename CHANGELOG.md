@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/JJWren/Portfolio/compare/v1.8.0...v1.8.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* reject over-length blog post fields with a friendly editor error ([#26](https://github.com/JJWren/Portfolio/issues/26)) ([18a3441](https://github.com/JJWren/Portfolio/commit/18a3441640d3121102cf196b39e18f06469feb30)), closes [#25](https://github.com/JJWren/Portfolio/issues/25)
+
 ## [1.8.0](https://github.com/JJWren/Portfolio/compare/v1.7.0...v1.8.0) (2026-07-22)
 
 
