@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/JJWren/Portfolio/compare/v1.9.0...v1.9.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* hide crop panel until use and load stored images for framing ([#35](https://github.com/JJWren/Portfolio/issues/35)) ([399520d](https://github.com/JJWren/Portfolio/commit/399520d0e9b634a297ccc873e7d73681beb14a7b)), closes [#34](https://github.com/JJWren/Portfolio/issues/34)
+
 ## [1.9.0](https://github.com/JJWren/Portfolio/compare/v1.8.2...v1.9.0) (2026-07-23)
 
 
