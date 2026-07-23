@@ -199,3 +199,11 @@
 **Context**: Brownfield bug fix mirroring #26; fix PR from fix/project-length-validation, Copilot review gate before squash merge
 
 ---
+
+## Issue #31 Fix — Header Image Constraints + Crop Tool
+**Timestamp**: 2026-07-23T14:50:49Z
+**User Input**: "plan a fix for the issue then remediate using the previously established pattern" (plan approved; design forks confirmed: bake crop into file client-side / one 16:9 box with hero-band guide / SVG+GIF bypass)
+**AI Response**: ImageUploadService now exposes AcceptList, AllowedTypesDisplay, and MaxMegabytes (MaxBytes derived) so the editor hint and accept attributes single-source the real constraints. PostEditor header field gained the constraint hint, a crop entry input, and a 16:9 crop panel (zoom slider/wheel + drag pan, hero-band guide at 420/(1080*9/16) of box height); new wwwroot/js/crop.js (vanilla IIFE, site.js idiom) bakes the framed region onto a canvas (cap 1920x1080, source-format encode, PNG-over-cap JPEG fallback, SVG/GIF pass through) and feeds the hidden Blazor InputFile via DataTransfer so the existing upload path is unchanged. ImageUploadServiceTests added (128 tests green).
+**Context**: Feature via approved plan; fix PR from feat/blog-header-image-crop, Copilot review gate before squash merge
+
+---

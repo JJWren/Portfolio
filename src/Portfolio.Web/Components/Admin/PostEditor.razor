@@ -8,6 +8,7 @@
 @inject ImageUploadService Uploads
 @inject NavigationManager Nav
 @inject SiteConfig Site
+@inject IJSRuntime JS
 
 <PageTitle>@(_isNew ? "New post" : "Edit post") — Admin — @Site.SiteTitle</PageTitle>
 
@@ -54,6 +55,10 @@
 
                     <div class="field">
                         <span>Header image <span class="muted">optional</span></span>
+                        <span class="muted mono-small">
+                            @ImageUploadService.AllowedTypesDisplay — up to @ImageUploadService.MaxMegabytes MB.
+                            Shown at 16:9; 1280×720 or larger recommended. SVG and GIF upload as-is (no crop).
+                        </span>
                         @if (!string.IsNullOrEmpty(_headerImagePath))
                         {
                             <div class="upload-preview">
@@ -61,7 +66,23 @@
                                 <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
                             </div>
                         }
-                        <InputFile OnChange="OnHeaderImageSelected" accept="image/*" />
+                        <input type="file" id="post-crop-source" accept="@ImageUploadService.AcceptList" />
+                        <div class="crop-panel" id="post-crop-panel" hidden>
+                            <div class="crop-box" id="post-crop-box">
+                                <img id="post-crop-image" alt="" draggable="false" />
+                                <div class="crop-hero-guide" aria-hidden="true"></div>
+                            </div>
+                            <span class="muted mono-small">
+                                Drag to reposition, scroll or slide to zoom. The dashed band is what the post hero shows on desktop.
+                            </span>
+                            <div class="crop-controls">
+                                <input type="range" id="post-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+                                <button type="button" class="btn btn-primary" id="post-crop-apply">Apply crop</button>
+                                <button type="button" class="btn btn-ghost" id="post-crop-full">Use full image</button>
+                                <button type="button" class="btn btn-ghost" id="post-crop-cancel">Cancel</button>
+                            </div>
+                        </div>
+                        <InputFile id="post-crop-target" class="crop-hidden" OnChange="OnHeaderImageSelected" accept="@ImageUploadService.AcceptList" />
                     </div>
 
                     <label class="field">
@@ -112,6 +133,7 @@
     private bool _loading = true;
     private bool _busy;
     private bool _confirmingDelete;
+    private bool _cropInitialized;
     private string? _error;
 
     private Portfolio.Web.Data.BlogPost? _existing;
@@ -146,6 +168,17 @@
         }
 
         _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // The crop DOM only exists once loading finishes, so init on the
+        // first render after that rather than strictly on firstRender.
+        if (!_loading && !_cropInitialized)
+        {
+            _cropInitialized = true;
+            await JS.InvokeVoidAsync("__cropTool.init", "post", ImageUploadService.MaxBytes);
+        }
     }
 
     private void OnTitleInput(ChangeEventArgs e)
