@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/JJWren/Portfolio/compare/v1.8.1...v1.8.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* reject over-length project fields with a friendly editor error ([#29](https://github.com/JJWren/Portfolio/issues/29)) ([bfc45a2](https://github.com/JJWren/Portfolio/commit/bfc45a228304f097e4a04285bfe9e12da26cbffa)), closes [#28](https://github.com/JJWren/Portfolio/issues/28)
+
 ## [1.8.1](https://github.com/JJWren/Portfolio/compare/v1.8.0...v1.8.1) (2026-07-23)
 
 
