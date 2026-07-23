@@ -132,8 +132,14 @@
             }
             current = { file: file, url: URL.createObjectURL(file), scale: 1, x: 0, y: 0 };
             zoom.value = '1';
-            panel.hidden = false;
-            image.onload = center;
+            // The panel stays hidden until the image has decoded: before then
+            // naturalWidth/Height are 0 and the crop math would be NaN. The
+            // box is only measurable once visible, so unhide, then center.
+            image.onload = function () {
+                panel.hidden = false;
+                center();
+            };
+            image.onerror = reset;
             image.src = current.url;
         });
 
@@ -188,7 +194,7 @@
             // Never upscale: output is the framed region capped at 1920×1080
             // (floor so rounding can't nudge the output above the source).
             var outputWidth = Math.floor(Math.min(1920, sourceWidth));
-            var outputHeight = Math.round(outputWidth * 9 / 16);
+            var outputHeight = Math.floor(outputWidth * 9 / 16);
             var canvas = document.createElement('canvas');
             canvas.width = outputWidth;
             canvas.height = outputHeight;

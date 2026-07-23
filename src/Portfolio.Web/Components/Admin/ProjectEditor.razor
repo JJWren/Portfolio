@@ -63,7 +63,14 @@
                         <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
                     </div>
                 }
-                <input type="file" id="project-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
+                @if (_cropUnavailable)
+                {
+                    <InputFile OnChange="OnImageSelected" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
+                }
+                else
+                {
+                    <input type="file" id="project-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
+                }
                 <div class="crop-panel" id="project-crop-panel" hidden>
                     <div class="crop-box" id="project-crop-box">
                         <img id="project-crop-image" alt="" draggable="false" />
@@ -116,6 +123,7 @@
     private bool _busy;
     private bool _confirmingDelete;
     private bool _cropInitialized;
+    private bool _cropUnavailable;
     private string? _error;
 
     private Portfolio.Web.Data.Project? _existing;
@@ -153,7 +161,8 @@
         // The crop DOM only exists once loading finishes, so init on the
         // first render after that rather than strictly on firstRender. The
         // flag is set before awaiting so overlapping renders can't
-        // double-bind, and cleared on failure so a later render retries.
+        // double-bind; if the interop fails the field degrades to a plain
+        // uploader instead of being left dead.
         if (!_loading && !_cropInitialized)
         {
             _cropInitialized = true;
@@ -163,7 +172,8 @@
             }
             catch (JSException)
             {
-                _cropInitialized = false;
+                _cropUnavailable = true;
+                StateHasChanged();
             }
         }
     }
