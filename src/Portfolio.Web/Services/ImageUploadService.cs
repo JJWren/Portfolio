@@ -9,7 +9,16 @@ namespace Portfolio.Web.Services;
 public class ImageUploadService(IConfiguration config, IWebHostEnvironment env)
 {
     private static readonly string[] AllowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
-    public const long MaxBytes = 5 * 1024 * 1024;
+
+    public const int MaxMegabytes = 5;
+    public const long MaxBytes = MaxMegabytes * 1024L * 1024L;
+
+    /// <summary>Comma-joined allowlist for file input accept attributes.</summary>
+    public static string AcceptList { get; } = string.Join(",", AllowedExtensions);
+
+    /// <summary>Human-readable type list for editor hints.</summary>
+    public static string AllowedTypesDisplay { get; } =
+        string.Join(", ", AllowedExtensions.Select(e => e.TrimStart('.').ToUpperInvariant()));
 
     public string RootPath =>
         config["Uploads:Path"] ?? Path.Combine(env.ContentRootPath, "uploads");

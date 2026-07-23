@@ -1428,6 +1428,62 @@ select:focus {
     border: 1px solid var(--border);
 }
 
+/* Admin header-image crop tool */
+.crop-hidden {
+    display: none;
+}
+
+.crop-panel {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+}
+
+.crop-box {
+    position: relative;
+    width: min(480px, 100%);
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    cursor: grab;
+    touch-action: none;
+}
+
+.crop-box:active {
+    cursor: grabbing;
+}
+
+.crop-box img {
+    position: absolute;
+    max-width: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.crop-hero-guide {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    /* height set by crop.js from the hero band fraction */
+    border-top: 1px dashed rgba(255, 255, 255, 0.8);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+}
+
+.crop-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.crop-controls input[type="range"] {
+    flex: 1 1 140px;
+}
+
 .card-link {
     display: block;
     text-decoration: none;

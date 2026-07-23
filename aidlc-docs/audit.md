@@ -199,3 +199,19 @@
 **Context**: Brownfield bug fix mirroring #26; fix PR from fix/project-length-validation, Copilot review gate before squash merge
 
 ---
+
+## Issue #31 Fix — Header Image Constraints + Crop Tool
+**Timestamp**: 2026-07-23T14:50:49Z
+**User Input**: "plan a fix for the issue then remediate using the previously established pattern" (plan approved; design forks confirmed: bake crop into file client-side / one 16:9 box with hero-band guide / SVG+GIF bypass)
+**AI Response**: ImageUploadService now exposes AcceptList, AllowedTypesDisplay, and MaxMegabytes (MaxBytes derived) so the editor hint and accept attributes single-source the real constraints. PostEditor header field gained the constraint hint, a crop entry input, and a 16:9 crop panel (zoom slider/wheel + drag pan, hero-band guide at 420/(1080*9/16) of box height); new wwwroot/js/crop.js (vanilla IIFE, site.js idiom) bakes the framed region onto a canvas (cap 1920x1080, source-format encode, PNG-over-cap JPEG fallback, SVG/GIF pass through) and feeds the hidden Blazor InputFile via DataTransfer so the existing upload path is unchanged. ImageUploadServiceTests added (128 tests green).
+**Context**: Feature via approved plan; fix PR from feat/blog-header-image-crop, Copilot review gate before squash merge
+
+---
+
+## Issue #31 Scope Addition — Project Card Images
+**Timestamp**: 2026-07-23T15:03:00Z
+**User Input**: "these image changes should also apply similarly for the images that can be attached for projects."
+**AI Response**: Extended PR #32 in place (crop.js was built prefix-parameterized for exactly this): ProjectEditor gained the same constraint hint, a project-prefixed crop panel, and the hidden InputFile hand-off wired via OnAfterRenderAsync init("project"). The project card renders 16:9 object-fit: cover as its only surface, so the box needs no guide band and crop.js required zero changes. 128 tests green.
+**Context**: Scope addition by Joshua mid-review on feat/blog-header-image-crop; Copilot round covering it still gates the merge
+
+---
