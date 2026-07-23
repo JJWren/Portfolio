@@ -207,3 +207,11 @@
 **Context**: Feature via approved plan; fix PR from feat/blog-header-image-crop, Copilot review gate before squash merge
 
 ---
+
+## Issue #31 Scope Addition — Project Card Images
+**Timestamp**: 2026-07-23T15:03:00Z
+**User Input**: "these image changes should also apply similarly for the images that can be attached for projects."
+**AI Response**: Extended PR #32 in place (crop.js was built prefix-parameterized for exactly this): ProjectEditor gained the same constraint hint, a project-prefixed crop panel, and the hidden InputFile hand-off wired via OnAfterRenderAsync init("project"). The project card renders 16:9 object-fit: cover as its only surface, so the box needs no guide band and crop.js required zero changes. 128 tests green.
+**Context**: Scope addition by Joshua mid-review on feat/blog-header-image-crop; Copilot round covering it still gates the merge
+
+---

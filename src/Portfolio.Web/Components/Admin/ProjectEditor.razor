@@ -7,6 +7,7 @@
 @inject ImageUploadService Uploads
 @inject NavigationManager Nav
 @inject SiteConfig Site
+@inject IJSRuntime JS
 
 <PageTitle>@(_isNew ? "New project" : "Edit project") — Admin — @Site.SiteTitle</PageTitle>
 
@@ -51,6 +52,10 @@
 
             <div class="field">
                 <span>Card image <span class="muted">optional — palette placeholder otherwise</span></span>
+                <p class="muted mono-small">
+                    @ImageUploadService.AllowedTypesDisplay — up to @ImageUploadService.MaxMegabytes MB.
+                    Shown at 16:9; 1280×720 or larger recommended. SVG and GIF upload as-is (no crop).
+                </p>
                 @if (!string.IsNullOrEmpty(_headerImagePath))
                 {
                     <div class="upload-preview">
@@ -58,7 +63,22 @@
                         <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
                     </div>
                 }
-                <InputFile OnChange="OnImageSelected" accept="image/*" />
+                <input type="file" id="project-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
+                <div class="crop-panel" id="project-crop-panel" hidden>
+                    <div class="crop-box" id="project-crop-box">
+                        <img id="project-crop-image" alt="" draggable="false" />
+                    </div>
+                    <span class="muted mono-small">
+                        Drag to reposition, scroll or slide to zoom. The box is exactly what the project card shows.
+                    </span>
+                    <div class="crop-controls">
+                        <input type="range" id="project-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+                        <button type="button" class="btn btn-primary" id="project-crop-apply">Apply crop</button>
+                        <button type="button" class="btn btn-ghost" id="project-crop-full">Use full image</button>
+                        <button type="button" class="btn btn-ghost" id="project-crop-cancel">Cancel</button>
+                    </div>
+                </div>
+                <InputFile id="project-crop-target" class="crop-hidden" OnChange="OnImageSelected" accept="@ImageUploadService.AcceptList" />
             </div>
 
             <label class="check-field">
@@ -95,6 +115,7 @@
     private bool _loading = true;
     private bool _busy;
     private bool _confirmingDelete;
+    private bool _cropInitialized;
     private string? _error;
 
     private Portfolio.Web.Data.Project? _existing;
@@ -125,6 +146,26 @@
         }
 
         _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // The crop DOM only exists once loading finishes, so init on the
+        // first render after that rather than strictly on firstRender. The
+        // flag is set before awaiting so overlapping renders can't
+        // double-bind, and cleared on failure so a later render retries.
+        if (!_loading && !_cropInitialized)
+        {
+            _cropInitialized = true;
+            try
+            {
+                await JS.InvokeVoidAsync("__cropTool.init", "project", ImageUploadService.MaxBytes);
+            }
+            catch (JSException)
+            {
+                _cropInitialized = false;
+            }
+        }
     }
 
     private async Task OnImageSelected(InputFileChangeEventArgs e)
