@@ -15,6 +15,9 @@
     // and freeze a GIF to its first frame.
     var PASS_THROUGH = ['.svg', '.gif'];
 
+    // prefix → { show } registries so open() can reuse an initialized editor.
+    var tools = {};
+
     function extensionOf(name) {
         var i = name.lastIndexOf('.');
         return i < 0 ? '' : name.slice(i).toLowerCase();
@@ -56,7 +59,9 @@
                 current = null;
             }
             image.removeAttribute('src');
-            panel.hidden = true;
+            // Visibility is a class, not the hidden attribute: the UA's
+            // [hidden] { display: none } loses to the author display rule.
+            panel.classList.remove('open');
             source.value = '';
         }
 
@@ -120,6 +125,31 @@
             layout();
         }
 
+        // Loads a raster file into the crop box. The panel stays closed until
+        // the image has decoded: before then naturalWidth/Height are 0 and
+        // the crop math would be NaN. The box is only measurable once
+        // visible, so open, then center.
+        function show(file) {
+            if (current) {
+                URL.revokeObjectURL(current.url);
+            }
+            current = { file: file, url: URL.createObjectURL(file), scale: 1, x: 0, y: 0 };
+            zoom.value = '1';
+            var loadedUrl = current.url;
+            image.onload = function () {
+                // No-op when the load is stale: Cancel may have reset the
+                // tool (or a newer pick replaced the image) before this
+                // decode completed — center() must not run against null.
+                if (!current || current.url !== loadedUrl) {
+                    return;
+                }
+                panel.classList.add('open');
+                center();
+            };
+            image.onerror = reset;
+            image.src = current.url;
+        }
+
         source.addEventListener('change', function () {
             var file = source.files && source.files[0];
             if (!file) {
@@ -129,20 +159,7 @@
                 handOff(file);
                 return;
             }
-            if (current) {
-                URL.revokeObjectURL(current.url);
-            }
-            current = { file: file, url: URL.createObjectURL(file), scale: 1, x: 0, y: 0 };
-            zoom.value = '1';
-            // The panel stays hidden until the image has decoded: before then
-            // naturalWidth/Height are 0 and the crop math would be NaN. The
-            // box is only measurable once visible, so unhide, then center.
-            image.onload = function () {
-                panel.hidden = false;
-                center();
-            };
-            image.onerror = reset;
-            image.src = current.url;
+            show(file);
         });
 
         zoom.addEventListener('input', function () {
@@ -259,7 +276,33 @@
         });
 
         cancelButton.addEventListener('click', reset);
+
+        tools[prefix] = { show: show };
     }
 
-    window.__cropTool = { init: init };
+    // Loads an already-stored same-origin image (e.g. /uploads/...) into the
+    // crop box so its framing can be adjusted and re-saved. Returns the fetch
+    // promise so .NET interop surfaces failures as JSException.
+    function open(prefix, url) {
+        var tool = tools[prefix];
+        if (!tool) {
+            throw new Error('cropTool: not initialized for prefix "' + prefix + '"');
+        }
+        if (PASS_THROUGH.indexOf(extensionOf(url)) >= 0) {
+            return Promise.resolve();
+        }
+        return fetch(url)
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('cropTool: stored image fetch failed (' + response.status + ')');
+                }
+                return response.blob();
+            })
+            .then(function (blob) {
+                var name = url.split('/').pop().split('?')[0] || 'image';
+                tool.show(new File([blob], name, { type: blob.type }));
+            });
+    }
+
+    window.__cropTool = { init: init, open: open };
 })();

@@ -9,6 +9,7 @@
 @inject NavigationManager Nav
 @inject SiteConfig Site
 @inject IJSRuntime JS
+@inject ILogger<PostEditor> Logger
 
 <PageTitle>@(_isNew ? "New post" : "Edit post") — Admin — @Site.SiteTitle</PageTitle>
 
@@ -63,6 +64,10 @@
                         {
                             <div class="upload-preview">
                                 <img src="@_headerImagePath" alt="Header image preview" />
+                                @if (_canAdjustFraming)
+                                {
+                                    <button type="button" class="btn btn-ghost" @onclick="AdjustFramingAsync">Adjust framing</button>
+                                }
                                 <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
                             </div>
                         }
@@ -73,22 +78,22 @@
                         else
                         {
                             <input type="file" id="post-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Header image" />
+                            <div class="crop-panel" id="post-crop-panel">
+                                <div class="crop-box" id="post-crop-box">
+                                    <img id="post-crop-image" alt="" draggable="false" />
+                                    <div class="crop-hero-guide" aria-hidden="true"></div>
+                                </div>
+                                <span class="muted mono-small">
+                                    Drag to reposition, scroll or slide to zoom. The dashed band is what the post hero shows on desktop.
+                                </span>
+                                <div class="crop-controls">
+                                    <input type="range" id="post-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+                                    <button type="button" class="btn btn-primary" id="post-crop-apply">Apply crop</button>
+                                    <button type="button" class="btn btn-ghost" id="post-crop-full">Use full image</button>
+                                    <button type="button" class="btn btn-ghost" id="post-crop-cancel">Cancel</button>
+                                </div>
+                            </div>
                         }
-                        <div class="crop-panel" id="post-crop-panel" hidden>
-                            <div class="crop-box" id="post-crop-box">
-                                <img id="post-crop-image" alt="" draggable="false" />
-                                <div class="crop-hero-guide" aria-hidden="true"></div>
-                            </div>
-                            <span class="muted mono-small">
-                                Drag to reposition, scroll or slide to zoom. The dashed band is what the post hero shows on desktop.
-                            </span>
-                            <div class="crop-controls">
-                                <input type="range" id="post-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
-                                <button type="button" class="btn btn-primary" id="post-crop-apply">Apply crop</button>
-                                <button type="button" class="btn btn-ghost" id="post-crop-full">Use full image</button>
-                                <button type="button" class="btn btn-ghost" id="post-crop-cancel">Cancel</button>
-                            </div>
-                        </div>
                         <InputFile id="post-crop-target" class="crop-hidden" OnChange="OnHeaderImageSelected" accept="@ImageUploadService.AcceptList" />
                     </div>
 
@@ -141,8 +146,17 @@
     private bool _busy;
     private bool _confirmingDelete;
     private bool _cropInitialized;
+    private bool _cropReady;
     private bool _cropUnavailable;
     private string? _error;
+
+    // Gated on _cropReady: the button must not render before a successful
+    // __cropTool.init, or an early click would throw "not initialized".
+    private bool _canAdjustFraming =>
+        _cropReady
+        && !string.IsNullOrEmpty(_headerImagePath)
+        && !_headerImagePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
+        && !_headerImagePath.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
 
     private Portfolio.Web.Data.BlogPost? _existing;
     private string _title = string.Empty;
@@ -191,12 +205,29 @@
             try
             {
                 await JS.InvokeVoidAsync("__cropTool.init", "post", ImageUploadService.MaxBytes);
+                _cropReady = true;
+                StateHasChanged();
             }
-            catch (JSException)
+            catch (JSException ex)
             {
+                Logger.LogError(ex, "Crop tool init failed; falling back to the plain uploader.");
                 _cropUnavailable = true;
                 StateHasChanged();
             }
+        }
+    }
+
+    private async Task AdjustFramingAsync()
+    {
+        _error = null;
+        try
+        {
+            await JS.InvokeVoidAsync("__cropTool.open", "post", _headerImagePath);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Loading the stored header image into the crop tool failed.");
+            _error = "Couldn't load the stored image into the crop tool.";
         }
     }
 

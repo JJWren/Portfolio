@@ -1433,7 +1433,13 @@ select:focus {
     display: none;
 }
 
+/* Closed by default via class, not the hidden attribute — the UA's
+   [hidden] { display: none } would lose to an author display rule. */
 .crop-panel {
+    display: none;
+}
+
+.crop-panel.open {
     display: grid;
     gap: 0.6rem;
     margin-top: 0.4rem;
