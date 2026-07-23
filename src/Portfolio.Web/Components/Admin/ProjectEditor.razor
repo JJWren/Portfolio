@@ -8,6 +8,7 @@
 @inject NavigationManager Nav
 @inject SiteConfig Site
 @inject IJSRuntime JS
+@inject ILogger<ProjectEditor> Logger
 
 <PageTitle>@(_isNew ? "New project" : "Edit project") — Admin — @Site.SiteTitle</PageTitle>
 
@@ -60,6 +61,10 @@
                 {
                     <div class="upload-preview">
                         <img src="@_headerImagePath" alt="Card image preview" />
+                        @if (_canAdjustFraming)
+                        {
+                            <button type="button" class="btn btn-ghost" @onclick="AdjustFramingAsync">Adjust framing</button>
+                        }
                         <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
                     </div>
                 }
@@ -70,21 +75,21 @@
                 else
                 {
                     <input type="file" id="project-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
+                    <div class="crop-panel" id="project-crop-panel">
+                        <div class="crop-box" id="project-crop-box">
+                            <img id="project-crop-image" alt="" draggable="false" />
+                        </div>
+                        <span class="muted mono-small">
+                            Drag to reposition, scroll or slide to zoom. The box is exactly what the project card shows.
+                        </span>
+                        <div class="crop-controls">
+                            <input type="range" id="project-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+                            <button type="button" class="btn btn-primary" id="project-crop-apply">Apply crop</button>
+                            <button type="button" class="btn btn-ghost" id="project-crop-full">Use full image</button>
+                            <button type="button" class="btn btn-ghost" id="project-crop-cancel">Cancel</button>
+                        </div>
+                    </div>
                 }
-                <div class="crop-panel" id="project-crop-panel" hidden>
-                    <div class="crop-box" id="project-crop-box">
-                        <img id="project-crop-image" alt="" draggable="false" />
-                    </div>
-                    <span class="muted mono-small">
-                        Drag to reposition, scroll or slide to zoom. The box is exactly what the project card shows.
-                    </span>
-                    <div class="crop-controls">
-                        <input type="range" id="project-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
-                        <button type="button" class="btn btn-primary" id="project-crop-apply">Apply crop</button>
-                        <button type="button" class="btn btn-ghost" id="project-crop-full">Use full image</button>
-                        <button type="button" class="btn btn-ghost" id="project-crop-cancel">Cancel</button>
-                    </div>
-                </div>
                 <InputFile id="project-crop-target" class="crop-hidden" OnChange="OnImageSelected" accept="@ImageUploadService.AcceptList" />
             </div>
 
@@ -125,6 +130,12 @@
     private bool _cropInitialized;
     private bool _cropUnavailable;
     private string? _error;
+
+    private bool _canAdjustFraming =>
+        !_cropUnavailable
+        && !string.IsNullOrEmpty(_headerImagePath)
+        && !_headerImagePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
+        && !_headerImagePath.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
 
     private Portfolio.Web.Data.Project? _existing;
     private string _title = string.Empty;
@@ -170,11 +181,26 @@
             {
                 await JS.InvokeVoidAsync("__cropTool.init", "project", ImageUploadService.MaxBytes);
             }
-            catch (JSException)
+            catch (JSException ex)
             {
+                Logger.LogError(ex, "Crop tool init failed; falling back to the plain uploader.");
                 _cropUnavailable = true;
                 StateHasChanged();
             }
+        }
+    }
+
+    private async Task AdjustFramingAsync()
+    {
+        _error = null;
+        try
+        {
+            await JS.InvokeVoidAsync("__cropTool.open", "project", _headerImagePath);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Loading the stored card image into the crop tool failed.");
+            _error = "Couldn't load the stored image into the crop tool.";
         }
     }
 

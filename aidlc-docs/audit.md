@@ -215,3 +215,11 @@
 **Context**: Scope addition by Joshua mid-review on feat/blog-header-image-crop; Copilot round covering it still gates the merge
 
 ---
+
+## Issue #34 Fix — Crop Panel Visibility + Stored-Image Framing
+**Timestamp**: 2026-07-23T20:53:54Z
+**User Input**: "The images in both projects and blogs are not appearing in the crop section where I can actually edit them."
+**AI Response**: Diagnosed empirically (standalone + Blazor-replica headless harnesses driving the real crop.js through DataTransfer→change→crop→hand-off): the fresh-pick pipeline works end to end; the actual defects were (1) the hidden attribute losing to .crop-panel display:grid (author rule beats UA [hidden] rule) so an empty panel rendered permanently in both editors, and (2) no path for stored images into the crop tool. Fix: class-toggle visibility (.crop-panel/.crop-panel.open), panel markup moved into the crop-available branch, new Adjust framing button fetching the stored same-origin image via __cropTool.open (promise-returning so failures surface as JSException), SVG/GIF excluded, ILogger on init failure. Replica beacon trail green: panel none at rest, opens on pick, closes on apply w/ upload reaching OnChange, open() loads stored image covering the box. 128 tests.
+**Context**: Bug fix via plan-approved diagnose-first approach; fix PR from fix/crop-panel-image-display, Copilot gate before squash merge
+
+---
