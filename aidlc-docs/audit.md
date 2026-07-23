@@ -223,3 +223,11 @@
 **Context**: Bug fix via plan-approved diagnose-first approach; fix PR from fix/crop-panel-image-display, Copilot gate before squash merge
 
 ---
+
+## Issue #37 Fix — Crop Tool Never Appearing (Module Load)
+**Timestamp**: 2026-07-23T22:20:00Z
+**User Input**: "/remediate https://github.com/JJWren/Portfolio/issues/37" (issue: "Editing/Cropping images for blogs and projects not appearing when adding image" — expected crop modal with position/zoom after choosing an image; actual: nothing appears, the image simply attaches)
+**AI Response**: Diagnosed from production evidence rather than harnesses this time: portfolio-web (1.9.1) container logs show JSException "Could not find '__cropTool.init' ('__cropTool' was undefined)" in PostEditor at 21:43:15Z — five seconds after the container started at 21:43:10Z — and in ProjectEditor at 21:44:39Z, same tab. The user's browser document predated the redeploy: crop.js never loaded in that document (asset fetch raced the container swap through nginx-proxy-manager while blazor.web.js/theme.js/app.css came from immutable cache), and a script tag only executes at document birth, so every circuit that tab ever hosts finds __cropTool undefined and silently degrades both editors to the plain uploader (issue's screenshots confirm: fallback InputFile, no Adjust framing button, .jpeg/.png picks attaching directly). Fix: crop.js converted to an ES module (export init/open, IIFE and window global removed, logic untouched); both editors import it per circuit in OnAfterRenderAsync via JS interop import with Assets["js/crop.js"] (fingerprint resolved server-side at render time, so even a stale tab fetches the current build's module from the live server), hold the IJSObjectReference, dispose it in DisposeAsync (JSDisconnectedException swallowed), and show a visible "Crop tool couldn't load" hint in fallback mode instead of degrading silently. App.razor script tag removed. Headless-Edge harness beacon green: no global, exports present, re-init guard holds, panel opens on pick, Apply hands off cropped PNG to the Blazor target, panel closes. Build warning-clean, 128 tests green.
+**Context**: Bug fix via /remediate; fix PR from fix/crop-tool-module-load, Copilot gate before squash merge
+
+---

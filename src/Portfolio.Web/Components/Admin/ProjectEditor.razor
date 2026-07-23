@@ -2,6 +2,7 @@
 @page "/admin/projects/{Id:int}/edit"
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
+@implements IAsyncDisposable
 @using Microsoft.EntityFrameworkCore
 @inject ProjectService ProjectStore
 @inject ImageUploadService Uploads
@@ -71,6 +72,7 @@
                 @if (_cropUnavailable)
                 {
                     <InputFile OnChange="OnImageSelected" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
+                    <p class="muted mono-small">Crop tool couldn't load — images upload as-is. Reload the page to retry.</p>
                 }
                 else
                 {
@@ -130,10 +132,11 @@
     private bool _cropInitialized;
     private bool _cropReady;
     private bool _cropUnavailable;
+    private IJSObjectReference? _cropModule;
     private string? _error;
 
     // Gated on _cropReady: the button must not render before a successful
-    // __cropTool.init, or an early click would throw "not initialized".
+    // crop-module init, or an early click would throw "not initialized".
     private bool _canAdjustFraming =>
         _cropReady
         && !string.IsNullOrEmpty(_headerImagePath)
@@ -176,13 +179,19 @@
         // first render after that rather than strictly on firstRender. The
         // flag is set before awaiting so overlapping renders can't
         // double-bind; if the interop fails the field degrades to a plain
-        // uploader instead of being left dead.
+        // uploader instead of being left dead. The module is imported here,
+        // per circuit, rather than via a document script tag: a script tag
+        // only executes at document birth, so a fetch that races a redeploy
+        // (#37) would leave every later circuit in that tab without the
+        // tool. Assets[] resolves the fingerprint server-side, so the URL is
+        // always the current build's even in a tab older than the deploy.
         if (!_loading && !_cropInitialized)
         {
             _cropInitialized = true;
             try
             {
-                await JS.InvokeVoidAsync("__cropTool.init", "project", ImageUploadService.MaxBytes);
+                _cropModule = await JS.InvokeAsync<IJSObjectReference>("import", Assets["js/crop.js"]);
+                await _cropModule.InvokeVoidAsync("init", "project", ImageUploadService.MaxBytes);
                 _cropReady = true;
                 StateHasChanged();
             }
@@ -197,15 +206,36 @@
 
     private async Task AdjustFramingAsync()
     {
+        if (_cropModule is null)
+        {
+            return;
+        }
+
         _error = null;
         try
         {
-            await JS.InvokeVoidAsync("__cropTool.open", "project", _headerImagePath);
+            await _cropModule.InvokeVoidAsync("open", "project", _headerImagePath);
         }
         catch (JSException ex)
         {
             Logger.LogError(ex, "Loading the stored card image into the crop tool failed.");
             _error = "Couldn't load the stored image into the crop tool.";
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_cropModule is not null)
+        {
+            try
+            {
+                await _cropModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit is already gone (tab closed, connection lost);
+                // the browser released the module with it.
+            }
         }
     }
 
