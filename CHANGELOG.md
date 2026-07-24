@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/JJWren/Portfolio/compare/v1.9.1...v1.9.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* import crop tool as per-circuit ES module so redeploys can't strand editors ([#38](https://github.com/JJWren/Portfolio/issues/38)) ([0458483](https://github.com/JJWren/Portfolio/commit/0458483c4fca6edcf59d5f016ff4b7938528b865)), closes [#37](https://github.com/JJWren/Portfolio/issues/37)
+
 ## [1.9.1](https://github.com/JJWren/Portfolio/compare/v1.9.0...v1.9.1) (2026-07-23)
 
 
