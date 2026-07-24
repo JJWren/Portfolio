@@ -19,6 +19,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public DbSet<UserMessage> UserMessages => Set<UserMessage>();
 
+    public DbSet<SiteContent> SiteContents => Set<SiteContent>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -121,6 +123,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .HasForeignKey(m => m.ReportId)
                 .OnDelete(DeleteBehavior.SetNull);
             message.HasIndex(m => new { m.RecipientId, m.IsRead });
+        });
+
+        builder.Entity<SiteContent>(content =>
+        {
+            // Single fixed-key row (SiteContent.SingletonId) upserted by SiteContentService.
+            content.Property(c => c.Id).ValueGeneratedNever();
+            content.Property(c => c.HeroHeading).HasMaxLength(SiteContentRules.HeroHeadingMaxLength);
+            content.Property(c => c.Tagline).HasMaxLength(SiteContentRules.TaglineMaxLength);
+            content.Property(c => c.About).HasMaxLength(SiteContentRules.AboutMaxLength);
         });
     }
 }
