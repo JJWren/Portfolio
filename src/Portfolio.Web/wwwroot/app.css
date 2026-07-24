@@ -904,6 +904,7 @@ button.pager-link:not(:disabled):hover {
 }
 
 .project-card {
+    position: relative;
     flex: 0 0 min(320px, 80vw);
     scroll-snap-align: start;
     display: flex;
@@ -961,6 +962,58 @@ button.pager-link:not(:disabled):hover {
     margin-top: auto !important;
     font-family: var(--font-mono);
     font-size: 0.8rem;
+}
+
+/* Admin-only: a stretched overlay makes the whole card open the editor;
+   the real Homepage/Repo links sit above it. */
+.project-links a {
+    position: relative;
+    z-index: 2;
+}
+
+.project-edit-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius);
+    text-decoration: none;
+}
+
+/* Inset ring instead of an outer glow — the card clips overflow. Keyed to
+   the card hover so the ring stays lit while the pointer is on the raised
+   Homepage/Repo links; matches nothing for non-admins (no overlay exists). */
+.project-card:hover .project-edit-link,
+.project-edit-link:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 24px -14px var(--accent);
+}
+
+/* The inset ring + badge are the focus indicator. Transparent (not none):
+   forced-colors mode repaints the outline, so keyboard focus stays visible
+   there even though box-shadow is suppressed. */
+.project-edit-link:focus-visible {
+    outline-color: transparent;
+}
+
+.project-edit-badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.project-card:hover .project-edit-badge,
+.project-edit-link:focus-visible .project-edit-badge {
+    opacity: 1;
 }
 
 .projects-cta {
