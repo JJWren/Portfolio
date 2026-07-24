@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.3](https://github.com/JJWren/Portfolio/compare/v1.9.2...v1.9.3) (2026-07-24)
+
+
+### Bug Fixes
+
+* rebuild crop tool as movable crop-box editor and fix module import URL ([#41](https://github.com/JJWren/Portfolio/issues/41)) ([43e98aa](https://github.com/JJWren/Portfolio/commit/43e98aac7d6832a98d7d7261b45434b7452222de))
+
 ## [1.9.2](https://github.com/JJWren/Portfolio/compare/v1.9.1...v1.9.2) (2026-07-23)
 
 
