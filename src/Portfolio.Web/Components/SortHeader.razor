@@ -1,0 +1,39 @@
+@typeparam TColumn where TColumn : struct, Enum
+
+@* A column header that sorts on click: inherits the surrounding th /
+   sort-bar typography, glows on hover, and shows the direction arrow
+   only on the active column. *@
+<button type="button" class="sort-header @(IsActive ? "active" : null)"
+        aria-label="@AriaLabel" @onclick="() => OnSort.InvokeAsync(Column)">
+    <span>@Label</span>
+    <span class="sort-arrow" aria-hidden="true">@Arrow</span>
+</button>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    /// <summary>The column this header sorts.</summary>
+    [Parameter, EditorRequired]
+    public required TColumn Column { get; set; }
+
+    /// <summary>The column the list is currently sorted by.</summary>
+    [Parameter, EditorRequired]
+    public required TColumn ActiveColumn { get; set; }
+
+    [Parameter, EditorRequired]
+    public required SortDirection Direction { get; set; }
+
+    [Parameter]
+    public EventCallback<TColumn> OnSort { get; set; }
+
+    private bool IsActive => EqualityComparer<TColumn>.Default.Equals(Column, ActiveColumn);
+
+    private string Arrow => !IsActive
+        ? string.Empty
+        : Direction == SortDirection.Ascending ? "▲" : "▼";
+
+    private string AriaLabel => IsActive
+        ? $"{Label} — sorted {(Direction == SortDirection.Ascending ? "ascending" : "descending")}; activate to reverse"
+        : $"Sort by {Label}";
+}

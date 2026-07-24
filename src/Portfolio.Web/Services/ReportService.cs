@@ -78,7 +78,9 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
     }
 
     public async Task<PagedResult<Report>> GetAdminPageAsync(
-        int page, bool openOnly, string? reason = null, string? targetSearch = null)
+        int page, bool openOnly, string? reason = null, string? targetSearch = null,
+        ReportSortColumn sortColumn = ReportSortColumn.CreatedAt,
+        SortDirection sortDirection = SortDirection.Descending)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var reports = db.Reports.AsNoTracking().AsQueryable();
@@ -105,17 +107,32 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
 
         var total = await reports.CountAsync();
         page = PagedResult<Report>.ClampPage(page, total, PageSizes.Admin);
-        var items = await reports
-            .Include(r => r.Reporter)
-            .Include(r => r.TargetUser)
-            .Include(r => r.Comment!).ThenInclude(c => c.BlogPost)
-            .OrderByDescending(r => r.CreatedAt)
+        var items = await ApplySort(
+                reports
+                    .Include(r => r.Reporter)
+                    .Include(r => r.TargetUser)
+                    .Include(r => r.Comment!).ThenInclude(c => c.BlogPost),
+                sortColumn, sortDirection)
             .ThenByDescending(r => r.Id)
             .Skip((page - 1) * PageSizes.Admin)
             .Take(PageSizes.Admin)
             .ToListAsync();
         return new PagedResult<Report>(items, page, PageSizes.Admin, total);
     }
+
+    private static IOrderedQueryable<Report> ApplySort(
+        IQueryable<Report> reports, ReportSortColumn column, SortDirection direction)
+        => column switch
+        {
+            ReportSortColumn.Type => QuerySort.By(reports, r => r.TargetType, direction),
+            ReportSortColumn.Reason => QuerySort.By(reports, r => r.Reason, direction),
+            // Mirrors ApplicationUser.PublicName exactly, so the sort key
+            // matches the name the row displays.
+            ReportSortColumn.Target => QuerySort.By(reports,
+                r => r.TargetUser.CustomDisplayName ?? r.TargetUser.DisplayName ?? r.TargetUser.Email ?? "User", direction),
+            ReportSortColumn.Status => QuerySort.By(reports, r => r.Status, direction),
+            _ => QuerySort.By(reports, r => r.CreatedAt, direction),
+        };
 
     public async Task<int> OpenCountAsync()
     {

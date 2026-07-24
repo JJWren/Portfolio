@@ -21,7 +21,9 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     public async Task<PagedResult<Comment>> GetAdminPageAsync(
-        int page, string? search = null, bool? hidden = null, int? postId = null)
+        int page, string? search = null, bool? hidden = null, int? postId = null,
+        CommentSortColumn sortColumn = CommentSortColumn.CreatedAt,
+        SortDirection sortDirection = SortDirection.Descending)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var comments = db.Comments.AsNoTracking().AsQueryable();
@@ -49,16 +51,26 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
 
         var total = await comments.CountAsync();
         page = PagedResult<Comment>.ClampPage(page, total, PageSizes.Admin);
-        var items = await comments
-            .Include(c => c.User)
-            .Include(c => c.BlogPost)
-            .OrderByDescending(c => c.CreatedAt)
+        var items = await ApplySort(
+                comments.Include(c => c.User).Include(c => c.BlogPost),
+                sortColumn, sortDirection)
             .ThenByDescending(c => c.Id)
             .Skip((page - 1) * PageSizes.Admin)
             .Take(PageSizes.Admin)
             .ToListAsync();
         return new PagedResult<Comment>(items, page, PageSizes.Admin, total);
     }
+
+    private static IOrderedQueryable<Comment> ApplySort(
+        IQueryable<Comment> comments, CommentSortColumn column, SortDirection direction)
+        => column switch
+        {
+            // Mirrors the value the Comment cell leads with: DisplayName ?? Email.
+            CommentSortColumn.Author => QuerySort.By(comments, c => c.User.DisplayName ?? c.User.Email, direction),
+            CommentSortColumn.Post => QuerySort.By(comments, c => c.BlogPost.Title, direction),
+            CommentSortColumn.State => QuerySort.By(comments, c => c.IsHidden, direction),
+            _ => QuerySort.By(comments, c => c.CreatedAt, direction),
+        };
 
     /// <summary>Posts that have at least one comment — for the admin filter picker.</summary>
     public async Task<List<(int Id, string Title)>> GetPostsWithCommentsAsync()

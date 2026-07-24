@@ -1384,6 +1384,62 @@ select:focus {
     margin-right: 0.8rem;
 }
 
+/* Sortable column headers — buttons that inherit the th / sort-bar
+   typography so they look identical until interacted with. */
+.sort-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+}
+
+.sort-header.active {
+    color: var(--text);
+}
+
+/* After .active so the accent glow also wins on the active column. */
+.sort-header:hover,
+.sort-header:focus-visible {
+    color: var(--accent);
+    text-shadow: 0 0 12px var(--accent);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Reserved width so the arrow appearing never shifts the label. */
+.sort-arrow {
+    min-width: 1em;
+    font-size: 0.7em;
+    color: var(--accent);
+}
+
+/* Table-style header bar above the Messages / Reports inboxes; reuses the
+   .inbox-from / .inbox-subject flex slots so labels align with the rows. */
+.inbox-sort-bar {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.4rem;
+    border-bottom: 2px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.inbox-sort-bar .inbox-subject {
+    display: inline-flex;
+    gap: 1.2rem;
+}
+
 .badge {
     display: inline-block;
     padding: 0.15rem 0.6rem;

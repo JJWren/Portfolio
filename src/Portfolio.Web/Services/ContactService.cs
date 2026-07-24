@@ -23,7 +23,9 @@ public class ContactService(IDbContextFactory<AppDbContext> dbFactory, EmailServ
     }
 
     public async Task<PagedResult<ContactMessage>> GetAdminPageAsync(
-        int page, string? search = null, bool? isRead = null)
+        int page, string? search = null, bool? isRead = null,
+        MessageSortColumn sortColumn = MessageSortColumn.ReceivedAt,
+        SortDirection sortDirection = SortDirection.Descending)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var messages = db.ContactMessages.AsNoTracking().AsQueryable();
@@ -45,14 +47,23 @@ public class ContactService(IDbContextFactory<AppDbContext> dbFactory, EmailServ
 
         var total = await messages.CountAsync();
         page = PagedResult<ContactMessage>.ClampPage(page, total, PageSizes.Admin);
-        var items = await messages
-            .OrderByDescending(m => m.ReceivedAt)
+        var items = await ApplySort(messages, sortColumn, sortDirection)
             .ThenByDescending(m => m.Id)
             .Skip((page - 1) * PageSizes.Admin)
             .Take(PageSizes.Admin)
             .ToListAsync();
         return new PagedResult<ContactMessage>(items, page, PageSizes.Admin, total);
     }
+
+    private static IOrderedQueryable<ContactMessage> ApplySort(
+        IQueryable<ContactMessage> messages, MessageSortColumn column, SortDirection direction)
+        => column switch
+        {
+            MessageSortColumn.From => QuerySort.By(messages, m => m.Name, direction),
+            MessageSortColumn.Subject => QuerySort.By(messages, m => m.Subject, direction),
+            MessageSortColumn.State => QuerySort.By(messages, m => m.IsRead, direction),
+            _ => QuerySort.By(messages, m => m.ReceivedAt, direction),
+        };
 
     public async Task<int> UnreadCountAsync()
     {
