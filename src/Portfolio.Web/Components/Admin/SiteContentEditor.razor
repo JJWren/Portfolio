@@ -38,24 +38,24 @@
             <label class="field">
                 <span>Hero heading <span class="muted">the landing-page H1</span></span>
                 <input type="text" maxlength="@SiteContentRules.HeroHeadingMaxLength"
-                       @bind="_heroHeading" placeholder="@Site.OwnerName" />
+                       @bind="_heroHeading" @bind:after="MarkDirty" placeholder="@Site.OwnerName" />
             </label>
 
             <label class="field">
                 <span>Tagline <span class="muted">also the meta description</span></span>
                 <input type="text" maxlength="@SiteContentRules.TaglineMaxLength"
-                       @bind="_tagline" placeholder="@Site.Tagline" />
+                       @bind="_tagline" @bind:after="MarkDirty" placeholder="@Site.Tagline" />
             </label>
 
             <label class="field">
                 <span>About <span class="muted">each line becomes a paragraph</span></span>
                 <textarea rows="8" maxlength="@SiteContentRules.AboutMaxLength"
-                          @bind="_about" placeholder="@Site.About"></textarea>
+                          @bind="_about" @bind:after="MarkDirty" placeholder="@Site.About"></textarea>
             </label>
 
             <label class="field">
                 <span>Skills <span class="muted">one per line</span></span>
-                <textarea rows="6" @bind="_skillsText"
+                <textarea rows="6" @bind="_skillsText" @bind:after="MarkDirty"
                           placeholder="@SiteContentRules.SkillsText(Site.Skills)"></textarea>
             </label>
 
@@ -84,6 +84,9 @@
         SeedForm(await ContentStore.GetOverridesAsync());
         _loading = false;
     }
+
+    /// <summary>Edits after a save mean the note no longer reflects the stored state.</summary>
+    private void MarkDirty() => _saved = false;
 
     private void SeedForm(Portfolio.Web.Data.SiteContent? overrides)
     {

@@ -56,12 +56,12 @@ public static class SiteContentRules
     {
         if (heroHeading is not null && heroHeading.Length > HeroHeadingMaxLength)
         {
-            return $"Hero headings are limited to {HeroHeadingMaxLength} characters (yours is {heroHeading.Length}).";
+            return $"Hero heading is limited to {HeroHeadingMaxLength} characters (yours is {heroHeading.Length}).";
         }
 
         if (tagline is not null && tagline.Length > TaglineMaxLength)
         {
-            return $"Taglines are limited to {TaglineMaxLength} characters (yours is {tagline.Length}).";
+            return $"Tagline is limited to {TaglineMaxLength} characters (yours is {tagline.Length}).";
         }
 
         if (about is not null && about.Length > AboutMaxLength)
