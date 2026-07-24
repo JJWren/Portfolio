@@ -155,6 +155,12 @@
                 _cropUnavailable = true;
                 StateHasChanged();
             }
+            catch (JSDisconnectedException)
+            {
+                // The circuit died while the import was in flight (tab
+                // closed, connection lost); there is no user left to show
+                // a fallback to.
+            }
         }
     }
 

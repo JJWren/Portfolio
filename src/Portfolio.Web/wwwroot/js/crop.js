@@ -427,6 +427,12 @@ export function init(prefix, maxBytes) {
         }
         var sel = selection();
         var out = outputSize(sel);
+        // Degenerate sources (an image a pixel or two wide) can floor the
+        // 16:9 output to zero; upload the original instead of an empty crop.
+        if (out.width < 1 || out.height < 1) {
+            fallbackToOriginal();
+            return;
+        }
         var canvas = document.createElement('canvas');
         canvas.width = out.width;
         canvas.height = out.height;
