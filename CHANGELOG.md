@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/JJWren/Portfolio/compare/v1.11.0...v1.12.0) (2026-07-24)
+
+
+### Features
+
+* inline icons for external links and sign-in providers ([#45](https://github.com/JJWren/Portfolio/issues/45)) ([91d32a7](https://github.com/JJWren/Portfolio/commit/91d32a7bff5f0aab6fc8987636000915e8755583))
+
 ## [1.11.0](https://github.com/JJWren/Portfolio/compare/v1.10.0...v1.11.0) (2026-07-24)
 
 
