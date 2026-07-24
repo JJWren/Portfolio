@@ -24,8 +24,8 @@
 Items 1–4 above are complete: OAuth sign-in is live in production, `.env` is
 personalized, the site is deployed behind the reverse proxy at
 https://joshuamykitta.dev (moved from portfolio.theguywiththedogs.dev on
-2026-07-24), and Personal_Portfolio is archived
-(SMTP stays environment-specific; contact messages land in the DB regardless).
+2026-07-24), and Personal_Portfolio is archived. SMTP stays
+environment-specific; contact messages land in the DB regardless.
 The test suite has since grown from 41 to 184 tests across releases
 v1.1.0–v1.12.0 — see unit-test-instructions.md and CHANGELOG.md.
 

@@ -37,7 +37,8 @@
 - [x] OAuth apps registered; live sign-in + admin role verified in production
 - [x] Production .env personalized; old JJWren/Personal_Portfolio repo archived
 - [x] Release flow: squash-merged conventional-commit PRs + release-please tags/GHCR publish; Copilot review gate on every PR (see CONTRIBUTING.md)
-- [x] Domain move (2026-07-24): portfolio.theguywiththedogs.dev → joshuamykitta.dev — Porkbun DNS repointed, new reverse-proxy host + Let's Encrypt cert, PUBLIC_BASE_URL swapped, OAuth callbacks re-registered (GitHub/Google/Discord), repo About homepage updated; old hostname kept for a permanent 301 redirect of legacy links
+- [x] Domain move (2026-07-24): portfolio.theguywiththedogs.dev → joshuamykitta.dev — Porkbun DNS repointed, new reverse-proxy host + Let's Encrypt cert, PUBLIC_BASE_URL swapped, OAuth callbacks re-registered (GitHub/Google/Discord), repo About homepage updated
+- [ ] Pending: re-create the old-hostname 301 redirect in the reverse proxy (portfolio.theguywiththedogs.dev → joshuamykitta.dev, preserve path, reuse existing cert) so legacy links keep resolving — see audit entry 2026-07-24T22:18:29Z
 - Issue-driven releases v1.1.0 → v1.12.0 (2026-07-21 → 2026-07-24):
   - v1.1.0 comment profiles (display name, avatar) + anonymous commenting
   - v1.2.0 official logo, mobile hamburger nav, local-time timestamps
