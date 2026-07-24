@@ -32,6 +32,28 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
     /// <summary>Normalizes each field (blank → null → .env fallback) and upserts the single row.</summary>
     public async Task SaveAsync(string? heroHeading, string? tagline, string? about, string? skillsText)
     {
+        var normalizedHeroHeading = SiteContentRules.NormalizeField(heroHeading);
+        var normalizedTagline = SiteContentRules.NormalizeField(tagline);
+        var normalizedAbout = SiteContentRules.NormalizeField(about);
+        var skills = SiteContentRules.ParseSkills(skillsText);
+
+        try
+        {
+            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills);
+        }
+        catch (DbUpdateException ex) when (
+            ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation })
+        {
+            // Loser of a concurrent first save: the row exists now, so one
+            // retry lands on the update path (last write wins).
+            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills);
+        }
+
+        _cache = null;
+    }
+
+    private async Task UpsertAsync(string? heroHeading, string? tagline, string? about, List<string>? skills)
+    {
         await using var db = await dbFactory.CreateDbContextAsync();
         var row = await db.SiteContents
             .FirstOrDefaultAsync(c => c.Id == SiteContent.SingletonId);
@@ -41,12 +63,11 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             db.SiteContents.Add(row);
         }
 
-        row.HeroHeading = SiteContentRules.NormalizeField(heroHeading);
-        row.Tagline = SiteContentRules.NormalizeField(tagline);
-        row.About = SiteContentRules.NormalizeField(about);
-        row.Skills = SiteContentRules.ParseSkills(skillsText);
+        row.HeroHeading = heroHeading;
+        row.Tagline = tagline;
+        row.About = about;
+        row.Skills = skills;
         row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
-        _cache = null;
     }
 }
