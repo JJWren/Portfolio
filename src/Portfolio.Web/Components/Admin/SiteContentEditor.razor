@@ -1,0 +1,145 @@
+@page "/admin/site"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@inject SiteContentService ContentStore
+@inject SiteConfig Site
+
+<PageTitle>Site content — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container narrow-form">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Site content</h1>
+            <a class="btn btn-ghost" href="/admin">Back to dashboard</a>
+        </div>
+
+        @if (_loading)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else
+        {
+            <p class="muted">
+                Overrides replace the matching .env value on the landing page.
+                Leave a field blank to keep using the .env value.
+            </p>
+
+            @if (_error is not null)
+            {
+                <p class="alert" role="alert">@_error</p>
+            }
+            @if (_saved)
+            {
+                <p class="saved-note" role="status">Saved — the landing page now shows these values.</p>
+            }
+
+            <label class="field">
+                <span>Hero heading <span class="muted">the landing-page H1</span></span>
+                <input type="text" maxlength="@SiteContentRules.HeroHeadingMaxLength"
+                       @bind="_heroHeading" @bind:after="MarkDirty" placeholder="@Site.OwnerName" />
+            </label>
+
+            <label class="field">
+                <span>Tagline <span class="muted">also the meta description</span></span>
+                <input type="text" maxlength="@SiteContentRules.TaglineMaxLength"
+                       @bind="_tagline" @bind:after="MarkDirty" placeholder="@Site.Tagline" />
+            </label>
+
+            <label class="field">
+                <span>About <span class="muted">each line becomes a paragraph</span></span>
+                <textarea rows="8" maxlength="@SiteContentRules.AboutMaxLength"
+                          @bind="_about" @bind:after="MarkDirty" placeholder="@Site.About"></textarea>
+            </label>
+
+            <label class="field">
+                <span>Skills <span class="muted">one per line</span></span>
+                <textarea rows="6" @bind="_skillsText" @bind:after="MarkDirty"
+                          placeholder="@SiteContentRules.SkillsText(Site.Skills)"></textarea>
+            </label>
+
+            <div class="editor-actions">
+                <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
+                    @(_busy ? "Saving…" : "Save")
+                </button>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private bool _loading = true;
+    private bool _busy;
+    private bool _saved;
+    private string? _error;
+
+    private string _heroHeading = string.Empty;
+    private string _tagline = string.Empty;
+    private string _about = string.Empty;
+    private string _skillsText = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SeedForm(await ContentStore.GetOverridesAsync());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _error = "Couldn't load the saved overrides — refresh to try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>Edits after a save mean the note no longer reflects the stored state.</summary>
+    private void MarkDirty() => _saved = false;
+
+    private void SeedForm(Portfolio.Web.Data.SiteContent? overrides)
+    {
+        _heroHeading = overrides?.HeroHeading ?? string.Empty;
+        _tagline = overrides?.Tagline ?? string.Empty;
+        _about = overrides?.About ?? string.Empty;
+        _skillsText = SiteContentRules.SkillsText(overrides?.Skills);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_busy)
+        {
+            return; // Queued double-clicks must not overlap saves.
+        }
+
+        _saved = false;
+        _error = SiteContentRules.CheckLengths(
+            SiteContentRules.NormalizeField(_heroHeading),
+            SiteContentRules.NormalizeField(_tagline),
+            SiteContentRules.NormalizeField(_about));
+        if (_error is not null)
+        {
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await ContentStore.SaveAsync(_heroHeading, _tagline, _about, _skillsText);
+            // Re-seed so the form shows what was actually stored (trimmed, normalized).
+            SeedForm(await ContentStore.GetOverridesAsync());
+            _saved = true;
+        }
+        catch (DbUpdateException)
+        {
+            // The service already retries the concurrent first-save race, so
+            // whatever lands here is unexpected — surface it for a manual retry.
+            _error = "Saving failed — the database rejected the change. Try again in a moment.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -1,21 +1,22 @@
 @page "/"
 @inject SiteConfig Site
+@inject SiteContentService ContentStore
 
 <PageTitle>@Site.SiteTitle</PageTitle>
 <HeadContent>
-    <meta name="description" content="@Site.Tagline" />
+    <meta name="description" content="@_content.Tagline" />
     <meta property="og:title" content="@Site.SiteTitle" />
-    <meta property="og:description" content="@Site.Tagline" />
+    <meta property="og:description" content="@_content.Tagline" />
     <meta property="og:type" content="website" />
 </HeadContent>
 
 <section class="hero">
     <div class="container">
         <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <h1>@Site.OwnerName</h1>
-        @if (!string.IsNullOrEmpty(Site.Tagline))
+        <h1>@_content.HeroHeading</h1>
+        @if (!string.IsNullOrEmpty(_content.Tagline))
         {
-            <p class="tagline">@Site.Tagline</p>
+            <p class="tagline">@_content.Tagline</p>
         }
         <div class="actions">
             @if (Site.GitHubUrl is not null)
@@ -31,25 +32,25 @@
     </div>
 </section>
 
-@if (Site.About is not null || Site.Skills.Count > 0)
+@if (_content.About is not null || _content.Skills.Count > 0)
 {
     <section class="section">
         <div class="container">
             <p class="eyebrow">About</p>
             <div class="about-grid">
-                @if (Site.About is not null)
+                @if (_content.About is not null)
                 {
                     <div class="about-text">
-                        @foreach (var paragraph in Site.About.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        @foreach (var paragraph in _content.About.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                         {
                             <p>@paragraph</p>
                         }
                     </div>
                 }
-                @if (Site.Skills.Count > 0)
+                @if (_content.Skills.Count > 0)
                 {
                     <ul class="skills">
-                        @foreach (var skill in Site.Skills)
+                        @foreach (var skill in _content.Skills)
                         {
                             <li>@skill</li>
                         }
@@ -58,4 +59,17 @@
             </div>
         </div>
     </section>
+}
+
+@code {
+    private EffectiveSiteContent _content = default!;
+
+    // Seed synchronously so any render is safe (streaming or interactive
+    // rendering could paint before OnInitializedAsync completes), then
+    // overwrite with the DB-resolved values.
+    protected override void OnInitialized()
+        => _content = SiteContentRules.Resolve(Site, null);
+
+    protected override async Task OnInitializedAsync()
+        => _content = await ContentStore.GetEffectiveAsync();
 }
