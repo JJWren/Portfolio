@@ -115,7 +115,10 @@
         }
         catch (DbUpdateException)
         {
-            _error = "Saving failed — the database rejected the content. Check the field lengths, then try again.";
+            // Lengths are validated above, so don't blame them — a concurrent
+            // first save (duplicate Id=1 insert) or a transient DB issue lands
+            // here, and both succeed on retry.
+            _error = "Saving failed — the database rejected the change. Try again in a moment.";
         }
         finally
         {
