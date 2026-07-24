@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/JJWren/Portfolio/compare/v1.10.0...v1.11.0) (2026-07-24)
+
+
+### Features
+
+* admin-editable site content overrides for the landing page ([#43](https://github.com/JJWren/Portfolio/issues/43)) ([2791fbe](https://github.com/JJWren/Portfolio/commit/2791fbeeb78d84f23f8d9260155764ff1bd04eda))
+
 ## [1.10.0](https://github.com/JJWren/Portfolio/compare/v1.9.3...v1.10.0) (2026-07-24)
 
 
