@@ -85,7 +85,7 @@
         {
             SeedForm(await ContentStore.GetOverridesAsync());
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _error = "Couldn't load the saved overrides — refresh to try again.";
         }

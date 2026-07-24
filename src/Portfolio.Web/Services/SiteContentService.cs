@@ -25,10 +25,11 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         {
             overrides = await GetOverridesAsync();
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // The landing page must render even when the DB blips: serve the
-            // .env defaults and leave the cache empty so the next request retries.
+            // .env defaults and leave the cache empty so the next request
+            // retries. Cancellations still propagate so aborted requests die.
             return SiteContentRules.Resolve(site, null);
         }
 
