@@ -513,7 +513,10 @@ export function open(prefix, url) {
     if (!tool) {
         throw new Error('cropTool: not initialized for prefix "' + prefix + '"');
     }
-    if (PASS_THROUGH.indexOf(extensionOf(url)) >= 0) {
+    // Query strings and fragments are not part of the file name — a
+    // cache-busted "x.svg?v=1" must still pass through.
+    var path = url.split('#')[0].split('?')[0];
+    if (PASS_THROUGH.indexOf(extensionOf(path)) >= 0) {
         return Promise.resolve();
     }
     return fetch(url)
@@ -524,7 +527,7 @@ export function open(prefix, url) {
             return response.blob();
         })
         .then(function (blob) {
-            var name = url.split('/').pop().split('?')[0] || 'image';
+            var name = path.split('/').pop() || 'image';
             tool.show(new File([blob], name, { type: blob.type }));
         });
 }
