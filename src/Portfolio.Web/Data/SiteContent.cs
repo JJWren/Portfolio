@@ -2,7 +2,8 @@ namespace Portfolio.Web.Data;
 
 /// <summary>
 /// Single-row (Id = 1) admin overrides for the landing-page copy. A null
-/// column means "fall back to the .env value in SiteConfig".
+/// column — or an empty Skills list — means "fall back to the .env value
+/// in SiteConfig" (see SiteContentRules.Resolve).
 /// </summary>
 public class SiteContent
 {
