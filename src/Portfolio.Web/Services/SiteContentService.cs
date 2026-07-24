@@ -5,8 +5,11 @@ namespace Portfolio.Web.Services;
 
 public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteConfig site)
 {
-    // Single-container deploy, so an in-process cache is safe; SaveAsync clears it.
+    // Single-container deploy, so an in-process cache is safe; SaveAsync clears
+    // it. The version counter lets a reader detect that a save happened while
+    // its DB read was in flight and skip publishing the now-stale snapshot.
     private volatile EffectiveSiteContent? _cache;
+    private int _version;
 
     /// <summary>Resolved landing copy — DB overrides over .env values, cached until the next save.</summary>
     public async Task<EffectiveSiteContent> GetEffectiveAsync()
@@ -16,8 +19,13 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             return cached;
         }
 
+        var versionBefore = Volatile.Read(ref _version);
         var resolved = SiteContentRules.Resolve(site, await GetOverridesAsync());
-        _cache = resolved;
+        if (Volatile.Read(ref _version) == versionBefore)
+        {
+            _cache = resolved;
+        }
+
         return resolved;
     }
 
@@ -49,6 +57,9 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills);
         }
 
+        // Bump the version before clearing so an in-flight reader can tell its
+        // snapshot predates this save and must not repopulate the cache.
+        Interlocked.Increment(ref _version);
         _cache = null;
     }
 
