@@ -247,3 +247,11 @@
 **Context**: Documentation-only update; docs PR from docs/readme-aidlc-refresh, Copilot review gate before squash merge
 
 ---
+
+## Operations — Domain Move to joshuamykitta.dev
+**Timestamp**: 2026-07-24T22:18:29Z
+**User Input**: "Review my information here (Z:\docker\portfolio) and here (https://github.com/JJWren/Portfolio) and tell me what I need to do to transition my portfolio to a new domain (joshuamykitta.dev)" → "Give me very detailed steps for this checklist. Don't gloss over details. Treat me like an idiot doing this for the first time." → "Go ahead and do the docs PR. The website is live and working."
+**AI Response**: Mapped every domain touchpoint (Porkbun DNS, NPM proxy host + Let's Encrypt cert npm-34, PUBLIC_BASE_URL and OAuth callback registrations in .env, GitHub/Google/Discord dashboards, repo About, external profile links) and confirmed the app itself is host-agnostic (AllowedHosts *, forwarded headers configured, all domain values env-driven) — zero code changes needed. Delivered a detailed first-timer cutover guide: Porkbun A/CNAME records → new NPM proxy host + HTTP-01 cert with websockets on → PUBLIC_BASE_URL swap + container recreate → OAuth callback updates (GitHub is a hard single-callback switch; Google/Discord additive) → old host converted to a 301 redirection host reusing cert npm-34 → repo About + external links. Joshua executed the cutover; verified live: GET https://joshuamykitta.dev returns 200, repo About homepage already updated. Docs refreshed in this PR: aidlc-state.md (deployed URL + domain-move bullet), build-and-test-summary.md (PUBLIC_BASE_URL example + deployed-at URL). Flagged during verification: the old hostname currently serves no NPM host at all (proxy host deleted, redirection host not yet created — HTTPS handshake fails, HTTP 404s), so the planned permanent 301 for legacy links still needs to be configured in NPM.
+**Context**: Operations phase, domain cutover; docs-only PR from docs/domain-move-joshuamykitta, Copilot review gate before squash merge; docs: commit → no release
+
+---
