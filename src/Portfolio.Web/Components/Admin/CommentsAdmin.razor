@@ -44,10 +44,22 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Comment</th>
-                            <th>Post</th>
-                            <th>When</th>
-                            <th>State</th>
+                            <th aria-sort="@AriaSort(CommentSortColumn.Author)">
+                                <SortHeader TColumn="CommentSortColumn" Label="Comment" Column="CommentSortColumn.Author"
+                                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                            </th>
+                            <th aria-sort="@AriaSort(CommentSortColumn.Post)">
+                                <SortHeader TColumn="CommentSortColumn" Label="Post" Column="CommentSortColumn.Post"
+                                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                            </th>
+                            <th aria-sort="@AriaSort(CommentSortColumn.CreatedAt)">
+                                <SortHeader TColumn="CommentSortColumn" Label="When" Column="CommentSortColumn.CreatedAt"
+                                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                            </th>
+                            <th aria-sort="@AriaSort(CommentSortColumn.State)">
+                                <SortHeader TColumn="CommentSortColumn" Label="State" Column="CommentSortColumn.State"
+                                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                            </th>
                             <th></th>
                         </tr>
                     </thead>
@@ -103,6 +115,8 @@
     private string _search = string.Empty;
     private string _state = string.Empty;
     private string _postId = string.Empty;
+    private CommentSortColumn _sortColumn = CommentSortColumn.CreatedAt;
+    private SortDirection _sortDirection = SortDirection.Descending;
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(_search) || _state.Length > 0 || _postId.Length > 0;
 
@@ -121,9 +135,22 @@
             _ => null,
         };
         int? postId = int.TryParse(_postId, out var parsed) ? parsed : null;
-        _result = await Comments.GetAdminPageAsync(_page, _search, hidden, postId);
+        _result = await Comments.GetAdminPageAsync(_page, _search, hidden, postId, _sortColumn, _sortDirection);
         _page = _result.Page; // service clamps out-of-range pages
     }
+
+    private async Task SortAsync(CommentSortColumn column)
+    {
+        (_sortColumn, _sortDirection) = SortState.Toggle(
+            _sortColumn, _sortDirection, column, SortDefaults.For(column));
+        _page = 1;
+        await ReloadAsync();
+    }
+
+    private string? AriaSort(CommentSortColumn column)
+        => _sortColumn != column
+            ? null
+            : _sortDirection == SortDirection.Ascending ? "ascending" : "descending";
 
     private async Task ApplyFiltersAsync()
     {

@@ -53,6 +53,22 @@
         }
         else
         {
+            <div class="inbox-sort-bar">
+                <span class="inbox-from">
+                    <SortHeader TColumn="ReportSortColumn" Label="Type" Column="ReportSortColumn.Type"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                </span>
+                <span class="inbox-subject">
+                    <SortHeader TColumn="ReportSortColumn" Label="Reason" Column="ReportSortColumn.Reason"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                    <SortHeader TColumn="ReportSortColumn" Label="Target" Column="ReportSortColumn.Target"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                </span>
+                <SortHeader TColumn="ReportSortColumn" Label="When" Column="ReportSortColumn.CreatedAt"
+                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                <SortHeader TColumn="ReportSortColumn" Label="Status" Column="ReportSortColumn.Status"
+                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+            </div>
             <ul class="inbox">
                 @foreach (var report in _result.Items)
                 {
@@ -187,6 +203,8 @@
     private string _reason = string.Empty;
     private string _targetSearch = string.Empty;
     private int? _expandedId;
+    private ReportSortColumn _sortColumn = ReportSortColumn.CreatedAt;
+    private SortDirection _sortDirection = SortDirection.Descending;
     private string? _status;
     private bool _busy;
 
@@ -213,8 +231,16 @@
 
     private async Task ReloadAsync()
     {
-        _result = await Reports.GetAdminPageAsync(_page, _openOnly, _reason, _targetSearch);
+        _result = await Reports.GetAdminPageAsync(_page, _openOnly, _reason, _targetSearch, _sortColumn, _sortDirection);
         _page = _result.Page; // service clamps out-of-range pages
+    }
+
+    private async Task SortAsync(ReportSortColumn column)
+    {
+        (_sortColumn, _sortDirection) = SortState.Toggle(
+            _sortColumn, _sortDirection, column, SortDefaults.For(column));
+        _page = 1;
+        await ReloadAsync();
     }
 
     private async Task ApplyFiltersAsync()

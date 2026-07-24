@@ -33,6 +33,20 @@
         }
         else
         {
+            <div class="inbox-sort-bar">
+                <span class="inbox-from">
+                    <SortHeader TColumn="MessageSortColumn" Label="From" Column="MessageSortColumn.From"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                </span>
+                <span class="inbox-subject">
+                    <SortHeader TColumn="MessageSortColumn" Label="Subject" Column="MessageSortColumn.Subject"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                </span>
+                <SortHeader TColumn="MessageSortColumn" Label="Received" Column="MessageSortColumn.ReceivedAt"
+                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                <SortHeader TColumn="MessageSortColumn" Label="State" Column="MessageSortColumn.State"
+                            ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+            </div>
             <ul class="inbox">
                 @foreach (var message in _result.Items)
                 {
@@ -80,6 +94,8 @@
     private string _search = string.Empty;
     private string _state = string.Empty;
     private int? _expandedId;
+    private MessageSortColumn _sortColumn = MessageSortColumn.ReceivedAt;
+    private SortDirection _sortDirection = SortDirection.Descending;
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(_search) || _state.Length > 0;
 
@@ -94,8 +110,16 @@
             "unread" => false,
             _ => null,
         };
-        _result = await Contact.GetAdminPageAsync(_page, _search, isRead);
+        _result = await Contact.GetAdminPageAsync(_page, _search, isRead, _sortColumn, _sortDirection);
         _page = _result.Page; // service clamps out-of-range pages
+    }
+
+    private async Task SortAsync(MessageSortColumn column)
+    {
+        (_sortColumn, _sortDirection) = SortState.Toggle(
+            _sortColumn, _sortDirection, column, SortDefaults.For(column));
+        _page = 1;
+        await ReloadAsync();
     }
 
     private async Task ApplyFiltersAsync()
