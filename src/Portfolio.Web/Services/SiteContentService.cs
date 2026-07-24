@@ -59,7 +59,7 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             .FirstOrDefaultAsync(c => c.Id == SiteContent.SingletonId);
         if (row is null)
         {
-            row = new SiteContent();
+            row = new SiteContent { Id = SiteContent.SingletonId };
             db.SiteContents.Add(row);
         }
 

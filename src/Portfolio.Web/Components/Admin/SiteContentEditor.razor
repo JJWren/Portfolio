@@ -81,8 +81,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SeedForm(await ContentStore.GetOverridesAsync());
-        _loading = false;
+        try
+        {
+            SeedForm(await ContentStore.GetOverridesAsync());
+        }
+        catch (Exception)
+        {
+            _error = "Couldn't load the saved overrides — refresh to try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     /// <summary>Edits after a save mean the note no longer reflects the stored state.</summary>
@@ -118,9 +128,8 @@
         }
         catch (DbUpdateException)
         {
-            // Lengths are validated above, so don't blame them — a concurrent
-            // first save (duplicate Id=1 insert) or a transient DB issue lands
-            // here, and both succeed on retry.
+            // The service already retries the concurrent first-save race, so
+            // whatever lands here is unexpected — surface it for a manual retry.
             _error = "Saving failed — the database rejected the change. Try again in a moment.";
         }
         finally
