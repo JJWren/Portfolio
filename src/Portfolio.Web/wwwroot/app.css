@@ -985,10 +985,11 @@ button.pager-link:not(:disabled):hover {
     box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 24px -14px var(--accent);
 }
 
-/* The inset ring + badge are the focus indicator; the global outline
-   would double up against the clipped card edge. */
+/* The inset ring + badge are the focus indicator. Transparent (not none):
+   forced-colors mode repaints the outline, so keyboard focus stays visible
+   there even though box-shadow is suppressed. */
 .project-edit-link:focus-visible {
-    outline: none;
+    outline-color: transparent;
 }
 
 .project-edit-badge {
