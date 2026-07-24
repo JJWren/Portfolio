@@ -342,6 +342,13 @@ main {
     color: var(--accent);
 }
 
+/* Inline SVG glyphs (Icon.razor) — sized by the surrounding text. */
+.icon {
+    width: 1em;
+    height: 1em;
+    flex: none;
+}
+
 /* ================================================================
    Sections
    ================================================================ */
@@ -1647,6 +1654,12 @@ select:focus {
     border-bottom: 1px solid var(--border);
 }
 
+.contact-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .inbox {
     padding: 0;
     margin: 0;
@@ -1746,6 +1759,9 @@ select:focus {
 }
 
 .footer-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     color: var(--text-muted);
     text-decoration: none;
 }
@@ -1754,7 +1770,7 @@ select:focus {
     color: var(--accent);
 }
 
-.sponsor-link span {
+.sponsor-link .icon {
     color: var(--c-red);
 }
 
