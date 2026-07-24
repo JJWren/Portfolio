@@ -12,7 +12,7 @@
     @if (!string.IsNullOrEmpty(ImagePath))
     {
         <div class="upload-preview">
-            <img src="@ImagePath" alt="@Label preview" />
+            <img src="@ImagePath" alt="@($"{Label} preview")" />
             @if (_canAdjustFraming)
             {
                 <button type="button" class="btn btn-ghost" @onclick="AdjustFramingAsync">Adjust framing</button>
@@ -27,11 +27,11 @@
     }
     else
     {
-        <input type="file" id="@Prefix-crop-source" accept="@ImageUploadService.AcceptList" aria-label="@Label" />
-        <div class="crop-panel" id="@Prefix-crop-panel">
-            <div class="crop-stage" id="@Prefix-crop-stage">
-                <img id="@Prefix-crop-image" alt="" draggable="false" />
-                <div class="crop-frame" id="@Prefix-crop-frame">
+        <input type="file" id="@($"{Prefix}-crop-source")" accept="@ImageUploadService.AcceptList" aria-label="@Label" />
+        <div class="crop-panel" id="@($"{Prefix}-crop-panel")">
+            <div class="crop-stage" id="@($"{Prefix}-crop-stage")">
+                <img id="@($"{Prefix}-crop-image")" alt="" draggable="false" />
+                <div class="crop-frame" id="@($"{Prefix}-crop-frame")">
                     @if (ShowHeroGuide)
                     {
                         <div class="crop-hero-guide" aria-hidden="true"><span>post hero band</span></div>
@@ -43,11 +43,11 @@
                 </div>
             </div>
             <div class="crop-controls">
-                <input type="range" id="@Prefix-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
-                <span class="crop-zoom-value mono-small" id="@Prefix-crop-zoom-value">1.00×</span>
-                <button type="button" class="btn btn-primary" id="@Prefix-crop-apply">Apply crop</button>
-                <button type="button" class="btn btn-ghost" id="@Prefix-crop-full">Use full image</button>
-                <button type="button" class="btn btn-ghost" id="@Prefix-crop-cancel">Cancel</button>
+                <input type="range" id="@($"{Prefix}-crop-zoom")" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+                <span class="crop-zoom-value mono-small" id="@($"{Prefix}-crop-zoom-value")">1.00×</span>
+                <button type="button" class="btn btn-primary" id="@($"{Prefix}-crop-apply")">Apply crop</button>
+                <button type="button" class="btn btn-ghost" id="@($"{Prefix}-crop-full")">Use full image</button>
+                <button type="button" class="btn btn-ghost" id="@($"{Prefix}-crop-cancel")">Cancel</button>
             </div>
             <span class="muted mono-small">
                 Drag the box to move it, drag a corner to resize, scroll or slide to zoom,
@@ -57,17 +57,17 @@
                     <text>The dashed band is what the post hero shows on desktop.</text>
                 }
             </span>
-            <p class="muted mono-small crop-readout" id="@Prefix-crop-readout"></p>
+            <p class="muted mono-small crop-readout" id="@($"{Prefix}-crop-readout")"></p>
             <div class="crop-previews">
                 <div class="crop-preview-card">
                     <p class="mono-small muted">@CardPreviewLabel</p>
-                    <canvas id="@Prefix-crop-card-preview"></canvas>
+                    <canvas id="@($"{Prefix}-crop-card-preview")"></canvas>
                 </div>
                 @if (ShowHeroGuide)
                 {
                     <div class="crop-preview-card">
                         <p class="mono-small muted">Post hero — desktop</p>
-                        <canvas id="@Prefix-crop-hero-preview"></canvas>
+                        <canvas id="@($"{Prefix}-crop-hero-preview")"></canvas>
                     </div>
                 }
             </div>
