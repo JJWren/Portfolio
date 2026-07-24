@@ -126,9 +126,10 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
         {
             ReportSortColumn.Type => QuerySort.By(reports, r => r.TargetType, direction),
             ReportSortColumn.Reason => QuerySort.By(reports, r => r.Reason, direction),
-            // Mirrors ApplicationUser.PublicName (minus its constant fallback).
+            // Mirrors ApplicationUser.PublicName exactly, so the sort key
+            // matches the name the row displays.
             ReportSortColumn.Target => QuerySort.By(reports,
-                r => r.TargetUser.CustomDisplayName ?? r.TargetUser.DisplayName ?? r.TargetUser.Email, direction),
+                r => r.TargetUser.CustomDisplayName ?? r.TargetUser.DisplayName ?? r.TargetUser.Email ?? "User", direction),
             ReportSortColumn.Status => QuerySort.By(reports, r => r.Status, direction),
             _ => QuerySort.By(reports, r => r.CreatedAt, direction),
         };
