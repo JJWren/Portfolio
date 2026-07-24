@@ -976,12 +976,19 @@ button.pager-link:not(:disabled):hover {
     inset: 0;
     z-index: 1;
     border-radius: var(--radius);
+    text-decoration: none;
 }
 
 /* Inset ring instead of an outer glow — the card clips overflow. */
 .project-edit-link:hover,
 .project-edit-link:focus-visible {
     box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 24px -14px var(--accent);
+}
+
+/* The inset ring + badge are the focus indicator; the global outline
+   would double up against the clipped card edge. */
+.project-edit-link:focus-visible {
+    outline: none;
 }
 
 .project-edit-badge {
