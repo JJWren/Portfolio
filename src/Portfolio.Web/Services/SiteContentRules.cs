@@ -78,5 +78,7 @@ public static class SiteContentRules
             overrides?.HeroHeading ?? site.OwnerName,
             overrides?.Tagline ?? site.Tagline,
             overrides?.About ?? site.About,
-            overrides?.Skills is { Count: > 0 } skills ? skills : site.Skills);
+            // Copy: the resolved snapshot gets cached and must not alias the
+            // (mutable) entity list.
+            overrides?.Skills is { Count: > 0 } skills ? skills.ToArray() : site.Skills);
 }

@@ -20,7 +20,19 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         }
 
         var versionBefore = Volatile.Read(ref _version);
-        var resolved = SiteContentRules.Resolve(site, await GetOverridesAsync());
+        SiteContent? overrides;
+        try
+        {
+            overrides = await GetOverridesAsync();
+        }
+        catch (Exception)
+        {
+            // The landing page must render even when the DB blips: serve the
+            // .env defaults and leave the cache empty so the next request retries.
+            return SiteContentRules.Resolve(site, null);
+        }
+
+        var resolved = SiteContentRules.Resolve(site, overrides);
         if (Volatile.Read(ref _version) == versionBefore)
         {
             _cache = resolved;

@@ -108,6 +108,11 @@
 
     private async Task SaveAsync()
     {
+        if (_busy)
+        {
+            return; // Queued double-clicks must not overlap saves.
+        }
+
         _saved = false;
         _error = SiteContentRules.CheckLengths(
             SiteContentRules.NormalizeField(_heroHeading),
