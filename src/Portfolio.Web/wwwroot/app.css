@@ -1347,15 +1347,16 @@ select:focus {
     color: inherit;
 }
 
+.sort-header.active {
+    color: var(--text);
+}
+
+/* After .active so the accent glow also wins on the active column. */
 .sort-header:hover,
 .sort-header:focus-visible {
     color: var(--accent);
     text-shadow: 0 0 12px var(--accent);
     text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
-.sort-header.active {
-    color: var(--text);
 }
 
 /* Reserved width so the arrow appearing never shifts the label. */
