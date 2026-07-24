@@ -64,7 +64,12 @@
 @code {
     private EffectiveSiteContent _content = default!;
 
-    // Static SSR: the single render happens after OnInitializedAsync completes.
+    // Seed synchronously so any render is safe (streaming or interactive
+    // rendering could paint before OnInitializedAsync completes), then
+    // overwrite with the DB-resolved values.
+    protected override void OnInitialized()
+        => _content = SiteContentRules.Resolve(Site, null);
+
     protected override async Task OnInitializedAsync()
         => _content = await ContentStore.GetEffectiveAsync();
 }
