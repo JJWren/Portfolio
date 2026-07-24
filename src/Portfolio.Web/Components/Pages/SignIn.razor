@@ -25,7 +25,7 @@
                 {
                     <a class="btn btn-ghost provider-btn"
                        href="/auth/login/@provider.Scheme?returnUrl=@Uri.EscapeDataString(ReturnUrl ?? "/")">
-                        Continue with @provider.DisplayName
+                        <Icon Kind="@provider.Scheme" /> Continue with @provider.DisplayName
                     </a>
                 }
             </div>

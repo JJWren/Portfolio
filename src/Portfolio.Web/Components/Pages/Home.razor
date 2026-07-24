@@ -21,11 +21,11 @@
         <div class="actions">
             @if (Site.GitHubUrl is not null)
             {
-                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank">GitHub</a>
+                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
             }
             @if (Site.LinkedInUrl is not null)
             {
-                <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank">LinkedIn</a>
+                <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
             }
             <a class="btn btn-ghost" href="/contact">Get in touch</a>
         </div>

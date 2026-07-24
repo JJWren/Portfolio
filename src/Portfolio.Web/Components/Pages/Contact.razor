@@ -74,18 +74,18 @@
         <aside class="contact-aside">
             <p class="eyebrow">Elsewhere</p>
             <ul class="contact-links">
-                <li><a href="mailto:@Site.ContactEmail">@Site.ContactEmail</a></li>
+                <li><a href="mailto:@Site.ContactEmail"><Icon Kind="email" />@Site.ContactEmail</a></li>
                 @if (Site.ContactPhone is not null)
                 {
-                    <li><a href="tel:@Site.ContactPhone">@Site.ContactPhone</a></li>
+                    <li><a href="tel:@Site.ContactPhone"><Icon Kind="phone" />@Site.ContactPhone</a></li>
                 }
                 @if (Site.LinkedInUrl is not null)
                 {
-                    <li><a href="@Site.LinkedInUrl" rel="me noopener" target="_blank">LinkedIn</a></li>
+                    <li><a href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a></li>
                 }
                 @if (Site.GitHubUrl is not null)
                 {
-                    <li><a href="@Site.GitHubUrl" rel="me noopener" target="_blank">GitHub</a></li>
+                    <li><a href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a></li>
                 }
             </ul>
         </aside>

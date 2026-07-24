@@ -86,17 +86,17 @@
         <nav class="footer-links" aria-label="Social">
             @if (Site.GitHubUrl is not null)
             {
-                <a href="@Site.GitHubUrl" rel="me noopener" target="_blank">GitHub</a>
+                <a href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
             }
             @if (Site.LinkedInUrl is not null)
             {
-                <a href="@Site.LinkedInUrl" rel="me noopener" target="_blank">LinkedIn</a>
+                <a href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
             }
-            <a href="mailto:@Site.ContactEmail">Email</a>
+            <a href="mailto:@Site.ContactEmail"><Icon Kind="email" />Email</a>
             @if (Site.SponsorUrl is not null)
             {
                 <a class="sponsor-link" href="@Site.SponsorUrl" rel="noopener" target="_blank">
-                    <span aria-hidden="true">♥</span> @Site.SponsorText
+                    <Icon Kind="heart" /> @Site.SponsorText
                 </a>
             }
         </nav>
