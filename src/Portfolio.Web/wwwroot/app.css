@@ -979,8 +979,10 @@ button.pager-link:not(:disabled):hover {
     text-decoration: none;
 }
 
-/* Inset ring instead of an outer glow — the card clips overflow. */
-.project-edit-link:hover,
+/* Inset ring instead of an outer glow — the card clips overflow. Keyed to
+   the card hover so the ring stays lit while the pointer is on the raised
+   Homepage/Repo links; matches nothing for non-admins (no overlay exists). */
+.project-card:hover .project-edit-link,
 .project-edit-link:focus-visible {
     box-shadow: inset 0 0 0 1px var(--accent), inset 0 0 24px -14px var(--accent);
 }
@@ -1009,7 +1011,7 @@ button.pager-link:not(:disabled):hover {
     transition: opacity 0.15s ease;
 }
 
-.project-edit-link:hover .project-edit-badge,
+.project-card:hover .project-edit-badge,
 .project-edit-link:focus-visible .project-edit-badge {
     opacity: 1;
 }
