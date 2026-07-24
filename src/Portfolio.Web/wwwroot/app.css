@@ -1428,7 +1428,8 @@ select:focus {
     border: 1px solid var(--border);
 }
 
-/* Admin header-image crop tool */
+/* Admin header-image crop tool: the image sits in a stage and a movable,
+   corner-resizable 16:9 box selects the region that gets saved. */
 .crop-hidden {
     display: none;
 }
@@ -1445,27 +1446,70 @@ select:focus {
     margin-top: 0.4rem;
 }
 
-.crop-box {
+.crop-stage {
     position: relative;
-    width: min(480px, 100%);
-    aspect-ratio: 16 / 9;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 420px;
     overflow: hidden;
     border-radius: var(--radius);
     border: 1px solid var(--border);
-    cursor: grab;
+    background: repeating-conic-gradient(var(--surface) 0% 25%, var(--surface-2) 0% 50%)
+        0 0 / 22px 22px;
     touch-action: none;
+    user-select: none;
 }
 
-.crop-box:active {
+.crop-stage.pannable {
+    cursor: grab;
+}
+
+.crop-stage.panning {
     cursor: grabbing;
 }
 
-.crop-box img {
+.crop-stage img {
     position: absolute;
     max-width: none;
     user-select: none;
     -webkit-user-drag: none;
+    pointer-events: none;
 }
+
+.crop-frame {
+    position: absolute;
+    border: 1.5px solid var(--accent);
+    /* Dims everything outside the selection; the stage clips the spread. */
+    box-shadow: 0 0 0 9999px rgba(21, 21, 21, 0.62);
+    cursor: move;
+    /* Rule-of-thirds guides */
+    background-image:
+        linear-gradient(to right, transparent calc(33.333% - 0.5px), rgba(255, 255, 255, 0.22) calc(33.333% - 0.5px), rgba(255, 255, 255, 0.22) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px)),
+        linear-gradient(to right, transparent calc(66.666% - 0.5px), rgba(255, 255, 255, 0.22) calc(66.666% - 0.5px), rgba(255, 255, 255, 0.22) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(33.333% - 0.5px), rgba(255, 255, 255, 0.22) calc(33.333% - 0.5px), rgba(255, 255, 255, 0.22) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(66.666% - 0.5px), rgba(255, 255, 255, 0.22) calc(66.666% - 0.5px), rgba(255, 255, 255, 0.22) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px));
+}
+
+.crop-handle {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    background: var(--accent);
+    border: 2px solid var(--accent-ink);
+    border-radius: 2px;
+}
+
+.crop-handle::after {
+    /* Bigger invisible hit area for touch */
+    content: '';
+    position: absolute;
+    inset: -9px;
+}
+
+.crop-handle[data-h="nw"] { left: -7px; top: -7px; cursor: nwse-resize; }
+.crop-handle[data-h="ne"] { right: -7px; top: -7px; cursor: nesw-resize; }
+.crop-handle[data-h="sw"] { left: -7px; bottom: -7px; cursor: nesw-resize; }
+.crop-handle[data-h="se"] { right: -7px; bottom: -7px; cursor: nwse-resize; }
 
 .crop-hero-guide {
     position: absolute;
@@ -1474,9 +1518,21 @@ select:focus {
     top: 50%;
     transform: translateY(-50%);
     /* height set by crop.js from the hero band fraction */
-    border-top: 1px dashed rgba(255, 255, 255, 0.8);
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.8);
+    border-top: 1px dashed rgba(255, 255, 255, 0.75);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.75);
     pointer-events: none;
+}
+
+.crop-hero-guide span {
+    position: absolute;
+    right: 6px;
+    top: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .crop-controls {
@@ -1488,6 +1544,49 @@ select:focus {
 
 .crop-controls input[type="range"] {
     flex: 1 1 140px;
+    accent-color: var(--accent);
+}
+
+.crop-zoom-value {
+    min-width: 3.2em;
+    text-align: right;
+    color: var(--text-muted);
+}
+
+.crop-readout {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.crop-previews {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    align-items: start;
+}
+
+@media (max-width: 560px) {
+    .crop-previews {
+        grid-template-columns: 1fr;
+    }
+}
+
+.crop-preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.6rem;
+}
+
+.crop-preview-card p {
+    margin: 0 0 0.4rem;
+}
+
+.crop-preview-card canvas {
+    display: block;
+    width: 100%;
+    border-radius: 4px;
+    background: var(--surface-2);
 }
 
 .card-link {
