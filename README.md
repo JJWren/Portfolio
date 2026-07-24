@@ -10,15 +10,26 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
 
 - **Dark-first theme** with a light-mode toggle, built on a five-color palette and
   locally bundled fonts (no CDN calls anywhere)
-- **Blog**: markdown posts with drafts, tags, reading time, and locally bundled
-  syntax highlighting; RSS feed at `/feed.xml`
+- **Blog**: markdown posts with drafts, tags, reading time, header images, and
+  locally bundled syntax highlighting; the list adds search, month, and tag filters
+  with pagination; RSS feed at `/feed.xml`
 - **Comments**: visitors sign in with GitHub, Google, or Discord (any subset you
-  configure); authors delete their own, admins moderate everything
+  configure); profiles carry a display name and avatar, or comments can be posted
+  anonymously; authors delete their own, admins moderate everything
+- **Moderation**: readers report comments; admins work a queue with notification
+  badges, hide/delete controls, site-wide bans, and per-user messages — users track
+  replies and report outcomes on their own messages and reports pages
 - **Projects**: admin-curated cards on a scroll-snap carousel with image upload,
   reordering, and visibility control
+- **Image cropping**: blog headers and project images go through a built-in 16:9
+  crop-box editor — zoom, drag, rule-of-thirds guides, and live previews of exactly
+  what the card and hero will show
 - **Contact form**: messages always stored in the database, email notification via
   SMTP on top (best-effort), honeypot + per-IP rate limiting
-- **Hidden admin area** at `/admin` — invisible and 404 for everyone not in `ADMIN_EMAILS`
+- **Hidden admin area** at `/admin` — invisible and 404 for everyone not in
+  `ADMIN_EMAILS`; sortable, filterable, paginated admin tables throughout
+- **In-app site content**: the landing page's hero heading, tagline, about, and
+  skills can be overridden from the admin area — no redeploy needed
 - SEO: per-page OpenGraph meta, `sitemap.xml`, `robots.txt`; `/healthz` health endpoint
 
 ## Quick start
@@ -38,7 +49,9 @@ Set `SEED_DEMO_DATA=true` for sample content on first run.
 ## Configuration
 
 Everything personal lives in `.env` — see [`.env.example`](.env.example) for the full
-annotated list.
+annotated list. The `SITE_*` values seed the landing page; once running, admins can
+override the hero heading, tagline, about text, and skills at `/admin/site` without
+touching `.env` (blank fields fall back to the `.env` values).
 
 | Variable | Required | Purpose |
 |---|---|---|

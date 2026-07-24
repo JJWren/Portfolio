@@ -239,3 +239,11 @@
 **Context**: Ground-up rework via /work-a-github-issue with design-mock approval gate; fix PR #41 from fix/crop-tool-rework, Copilot gate before squash merge
 
 ---
+
+## Docs Refresh — README Features, AIDLC State, Repo About Metadata
+**Timestamp**: 2026-07-24T16:29:59Z
+**User Input**: "https://github.com/JJWren/Portfolio Do a docs update on the aidlc-docs to ensure that READMEs and other related documentation for the project are appropriately updated with critical features, etc. Also, ensure that the github about section and tags are appropriately up to date." (via /github-projects-readonly)
+**AI Response**: README Features/Configuration brought up to the v1.12.0 feature set (comment profiles + anonymous posting; reporting/moderation/bans/user messages; blog search/month/tag filters + pagination; 16:9 crop-box image editor; admin notification badges + sortable/filterable tables; /admin/site landing-content overrides). aidlc-state.md gained an Operations Phase — Post-Launch section (deploy verified live at portfolio.theguywiththedogs.dev, OAuth live, Personal_Portfolio archived, v1.1.0→v1.12.0 release summary) and the stale Unit 1/Unit 3 pending notes were resolved. build-and-test-summary.md gained a post-hand-off update marking user items 1–4 complete. unit-test-instructions.md coverage refreshed: 41 → 184 tests across 23 fixtures. Repo About updated via gh: topics added (repo previously had none) and homepage set to the live URL; description already accurate and kept. GitHub Projects boards were unreadable (available tokens lack read:project) — feature status sourced from CHANGELOG.md, source, and the live site.
+**Context**: Documentation-only update; docs PR from docs/readme-aidlc-refresh, Copilot review gate before squash merge
+
+---
