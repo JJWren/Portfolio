@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0](https://github.com/JJWren/Portfolio/compare/v1.9.3...v1.10.0) (2026-07-24)
+
+
+### Features
+
+* project cards link to the admin editor for admins ([#44](https://github.com/JJWren/Portfolio/issues/44)) ([4eebaeb](https://github.com/JJWren/Portfolio/commit/4eebaeb1691bc4a8d5634a28702828c018948363))
+* sortable columns for admin comments, messages, and reports ([#46](https://github.com/JJWren/Portfolio/issues/46)) ([58abc1e](https://github.com/JJWren/Portfolio/commit/58abc1e804f2ffdac60705d0fea6670af04332e3))
+
 ## [1.9.3](https://github.com/JJWren/Portfolio/compare/v1.9.2...v1.9.3) (2026-07-24)
 
 
