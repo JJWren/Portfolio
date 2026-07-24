@@ -20,6 +20,14 @@
 4. **Deploy**: point the reverse proxy at the container (HTTP :8080, TLS at proxy);
    archive the old Personal_Portfolio repo after go-live.
 
+## Post-hand-off update (2026-07-24)
+Items 1–4 above are complete: OAuth sign-in is live in production, `.env` is
+personalized, the site is deployed behind the reverse proxy at
+https://portfolio.theguywiththedogs.dev, and Personal_Portfolio is archived
+(SMTP stays environment-specific; contact messages land in the DB regardless).
+The test suite has since grown from 41 to 184 tests across releases
+v1.1.0–v1.12.0 — see unit-test-instructions.md and CHANGELOG.md.
+
 ## Instruction documents
 - build-instructions.md · unit-test-instructions.md · integration-test-instructions.md ·
   performance-test-instructions.md

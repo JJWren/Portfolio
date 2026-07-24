@@ -5,15 +5,17 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (41 tests)
-| Fixture | Covers |
+## Coverage (184 tests, 23 fixtures — as of v1.12.0)
+| Area | Fixtures |
 |---|---|
-| SiteConfigTests | Env binding, required-key failure listing, defaults, skills parsing, blank→null |
-| AdminEmailsTests | ADMIN_EMAILS parsing, case-insensitive matching, empty/null handling |
-| SlugHelperTests | URL-safe slug generation, accents, length cap |
-| MarkdownServiceTests | Markdig rendering (headings, code fences, tables), reading time |
-| CommentRulesTests | Body trim/required/max-length validation |
-| ContactRateLimiterTests | Fixed-window limit, per-key isolation, window reset (FakeTimeProvider) |
+| Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
+| Blog | SlugHelperTests, MarkdownServiceTests, PostRulesTests, BlogFiltersTests |
+| Comments, profiles & moderation | CommentRulesTests, ProfileRulesTests, AvatarServiceTests, ReportRulesTests, BadgeLabelTests |
+| Projects | ProjectRulesTests, ProjectUrlRulesTests |
+| Images & uploads | ImageUploadServiceTests |
+| List views (paging & sorting) | PagedResultTests, PagerWindowTests, QuerySortTests, SortStateTests, SortDefaultsTests |
+| UI plumbing | JsModuleUrlTests (asset-path module import), IconKindTests |
+| Contact | ContactRateLimiterTests |
 
 ## Conventions
 - xUnit; deterministic time via `Microsoft.Extensions.TimeProvider.Testing`
