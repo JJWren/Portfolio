@@ -1,0 +1,215 @@
+@implements IAsyncDisposable
+@inject ImageUploadService Uploads
+@inject IJSRuntime JS
+@inject ILogger<ImageCropField> Logger
+
+<div class="field">
+    <span>@Label <span class="muted">@LabelNote</span></span>
+    <p class="muted mono-small">
+        @ImageUploadService.AllowedTypesDisplay — up to @ImageUploadService.MaxMegabytes MB.
+        Shown at 16:9; 1280×720 or larger recommended. SVG and GIF upload as-is (no crop).
+    </p>
+    @if (!string.IsNullOrEmpty(ImagePath))
+    {
+        <div class="upload-preview">
+            <img src="@ImagePath" alt="@Label preview" />
+            @if (_canAdjustFraming)
+            {
+                <button type="button" class="btn btn-ghost" @onclick="AdjustFramingAsync">Adjust framing</button>
+            }
+            <button type="button" class="btn btn-ghost" @onclick="RemoveAsync">Remove</button>
+        </div>
+    }
+    @if (_cropUnavailable)
+    {
+        <InputFile OnChange="OnFileSelected" accept="@ImageUploadService.AcceptList" aria-label="@Label" />
+        <p class="muted mono-small">Crop tool couldn't load — images upload as-is. Reload the page to retry.</p>
+    }
+    else
+    {
+        <input type="file" id="@Prefix-crop-source" accept="@ImageUploadService.AcceptList" aria-label="@Label" />
+        <div class="crop-panel" id="@Prefix-crop-panel">
+            <div class="crop-stage" id="@Prefix-crop-stage">
+                <img id="@Prefix-crop-image" alt="" draggable="false" />
+                <div class="crop-frame" id="@Prefix-crop-frame">
+                    @if (ShowHeroGuide)
+                    {
+                        <div class="crop-hero-guide" aria-hidden="true"><span>post hero band</span></div>
+                    }
+                    <div class="crop-handle" data-h="nw"></div>
+                    <div class="crop-handle" data-h="ne"></div>
+                    <div class="crop-handle" data-h="sw"></div>
+                    <div class="crop-handle" data-h="se"></div>
+                </div>
+            </div>
+            <div class="crop-controls">
+                <input type="range" id="@Prefix-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
+                <span class="crop-zoom-value mono-small" id="@Prefix-crop-zoom-value">1.00×</span>
+                <button type="button" class="btn btn-primary" id="@Prefix-crop-apply">Apply crop</button>
+                <button type="button" class="btn btn-ghost" id="@Prefix-crop-full">Use full image</button>
+                <button type="button" class="btn btn-ghost" id="@Prefix-crop-cancel">Cancel</button>
+            </div>
+            <span class="muted mono-small">
+                Drag the box to move it, drag a corner to resize, scroll or slide to zoom,
+                drag outside the box to pan when zoomed. The box is locked to 16:9.
+                @if (ShowHeroGuide)
+                {
+                    <text>The dashed band is what the post hero shows on desktop.</text>
+                }
+            </span>
+            <p class="muted mono-small crop-readout" id="@Prefix-crop-readout"></p>
+            <div class="crop-previews">
+                <div class="crop-preview-card">
+                    <p class="mono-small muted">@CardPreviewLabel</p>
+                    <canvas id="@Prefix-crop-card-preview"></canvas>
+                </div>
+                @if (ShowHeroGuide)
+                {
+                    <div class="crop-preview-card">
+                        <p class="mono-small muted">Post hero — desktop</p>
+                        <canvas id="@Prefix-crop-hero-preview"></canvas>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <InputFile id="@($"{Prefix}-crop-target")" class="crop-hidden" OnChange="OnFileSelected" accept="@ImageUploadService.AcceptList" />
+    @if (_uploadError is not null)
+    {
+        <p class="alert" role="alert">@_uploadError</p>
+    }
+</div>
+
+@code {
+    /// <summary>Element id prefix; also the crop tool registry key (e.g. "post").</summary>
+    [Parameter, EditorRequired]
+    public string Prefix { get; set; } = string.Empty;
+
+    /// <summary>Field label, also used for aria-labels and the preview alt text.</summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    /// <summary>Muted note rendered after the label (e.g. "optional").</summary>
+    [Parameter]
+    public string? LabelNote { get; set; }
+
+    /// <summary>Whether to render the post-hero band guide and hero preview.</summary>
+    [Parameter]
+    public bool ShowHeroGuide { get; set; }
+
+    /// <summary>Caption above the 16:9 crop preview.</summary>
+    [Parameter]
+    public string CardPreviewLabel { get; set; } = "Preview";
+
+    /// <summary>The stored public image path, or null when no image is set.</summary>
+    [Parameter]
+    public string? ImagePath { get; set; }
+
+    /// <summary>Raised with the new stored path after an upload, or null on remove.</summary>
+    [Parameter]
+    public EventCallback<string?> ImagePathChanged { get; set; }
+
+    private bool _cropInitialized;
+    private bool _cropReady;
+    private bool _cropUnavailable;
+    private IJSObjectReference? _cropModule;
+    private string? _uploadError;
+
+    // Gated on _cropReady: the button must not render before a successful
+    // crop-module init, or an early click would throw "not initialized".
+    private bool _canAdjustFraming =>
+        _cropReady
+        && !string.IsNullOrEmpty(ImagePath)
+        && !ImagePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
+        && !ImagePath.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Imports the crop module and binds it to this field's elements. The
+    /// module is imported here, per circuit, rather than via a document
+    /// script tag: a script tag only executes at document birth, so a fetch
+    /// that races a redeploy (#37) would leave every later circuit in that
+    /// tab without the tool. Assets[] resolves the fingerprint server-side
+    /// at render time, and JsModuleUrl.Resolve makes the path importable —
+    /// Blazor's interop import passes anything without a "./" prefix to
+    /// native import() as a bare specifier, which browsers reject (#40).
+    /// If the interop fails the field degrades to a plain uploader instead
+    /// of being left dead.
+    /// </summary>
+    /// <param name="firstRender">Whether this is the component's first render.</param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_cropInitialized)
+        {
+            _cropInitialized = true;
+            try
+            {
+                _cropModule = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", JsModuleUrl.Resolve(Assets["js/crop.js"]));
+                await _cropModule.InvokeVoidAsync("init", Prefix, ImageUploadService.MaxBytes);
+                _cropReady = true;
+                StateHasChanged();
+            }
+            catch (JSException ex)
+            {
+                Logger.LogError(ex, "Crop tool init failed; falling back to the plain uploader.");
+                _cropUnavailable = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    /// <summary>Loads the stored image back into the crop tool for reframing.</summary>
+    private async Task AdjustFramingAsync()
+    {
+        if (_cropModule is null)
+        {
+            return;
+        }
+
+        _uploadError = null;
+        try
+        {
+            await _cropModule.InvokeVoidAsync("open", Prefix, ImagePath);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Loading the stored image into the crop tool failed.");
+            _uploadError = "Couldn't load the stored image into the crop tool.";
+        }
+    }
+
+    /// <summary>Stores the picked (or cropped) file and publishes the new path.</summary>
+    /// <param name="e">The change event carrying the selected browser file.</param>
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _uploadError = null;
+        try
+        {
+            await ImagePathChanged.InvokeAsync(await Uploads.SaveAsync(e.File));
+        }
+        catch (Exception ex)
+        {
+            _uploadError = ex.Message;
+        }
+    }
+
+    /// <summary>Clears the stored image path.</summary>
+    private Task RemoveAsync()
+        => ImagePathChanged.InvokeAsync(null);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_cropModule is not null)
+        {
+            try
+            {
+                await _cropModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit is already gone (tab closed, connection lost);
+                // the browser released the module with it.
+            }
+        }
+    }
+}

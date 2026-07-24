@@ -2,14 +2,10 @@
 @page "/admin/projects/{Id:int}/edit"
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
-@implements IAsyncDisposable
 @using Microsoft.EntityFrameworkCore
 @inject ProjectService ProjectStore
-@inject ImageUploadService Uploads
 @inject NavigationManager Nav
 @inject SiteConfig Site
-@inject IJSRuntime JS
-@inject ILogger<ProjectEditor> Logger
 
 <PageTitle>@(_isNew ? "New project" : "Edit project") — Admin — @Site.SiteTitle</PageTitle>
 
@@ -52,48 +48,11 @@
                 <input type="url" maxlength="@ProjectRules.RepoUrlMaxLength" @bind="_repoUrl" placeholder="https://github.com/…" />
             </label>
 
-            <div class="field">
-                <span>Card image <span class="muted">optional — palette placeholder otherwise</span></span>
-                <p class="muted mono-small">
-                    @ImageUploadService.AllowedTypesDisplay — up to @ImageUploadService.MaxMegabytes MB.
-                    Shown at 16:9; 1280×720 or larger recommended. SVG and GIF upload as-is (no crop).
-                </p>
-                @if (!string.IsNullOrEmpty(_headerImagePath))
-                {
-                    <div class="upload-preview">
-                        <img src="@_headerImagePath" alt="Card image preview" />
-                        @if (_canAdjustFraming)
-                        {
-                            <button type="button" class="btn btn-ghost" @onclick="AdjustFramingAsync">Adjust framing</button>
-                        }
-                        <button type="button" class="btn btn-ghost" @onclick="() => _headerImagePath = null">Remove</button>
-                    </div>
-                }
-                @if (_cropUnavailable)
-                {
-                    <InputFile OnChange="OnImageSelected" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
-                    <p class="muted mono-small">Crop tool couldn't load — images upload as-is. Reload the page to retry.</p>
-                }
-                else
-                {
-                    <input type="file" id="project-crop-source" accept="@ImageUploadService.AcceptList" aria-label="Card image" />
-                    <div class="crop-panel" id="project-crop-panel">
-                        <div class="crop-box" id="project-crop-box">
-                            <img id="project-crop-image" alt="" draggable="false" />
-                        </div>
-                        <span class="muted mono-small">
-                            Drag to reposition, scroll or slide to zoom. The box is exactly what the project card shows.
-                        </span>
-                        <div class="crop-controls">
-                            <input type="range" id="project-crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom" />
-                            <button type="button" class="btn btn-primary" id="project-crop-apply">Apply crop</button>
-                            <button type="button" class="btn btn-ghost" id="project-crop-full">Use full image</button>
-                            <button type="button" class="btn btn-ghost" id="project-crop-cancel">Cancel</button>
-                        </div>
-                    </div>
-                }
-                <InputFile id="project-crop-target" class="crop-hidden" OnChange="OnImageSelected" accept="@ImageUploadService.AcceptList" />
-            </div>
+            <ImageCropField Prefix="project"
+                            Label="Card image"
+                            LabelNote="optional — palette placeholder otherwise"
+                            CardPreviewLabel="Project card"
+                            @bind-ImagePath="_headerImagePath" />
 
             <label class="check-field">
                 <input type="checkbox" @bind="_isVisible" />
@@ -129,19 +88,7 @@
     private bool _loading = true;
     private bool _busy;
     private bool _confirmingDelete;
-    private bool _cropInitialized;
-    private bool _cropReady;
-    private bool _cropUnavailable;
-    private IJSObjectReference? _cropModule;
     private string? _error;
-
-    // Gated on _cropReady: the button must not render before a successful
-    // crop-module init, or an early click would throw "not initialized".
-    private bool _canAdjustFraming =>
-        _cropReady
-        && !string.IsNullOrEmpty(_headerImagePath)
-        && !_headerImagePath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
-        && !_headerImagePath.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
 
     private Portfolio.Web.Data.Project? _existing;
     private string _title = string.Empty;
@@ -171,85 +118,6 @@
         }
 
         _loading = false;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // The crop DOM only exists once loading finishes, so init on the
-        // first render after that rather than strictly on firstRender. The
-        // flag is set before awaiting so overlapping renders can't
-        // double-bind; if the interop fails the field degrades to a plain
-        // uploader instead of being left dead. The module is imported here,
-        // per circuit, rather than via a document script tag: a script tag
-        // only executes at document birth, so a fetch that races a redeploy
-        // (#37) would leave every later circuit in that tab without the
-        // tool. Assets[] resolves the fingerprint server-side, so the URL is
-        // always the current build's even in a tab older than the deploy.
-        if (!_loading && !_cropInitialized)
-        {
-            _cropInitialized = true;
-            try
-            {
-                _cropModule = await JS.InvokeAsync<IJSObjectReference>("import", Assets["js/crop.js"]);
-                await _cropModule.InvokeVoidAsync("init", "project", ImageUploadService.MaxBytes);
-                _cropReady = true;
-                StateHasChanged();
-            }
-            catch (JSException ex)
-            {
-                Logger.LogError(ex, "Crop tool init failed; falling back to the plain uploader.");
-                _cropUnavailable = true;
-                StateHasChanged();
-            }
-        }
-    }
-
-    private async Task AdjustFramingAsync()
-    {
-        if (_cropModule is null)
-        {
-            return;
-        }
-
-        _error = null;
-        try
-        {
-            await _cropModule.InvokeVoidAsync("open", "project", _headerImagePath);
-        }
-        catch (JSException ex)
-        {
-            Logger.LogError(ex, "Loading the stored card image into the crop tool failed.");
-            _error = "Couldn't load the stored image into the crop tool.";
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_cropModule is not null)
-        {
-            try
-            {
-                await _cropModule.DisposeAsync();
-            }
-            catch (JSDisconnectedException)
-            {
-                // The circuit is already gone (tab closed, connection lost);
-                // the browser released the module with it.
-            }
-        }
-    }
-
-    private async Task OnImageSelected(InputFileChangeEventArgs e)
-    {
-        _error = null;
-        try
-        {
-            _headerImagePath = await Uploads.SaveAsync(e.File);
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
     }
 
     private async Task SaveAsync()
