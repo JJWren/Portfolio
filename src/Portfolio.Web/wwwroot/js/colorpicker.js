@@ -87,6 +87,12 @@ export function init(dialogId) {
         // disables the swatch buttons and leaves hex editing as the path.
         throw new Error('colorPicker: missing dialog "' + dialogId + '"');
     }
+    if (typeof dialog.showModal !== 'function') {
+        // No native <dialog> support: fail init so the swatches never enable —
+        // open() would otherwise blow up later with "showModal is not a
+        // function" after advertising a working picker.
+        throw new Error('colorPicker: <dialog>.showModal is unsupported');
+    }
     var sv = dialog.querySelector('.picker-sv');
     var thumb = dialog.querySelector('.picker-thumb');
     var hue = dialog.querySelector('.picker-hue');

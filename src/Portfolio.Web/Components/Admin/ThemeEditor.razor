@@ -33,7 +33,7 @@
 
             @if (_pickerUnavailable)
             {
-                <p class="muted">Color picker couldn't load — edit the hex values directly.</p>
+                <p class="muted">Color picker isn't available — edit the hex values directly.</p>
             }
 
             @if (_error is not null)
@@ -256,7 +256,11 @@
         catch (JSException ex)
         {
             Logger.LogError(ex, "Opening the color picker failed.");
-            _error = "Couldn't open the color picker — edit the hex value directly.";
+            // One failure means every open would fail the same way — disable
+            // the swatches and show the unavailable note instead of letting
+            // repeated clicks stack errors and log noise.
+            _pickerReady = false;
+            _pickerUnavailable = true;
         }
     }
 
