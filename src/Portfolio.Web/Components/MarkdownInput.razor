@@ -77,11 +77,15 @@
         {
             // Programmatic value changes (draft cleared after posting) fire no
             // input event; nudge the mirror after every subsequent render.
+            // Failures degrade silently — the mirror is progressive polish.
             try
             {
                 await _module.InvokeVoidAsync("refresh", _id);
             }
             catch (JSDisconnectedException)
+            {
+            }
+            catch (JSException)
             {
             }
         }

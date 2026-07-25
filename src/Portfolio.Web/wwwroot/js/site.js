@@ -33,8 +33,15 @@
         }
         var blocks = document.querySelectorAll('pre > code[class*="language-"]:not([data-highlighted])');
         for (var i = 0; i < blocks.length; i++) {
+            // Marked before highlighting on purpose: a block Prism throws on
+            // would otherwise be retried on every mutation, forever. The
+            // per-block catch keeps one bad block from aborting the rest.
             blocks[i].setAttribute('data-highlighted', '');
-            window.Prism.highlightElement(blocks[i]);
+            try {
+                window.Prism.highlightElement(blocks[i]);
+            } catch (e) {
+                // Leave the block as plain monospace.
+            }
         }
     }
 
