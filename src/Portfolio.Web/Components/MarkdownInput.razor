@@ -12,7 +12,8 @@
     [Parameter]
     public string Value { get; set; } = string.Empty;
 
-    /// <summary>Raised on change (blur), mirroring plain @@bind semantics.</summary>
+    /// <summary>Raised on change (blur), mirroring the plain bind-on-change
+    /// semantics the composers used before this component.</summary>
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
