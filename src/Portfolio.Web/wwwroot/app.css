@@ -1382,6 +1382,15 @@ select:focus {
     position: relative;
     z-index: 1;
     display: block;
+    /* Classic (non-overlay) scrollbars reserve a gutter that narrows the
+       content box and shifts soft-wrap points away from the mirror's.
+       Hiding the bar keeps both layers gutterless and wrap-identical —
+       the box still scrolls by wheel, keys, and caret drag. */
+    scrollbar-width: none;
+}
+
+.md-input textarea::-webkit-scrollbar {
+    display: none;
 }
 
 .md-input.md-live textarea {

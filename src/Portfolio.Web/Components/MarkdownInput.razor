@@ -117,13 +117,24 @@
         try
         {
             await _module.InvokeVoidAsync("dispose", _id);
-            await _module.DisposeAsync();
         }
         catch (JSDisconnectedException)
         {
         }
         catch (JSException)
         {
+        }
+        finally
+        {
+            // Release the module reference even when the JS-side cleanup
+            // failed, or the .NET-side handle would linger for the circuit.
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
         }
     }
 }
