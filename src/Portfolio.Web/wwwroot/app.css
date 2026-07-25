@@ -849,6 +849,43 @@ button.pager-link:not(:disabled):hover {
     max-width: 120px;
 }
 
+/* Compact rendered markdown for user-generated content (comments, inboxes).
+   Doubled class outranks the pre-wrap on .comment-body/.inbox-text. */
+.prose.prose-sm {
+    padding-bottom: 0;
+    white-space: normal;
+    font-size: 0.95rem;
+}
+
+.prose.prose-sm h1,
+.prose.prose-sm h2,
+.prose.prose-sm h3,
+.prose.prose-sm h4,
+.prose.prose-sm h5,
+.prose.prose-sm h6 {
+    font-size: 1.05rem;
+    margin: 1rem 0 0.4rem;
+}
+
+.prose.prose-sm p,
+.prose.prose-sm ul,
+.prose.prose-sm ol,
+.prose.prose-sm table {
+    margin: 0 0 0.55rem;
+}
+
+.prose.prose-sm blockquote {
+    margin: 0.7rem 0;
+}
+
+.prose.prose-sm pre {
+    padding: 0.6rem 0.8rem;
+}
+
+.prose.prose-sm > :last-child {
+    margin-bottom: 0;
+}
+
 /* Prism token colors mapped to the theme */
 .token.comment, .token.prolog, .token.doctype, .token.cdata { color: var(--text-muted); }
 .token.punctuation { color: var(--text-muted); }
@@ -1258,6 +1295,14 @@ button.pager-link:not(:disabled):hover {
 
 .comment-form {
     margin-top: 1rem;
+}
+
+.comment-preview {
+    min-height: 7rem;
+    margin: 0 0 0.9rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
 }
 
 .comment-signin {

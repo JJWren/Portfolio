@@ -2,6 +2,7 @@
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
 @inject ContactService Contact
+@inject MarkdownService Markdown
 @inject SiteConfig Site
 
 <PageTitle>Messages — Admin — @Site.SiteTitle</PageTitle>
@@ -68,7 +69,7 @@
                                 <p class="muted mono-small">
                                     From @message.Name &lt;<a href="mailto:@message.Email">@message.Email</a>&gt;
                                 </p>
-                                <p class="inbox-text">@message.Body</p>
+                                <div class="inbox-text prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(message.Body))</div>
                                 <div class="editor-actions">
                                     <button class="btn btn-ghost"
                                             @onclick="() => SetReadAsync(message, !message.IsRead)">
