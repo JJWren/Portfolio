@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.13.0](https://github.com/JJWren/Portfolio/compare/v1.12.0...v1.13.0) (2026-07-25)
+
+
+### Features
+
+* admin theme editor with palette overrides and live landing preview ([#52](https://github.com/JJWren/Portfolio/issues/52)) ([2b37f48](https://github.com/JJWren/Portfolio/commit/2b37f48c824f74dd199d145b879fa2830a04cf88))
+* color picker modal for the theme editor ([#54](https://github.com/JJWren/Portfolio/issues/54)) ([8ef037e](https://github.com/JJWren/Portfolio/commit/8ef037e0647ed8de0d918f164bb8bd1ce694ae2e))
+
+
+### Bug Fixes
+
+* enable dynamic JSON for the theme overrides jsonb mapping ([#55](https://github.com/JJWren/Portfolio/issues/55)) ([c12c363](https://github.com/JJWren/Portfolio/commit/c12c363296d4a5dff946facfd7abef9e228e02e1))
+
 ## [1.12.0](https://github.com/JJWren/Portfolio/compare/v1.11.0...v1.12.0) (2026-07-24)
 
 
