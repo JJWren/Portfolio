@@ -109,11 +109,20 @@ public class MarkdownService
         link.Remove();
     }
 
-    /// <summary>Default-deny scheme check: relative URLs and http, https, and
-    /// mailto absolute URLs pass; everything else is rejected.</summary>
+    /// <summary>Default-deny scheme check: intra-site relative URLs and http,
+    /// https, and mailto absolute URLs pass; everything else — including
+    /// protocol-relative network-path references — is rejected.</summary>
     private static bool HasSafeUrl(string? url)
     {
         if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        // Network-path references (//host, plus the backslash variants that
+        // browsers normalize to slashes) navigate off-site without stating a
+        // scheme; off-site links must be explicit http/https/mailto.
+        if (url.Length >= 2 && IsSlash(url[0]) && IsSlash(url[1]))
         {
             return false;
         }
@@ -135,4 +144,6 @@ public class MarkdownService
             || scheme.Equals("https", StringComparison.OrdinalIgnoreCase)
             || scheme.Equals("mailto", StringComparison.OrdinalIgnoreCase);
     }
+
+    private static bool IsSlash(char c) => c is '/' or '\\';
 }

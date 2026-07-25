@@ -148,6 +148,22 @@ public class MarkdownServiceTests
     }
 
     [Fact]
+    public void ToSafeHtml_DropsProtocolRelativeLinks()
+    {
+        var html = _markdown.ToSafeHtml("[x](//evil.example)");
+
+        Assert.DoesNotContain("<a", html);
+    }
+
+    [Fact]
+    public void ToSafeHtml_DropsBackslashProtocolRelativeLinks()
+    {
+        var html = _markdown.ToSafeHtml(@"[x](/\evil.example)");
+
+        Assert.DoesNotContain("<a", html);
+    }
+
+    [Fact]
     public void ToSafeHtml_StripsMarkdownImages()
     {
         var html = _markdown.ToSafeHtml("![alt](https://example.com/a.png)");
