@@ -127,6 +127,10 @@ export function init(dialogId) {
         if (!skipHex) {
             hexInput.value = hex;
         }
+        // Slider semantics need a numeric value; brightness (the vertical
+        // axis, 0-100 per the markup's min/max) is the fallback number, while
+        // aria-valuetext announces both axes and takes precedence when read.
+        sv.setAttribute('aria-valuenow', String(Math.round(state.v * 100)));
         sv.setAttribute('aria-valuetext',
             'Saturation ' + Math.round(state.s * 100) + '%, brightness ' + Math.round(state.v * 100) + '%');
     }

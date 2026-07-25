@@ -128,7 +128,8 @@
    it on first render; invisible until showModal(). All behavior is in
    colorpicker.js — Blazor renders this once and never patches it. *@
 <dialog id="theme-picker" class="theme-picker" aria-label="Color picker">
-    <div class="picker-sv" tabindex="0" role="slider" aria-label="Saturation and brightness" aria-valuetext="">
+    <div class="picker-sv" tabindex="0" role="slider" aria-label="Saturation and brightness"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-valuetext="">
         <div class="picker-thumb"></div>
     </div>
     <input type="range" class="picker-hue" min="0" max="360" step="1" aria-label="Hue" />
