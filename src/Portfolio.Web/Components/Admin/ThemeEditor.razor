@@ -1,0 +1,264 @@
+@page "/admin/theme"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@inject ThemeService ThemeStore
+@inject SiteContentService ContentStore
+@inject SiteConfig Site
+
+<PageTitle>Theme — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Theme</h1>
+            <a class="btn btn-ghost" href="/admin">Back to dashboard</a>
+        </div>
+
+        @if (_loading)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else
+        {
+            <p class="muted">
+                Overrides replace the built-in palette for every visitor, in both modes.
+                Leave a field blank to keep the built-in color.
+                Visitors still choose dark or light mode themselves.
+            </p>
+
+            @if (_error is not null)
+            {
+                <p class="alert" role="alert">@_error</p>
+            }
+            @if (_saved)
+            {
+                <p class="saved-note" role="status">Saved — the site now uses this palette.</p>
+            }
+
+            <div class="editor-grid">
+                <div class="editor-form">
+                    <fieldset class="token-group">
+                        <legend>Brand <span class="muted">shared by both themes</span></legend>
+                        @foreach (var token in ThemeRules.Tokens.Where(t => t.Group == ThemeGroup.Brand))
+                        {
+                            @TokenRow(token)
+                        }
+                    </fieldset>
+
+                    <fieldset class="token-group">
+                        <legend>Dark theme</legend>
+                        @foreach (var token in ThemeRules.Tokens.Where(t => t.Group == ThemeGroup.Dark))
+                        {
+                            @TokenRow(token)
+                        }
+                    </fieldset>
+
+                    <fieldset class="token-group">
+                        <legend>Light theme</legend>
+                        @foreach (var token in ThemeRules.Tokens.Where(t => t.Group == ThemeGroup.Light))
+                        {
+                            @TokenRow(token)
+                        }
+                    </fieldset>
+
+                    <div class="editor-actions">
+                        <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
+                            @(_busy ? "Saving…" : "Save")
+                        </button>
+                        @if (!_confirmingReset)
+                        {
+                            <button class="btn btn-ghost btn-danger" @onclick="() => _confirmingReset = true" disabled="@_busy">
+                                Reset all to defaults
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="confirm-delete">
+                                Remove every override and return to the built-in palette?
+                                <button class="btn btn-ghost btn-danger" @onclick="ResetAllAsync" disabled="@_busy">Yes, reset</button>
+                                <button class="btn btn-ghost" @onclick="() => _confirmingReset = false">Cancel</button>
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="editor-preview">
+                    <p class="preview-label mono-small">Landing preview</p>
+                    <div class="preview-mode-toggle" role="group" aria-label="Preview theme mode">
+                        <button type="button"
+                                class="btn @(_previewMode == ThemeMode.Dark ? "btn-primary" : "btn-ghost")"
+                                @onclick="() => SetPreviewMode(ThemeMode.Dark)">Dark</button>
+                        <button type="button"
+                                class="btn @(_previewMode == ThemeMode.Light ? "btn-primary" : "btn-ghost")"
+                                @onclick="() => SetPreviewMode(ThemeMode.Light)">Light</button>
+                    </div>
+                    @if (_warnings.Count > 0)
+                    {
+                        <ul class="theme-warnings" role="status">
+                            @foreach (var warning in _warnings)
+                            {
+                                <li>@warning</li>
+                            }
+                        </ul>
+                    }
+                    @* The inline style carries the complete token set for the
+                       previewed mode, so the admin page's own theme cannot leak
+                       in; inert keeps the preview's links and heading out of the
+                       tab order and accessibility tree. *@
+                    <div class="theme-preview-frame" style="@_previewStyle" inert aria-hidden="true">
+                        <LandingSections Content="_content" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private bool _loading = true;
+    private bool _busy;
+    private bool _saved;
+    private bool _confirmingReset;
+    private string? _error;
+
+    private readonly Dictionary<string, string> _inputs =
+        ThemeRules.Tokens.ToDictionary(t => t.Key, _ => string.Empty);
+    private EffectiveTheme _effective = ThemeRules.DefaultSnapshot.Theme;
+    private IReadOnlyList<string> _warnings = [];
+    private ThemeMode _previewMode = ThemeMode.Dark;
+    private string _previewStyle =
+        ThemeRules.BuildPreviewStyle(ThemeRules.DefaultSnapshot.Theme, ThemeMode.Dark);
+    private EffectiveSiteContent _content = default!;
+
+    private RenderFragment TokenRow(ThemeToken token) => __builder =>
+    {
+        <div class="token-row">
+            <span class="swatch" style="background:@_effective[token.Key]" aria-hidden="true"></span>
+            <input type="text" id="theme-hex-@token.Key" class="hex-input"
+                   maxlength="@ThemeRules.HexLength" spellcheck="false" autocomplete="off"
+                   value="@_inputs[token.Key]" placeholder="@ThemeRules.FallbackFor(token, _effective)"
+                   aria-label="@($"{token.Label} hex color")"
+                   aria-invalid="@(IsInvalid(token.Key) ? "true" : null)"
+                   @oninput="e => OnHexInput(token.Key, e)" />
+            <span class="token-label">@token.Label</span>
+        </div>
+    };
+
+    // Seed synchronously so any render is safe, then overwrite with the
+    // DB-resolved values (the Home.razor idiom).
+    protected override void OnInitialized()
+        => _content = SiteContentRules.Resolve(Site, null);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _content = await ContentStore.GetEffectiveAsync();
+            SeedForm(await ThemeStore.GetOverridesAsync());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _error = "Couldn't load the saved overrides — refresh to try again.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void SeedForm(Portfolio.Web.Data.ThemeSettings? settings)
+    {
+        foreach (var token in ThemeRules.Tokens)
+        {
+            _inputs[token.Key] = settings?.Overrides?.GetValueOrDefault(token.Key) ?? string.Empty;
+        }
+
+        Recompute();
+    }
+
+    /// <summary>Re-derives everything the form and preview show; cheap and pure, runs per keystroke.</summary>
+    private void Recompute()
+    {
+        _effective = ThemeRules.Resolve(ThemeRules.BuildOverrides(_inputs));
+        _previewStyle = ThemeRules.BuildPreviewStyle(_effective, _previewMode);
+        _warnings = ThemeRules.ContrastWarnings(_effective);
+        _saved = false;
+    }
+
+    private void OnHexInput(string key, ChangeEventArgs e)
+    {
+        _inputs[key] = e.Value?.ToString() ?? string.Empty;
+        Recompute();
+    }
+
+    private void SetPreviewMode(ThemeMode mode)
+    {
+        _previewMode = mode;
+        _previewStyle = ThemeRules.BuildPreviewStyle(_effective, mode);
+    }
+
+    /// <summary>An in-progress value that doesn't parse yet — flagged, never blocking.</summary>
+    private bool IsInvalid(string key)
+        => !string.IsNullOrWhiteSpace(_inputs[key]) && ThemeRules.NormalizeHex(_inputs[key]) is null;
+
+    private async Task SaveAsync()
+    {
+        if (_busy)
+        {
+            return; // Queued double-clicks must not overlap saves.
+        }
+
+        _saved = false;
+        _error = ThemeRules.CheckHexes(_inputs);
+        if (_error is not null)
+        {
+            return;
+        }
+
+        await PersistAsync();
+    }
+
+    private async Task ResetAllAsync()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _confirmingReset = false;
+        _saved = false;
+        _error = null;
+        foreach (var token in ThemeRules.Tokens)
+        {
+            _inputs[token.Key] = string.Empty;
+        }
+
+        Recompute();
+        await PersistAsync();
+    }
+
+    private async Task PersistAsync()
+    {
+        _busy = true;
+        try
+        {
+            await ThemeStore.SaveAsync(_inputs);
+            // Re-seed so the form shows what was actually stored (canonical
+            // lowercase #rrggbb).
+            SeedForm(await ThemeStore.GetOverridesAsync());
+            _saved = true;
+        }
+        catch (DbUpdateException)
+        {
+            // The service already retries the concurrent first-save race, so
+            // whatever lands here is unexpected — surface it for a manual retry.
+            _error = "Saving failed — the database rejected the change. Try again in a moment.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

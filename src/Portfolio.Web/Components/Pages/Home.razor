@@ -10,56 +10,7 @@
     <meta property="og:type" content="website" />
 </HeadContent>
 
-<section class="hero">
-    <div class="container">
-        <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <h1>@_content.HeroHeading</h1>
-        @if (!string.IsNullOrEmpty(_content.Tagline))
-        {
-            <p class="tagline">@_content.Tagline</p>
-        }
-        <div class="actions">
-            @if (Site.GitHubUrl is not null)
-            {
-                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
-            }
-            @if (Site.LinkedInUrl is not null)
-            {
-                <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
-            }
-            <a class="btn btn-ghost" href="/contact">Get in touch</a>
-        </div>
-    </div>
-</section>
-
-@if (_content.About is not null || _content.Skills.Count > 0)
-{
-    <section class="section">
-        <div class="container">
-            <p class="eyebrow">About</p>
-            <div class="about-grid">
-                @if (_content.About is not null)
-                {
-                    <div class="about-text">
-                        @foreach (var paragraph in _content.About.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                        {
-                            <p>@paragraph</p>
-                        }
-                    </div>
-                }
-                @if (_content.Skills.Count > 0)
-                {
-                    <ul class="skills">
-                        @foreach (var skill in _content.Skills)
-                        {
-                            <li>@skill</li>
-                        }
-                    </ul>
-                }
-            </div>
-        </div>
-    </section>
-}
+<LandingSections Content="_content" />
 
 @code {
     private EffectiveSiteContent _content = default!;

@@ -1,0 +1,61 @@
+@inject SiteConfig Site
+
+@* The landing hero + about/skills, shared verbatim between Home and the
+   admin theme editor's live preview so the preview can never drift from the
+   real page. *@
+
+<section class="hero">
+    <div class="container">
+        <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <h1>@Content.HeroHeading</h1>
+        @if (!string.IsNullOrEmpty(Content.Tagline))
+        {
+            <p class="tagline">@Content.Tagline</p>
+        }
+        <div class="actions">
+            @if (Site.GitHubUrl is not null)
+            {
+                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
+            }
+            @if (Site.LinkedInUrl is not null)
+            {
+                <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
+            }
+            <a class="btn btn-ghost" href="/contact">Get in touch</a>
+        </div>
+    </div>
+</section>
+
+@if (Content.About is not null || Content.Skills.Count > 0)
+{
+    <section class="section">
+        <div class="container">
+            <p class="eyebrow">About</p>
+            <div class="about-grid">
+                @if (Content.About is not null)
+                {
+                    <div class="about-text">
+                        @foreach (var paragraph in Content.About.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            <p>@paragraph</p>
+                        }
+                    </div>
+                }
+                @if (Content.Skills.Count > 0)
+                {
+                    <ul class="skills">
+                        @foreach (var skill in Content.Skills)
+                        {
+                            <li>@skill</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public EffectiveSiteContent Content { get; set; } = default!;
+}

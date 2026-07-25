@@ -1505,6 +1505,95 @@ select:focus {
     padding-bottom: 0;
 }
 
+/* ================================================================
+   Theme editor (/admin/theme)
+   ================================================================ */
+fieldset.token-group {
+    margin: 0 0 1.6rem;
+    padding: 0;
+    border: none;
+}
+
+.token-group legend {
+    margin-bottom: 0.6rem;
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+}
+
+.token-group legend .muted {
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.token-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.45rem;
+}
+
+/* Override the global 100% input width; hex values are 7 mono characters. */
+.token-row .hex-input {
+    width: 7.5rem;
+    font-family: var(--font-mono);
+}
+
+.token-row .token-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.swatch {
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex: none;
+}
+
+.preview-mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.theme-warnings {
+    margin: 0 0 0.8rem;
+    padding-left: 1.1rem;
+    font-size: 0.85rem;
+    color: var(--danger);
+}
+
+.theme-warnings li {
+    margin-bottom: 0.25rem;
+}
+
+/* The frame must paint --bg itself — on the real page body does it. Its
+   inline style carries the full previewed-mode token set, so everything
+   inside resolves against those values instead of the page theme. */
+.theme-preview-frame {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+/* Neutralize the 92vw page container inside the half-width column; the
+   clamp() typography then reads like the mobile landing page. */
+.theme-preview-frame .container {
+    width: 100%;
+    padding-inline: 1rem;
+}
+
+.theme-preview-frame .hero {
+    padding: 3rem 0 2.5rem;
+}
+
 .editor-actions {
     display: flex;
     align-items: center;

@@ -1,4 +1,5 @@
 @inject Portfolio.Web.Services.SiteConfig Site
+@inject Portfolio.Web.Services.ThemeService ThemeStore
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,13 +7,21 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#151515" />
+    <meta name="theme-color" content="@_theme.MetaThemeColor" />
     <meta property="og:site_name" content="@Site.SiteTitle" />
     <link rel="alternate" type="application/rss+xml" title="@Site.SiteTitle" href="/feed.xml" />
     <base href="/" />
     <ResourcePreloader />
     <script src="@Assets["js/theme.js"]"></script>
     <link rel="stylesheet" href="@Assets["app.css"]" />
+    @if (_theme.OverrideCss.Length > 0)
+    {
+        @* After app.css so the overridden tokens win the cascade by source
+           order; MarkupString because Blazor would HTML-encode the selector's
+           quotes. Only ThemeRules.BuildOverrideCss output lands here — every
+           value is re-validated to #rrggbb at emission. *@
+        <style>@((MarkupString)_theme.OverrideCss)</style>
+    }
     <link rel="stylesheet" href="@Assets["Portfolio.Web.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
@@ -28,3 +37,13 @@
 </body>
 
 </html>
+
+@code {
+    // Safe for any render path; the shell is statically rendered per request
+    // and no page streams, so OnInitializedAsync always completes before the
+    // head is written — the override style block can never flash in late.
+    private Portfolio.Web.Services.ThemeSnapshot _theme = Portfolio.Web.Services.ThemeRules.DefaultSnapshot;
+
+    protected override async Task OnInitializedAsync()
+        => _theme = await ThemeStore.GetSnapshotAsync();
+}

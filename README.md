@@ -30,6 +30,9 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
   `ADMIN_EMAILS`; sortable, filterable, paginated admin tables throughout
 - **In-app site content**: the landing page's hero heading, tagline, about, and
   skills can be overridden from the admin area — no redeploy needed
+- **In-app theming**: every palette color (brand, dark, and light) can be
+  overridden from the admin area, with swatches, hex fields, a live
+  landing-page preview for either mode, and WCAG contrast warnings
 - SEO: per-page OpenGraph meta, `sitemap.xml`, `robots.txt`; `/healthz` health endpoint
 
 ## Quick start
@@ -51,7 +54,9 @@ Set `SEED_DEMO_DATA=true` for sample content on first run.
 Everything personal lives in `.env` — see [`.env.example`](.env.example) for the full
 annotated list. The `SITE_*` values seed the landing page; once running, admins can
 override the hero heading, tagline, about text, and skills at `/admin/site` without
-touching `.env` (blank fields fall back to the `.env` values).
+touching `.env` (blank fields fall back to the `.env` values). The color palette
+can likewise be overridden at `/admin/theme` (blank fields fall back to the
+built-in colors).
 
 | Variable | Required | Purpose |
 |---|---|---|
