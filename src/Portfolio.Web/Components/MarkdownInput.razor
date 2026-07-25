@@ -27,6 +27,7 @@
 
     private readonly string _id = $"md-input-{Guid.NewGuid():N}";
     private string _current = string.Empty;
+    private string _lastParentValue = string.Empty;
     private bool _initTried;
     private bool _live;
     private IJSObjectReference? _module;
@@ -37,11 +38,25 @@
         set
         {
             _current = value;
+            _lastParentValue = value;
             _ = ValueChanged.InvokeAsync(value);
         }
     }
 
-    protected override void OnParametersSet() => _current = Value;
+    /// <summary>
+    /// Adopts <see cref="Value"/> only when the parent actually changed it
+    /// (e.g. clearing the draft after posting). An unrelated parent re-render
+    /// arriving before a blur-commit round-trips must not push a stale value
+    /// over the user's in-progress edit.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        if (Value != _lastParentValue)
+        {
+            _lastParentValue = Value;
+            _current = Value;
+        }
+    }
 
     /// <summary>
     /// Imports the mirror module per circuit (crop-tool precedent: a document

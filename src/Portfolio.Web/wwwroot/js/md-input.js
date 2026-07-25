@@ -159,6 +159,10 @@ export function init(id) {
     };
 
     textarea.addEventListener('input', schedule, { signal: controller.signal });
+    // Some browsers withhold input events until composition ends; without
+    // repaints during composition the transparent textarea would show
+    // nothing while an IME user types.
+    textarea.addEventListener('compositionupdate', schedule, { signal: controller.signal });
     textarea.addEventListener('compositionend', schedule, { signal: controller.signal });
     textarea.addEventListener('scroll', sync, { signal: controller.signal });
     instances.set(id, { controller, schedule });
