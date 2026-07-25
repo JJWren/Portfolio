@@ -76,6 +76,16 @@ public class MarkdownServiceTests
         var html = _markdown.ToSafeHtml("see https://example.com today");
 
         Assert.Contains("<a href=\"https://example.com\"", html);
+        Assert.Contains("rel=\"nofollow ugc noopener\"", html);
+    }
+
+    [Fact]
+    public void ToSafeHtml_MarksAngleAutolinksAsUntrusted()
+    {
+        var html = _markdown.ToSafeHtml("<https://example.com>");
+
+        Assert.Contains("<a href=\"https://example.com\"", html);
+        Assert.Contains("rel=\"nofollow ugc noopener\"", html);
     }
 
     [Fact]
