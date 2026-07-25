@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/JJWren/Portfolio/compare/v1.14.0...v1.15.0) (2026-07-25)
+
+
+### Features
+
+* live Discord-style markdown composer with code-language pickup ([#60](https://github.com/JJWren/Portfolio/issues/60)) ([0a3edd4](https://github.com/JJWren/Portfolio/commit/0a3edd4bec3323af264f754d55277719cc3ed296)), closes [#59](https://github.com/JJWren/Portfolio/issues/59)
+
 ## [1.14.0](https://github.com/JJWren/Portfolio/compare/v1.13.0...v1.14.0) (2026-07-25)
 
 
