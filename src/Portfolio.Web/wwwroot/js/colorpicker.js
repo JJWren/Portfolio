@@ -229,6 +229,12 @@ export function open(hex, targetInputId) {
     if (!picker) {
         throw new Error('colorPicker: not initialized');
     }
+    if (picker.dialog.open) {
+        // Re-entrant open (a double-clicked swatch): the dialog is already
+        // up with this token's color — a second showModal() would throw
+        // InvalidStateError and surface as a spurious JSException.
+        return;
+    }
     state.targetId = targetInputId;
     picker.seed(hex);
     // showModal gives focus containment, an inert background, Esc-to-close,
