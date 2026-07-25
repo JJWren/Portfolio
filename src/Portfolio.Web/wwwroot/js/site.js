@@ -63,9 +63,10 @@
         if (typeof window.__applyTheme === 'function') {
             window.__applyTheme();
         }
-        if (window.Prism) {
-            window.Prism.highlightAll();
-        }
+        // Marker-guarded like the observer path: enhanced navigation swaps in
+        // fresh unmarked markup, while surviving already-highlighted blocks
+        // keep their attribute and are skipped instead of re-churned.
+        highlightNewCode();
         // The merged markup arrives with the mobile menu closed; keep the
         // burger's state in sync in case the header survived the merge.
         var nav = document.getElementById('site-nav');
