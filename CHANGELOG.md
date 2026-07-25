@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/JJWren/Portfolio/compare/v1.13.0...v1.14.0) (2026-07-25)
+
+
+### Features
+
+* markdown rendering for comments and messages ([#57](https://github.com/JJWren/Portfolio/issues/57)) ([51c34b4](https://github.com/JJWren/Portfolio/commit/51c34b4ee7ffbe43051eb86e1b2df0cbb5ea293b)), closes [#56](https://github.com/JJWren/Portfolio/issues/56)
+
 ## [1.13.0](https://github.com/JJWren/Portfolio/compare/v1.12.0...v1.13.0) (2026-07-25)
 
 
