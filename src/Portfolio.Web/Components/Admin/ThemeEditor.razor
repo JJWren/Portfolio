@@ -2,9 +2,12 @@
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
+@implements IAsyncDisposable
 @inject ThemeService ThemeStore
 @inject SiteContentService ContentStore
 @inject SiteConfig Site
+@inject IJSRuntime JS
+@inject ILogger<ThemeEditor> Logger
 
 <PageTitle>Theme — Admin — @Site.SiteTitle</PageTitle>
 
@@ -27,6 +30,11 @@
                 Leave a field blank to keep the built-in color.
                 Visitors still choose dark or light mode themselves.
             </p>
+
+            @if (_pickerUnavailable)
+            {
+                <p class="muted">Color picker isn't available — edit the hex values directly.</p>
+            }
 
             @if (_error is not null)
             {
@@ -116,12 +124,37 @@
     </div>
 </section>
 
+@* Always in the DOM (even while the form loads) so the module's init can wire
+   it on first render; invisible until showModal(). All behavior is in
+   colorpicker.js — Blazor renders this once and never patches it. *@
+<dialog id="theme-picker" class="theme-picker" aria-label="Color picker">
+    <div class="picker-sv" tabindex="0" role="slider" aria-label="Saturation and brightness"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-valuetext="">
+        <div class="picker-thumb"></div>
+    </div>
+    <input type="range" class="picker-hue" min="0" max="360" step="1" aria-label="Hue" />
+    <div class="picker-row">
+        <span class="picker-swatch" aria-hidden="true"></span>
+        <input type="text" class="picker-hex" maxlength="@ThemeRules.HexLength"
+               spellcheck="false" autocomplete="off" aria-label="Hex value" />
+    </div>
+    <div class="picker-actions">
+        <button type="button" class="btn btn-primary picker-apply">Apply</button>
+        <button type="button" class="btn btn-ghost picker-cancel">Cancel</button>
+    </div>
+</dialog>
+
 @code {
     private bool _loading = true;
     private bool _busy;
     private bool _saved;
     private bool _confirmingReset;
     private string? _error;
+
+    private bool _pickerInitialized;
+    private bool _pickerReady;
+    private bool _pickerUnavailable;
+    private IJSObjectReference? _pickerModule;
 
     private readonly Dictionary<string, string> _inputs =
         ThemeRules.Tokens.ToDictionary(t => t.Key, _ => string.Empty);
@@ -135,7 +168,10 @@
     private RenderFragment TokenRow(ThemeToken token) => __builder =>
     {
         <div class="token-row">
-            <span class="swatch" style="background:@_effective[token.Key]" aria-hidden="true"></span>
+            <button type="button" class="swatch" style="background:@_effective[token.Key]"
+                    disabled="@(!_pickerReady)"
+                    aria-label="@($"Pick {token.Label} color, currently {_effective[token.Key]}")"
+                    @onclick="() => OpenPickerAsync(token)"></button>
             <input type="text" id="theme-hex-@token.Key" class="hex-input"
                    maxlength="@ThemeRules.HexLength" spellcheck="false" autocomplete="off"
                    value="@_inputs[token.Key]" placeholder="@ThemeRules.FallbackFor(token, _effective)"
@@ -165,6 +201,82 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    /// <summary>
+    /// Imports the picker module per circuit (the ImageCropField pattern: a
+    /// document script tag would strand tabs across redeploys, and the import
+    /// URL needs JsModuleUrl's "./" prefix). On failure the swatch buttons
+    /// stay disabled and hex editing remains the path — never a dead page.
+    /// </summary>
+    /// <param name="firstRender">Whether this is the component's first render.</param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_pickerInitialized)
+        {
+            _pickerInitialized = true;
+            try
+            {
+                _pickerModule = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", JsModuleUrl.Resolve(Assets["js/colorpicker.js"]));
+                await _pickerModule.InvokeVoidAsync("init", "theme-picker");
+                _pickerReady = true;
+                StateHasChanged();
+            }
+            catch (JSException ex)
+            {
+                Logger.LogError(ex, "Color picker init failed; hex fields remain editable.");
+                _pickerUnavailable = true;
+                StateHasChanged();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit died while the import was in flight (tab closed,
+                // connection lost); there is no user left to show the picker to.
+            }
+        }
+    }
+
+    /// <summary>Opens the modal seeded with the token's current effective color, targeting its hex input.</summary>
+    private async Task OpenPickerAsync(ThemeToken token)
+    {
+        if (_pickerModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            // Returns as soon as showModal() runs — no interop call is left
+            // pending while the dialog sits open. Apply hands the color back
+            // through a synthetic input event on the token's hex field.
+            await _pickerModule.InvokeVoidAsync("open", _effective[token.Key], $"theme-hex-{token.Key}");
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Opening the color picker failed.");
+            // One failure means every open would fail the same way — disable
+            // the swatches and show the unavailable note instead of letting
+            // repeated clicks stack errors and log noise.
+            _pickerReady = false;
+            _pickerUnavailable = true;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_pickerModule is not null)
+        {
+            try
+            {
+                await _pickerModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit is already gone (tab closed, connection lost);
+                // the browser released the module with it.
+            }
         }
     }
 
