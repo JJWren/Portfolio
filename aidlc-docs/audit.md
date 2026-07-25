@@ -263,3 +263,11 @@
 **Context**: Construction, feature PR from feat/markdown-comments-messages, Copilot review gate before squash merge; Closes #56
 
 ---
+
+## Feature — Live Discord-Style Markdown Composer (Issue #59)
+**Timestamp**: 2026-07-25T22:30:00Z
+**User Input**: "Enhance the previous request by having the markdown recognized while the user is typing and so things like common languages are picked up for code blocks (similar to discord's markdown). Create the enhancement issue. Research. Work the item per the PR copilot loop."
+**AI Response**: Research (wiki decision Portfolio-Live-Markdown-Editor) selected an overlay-mirror composer over contenteditable/CodeMirror/side-by-side alternatives: shared MarkdownInput.razor stacks a styled aria-hidden mirror beneath a glyph-transparent textarea, with vendored md-input.js (escape-first display tokenizer: emphasis/strike/inline code/links/bare URLs/quotes/headings/list markers; fenced bodies live-highlighted via Prism.highlight whenever Prism.languages knows the tag — the vendored bundle's js/ts/cs/py/sh/yml/html/css/sql/json set). Decisive research finding: overlay caret-accuracy requires identical glyph metrics in both layers, forcing the composer to --font-mono (JetBrains Mono advance widths are fixed under real or faux bold/italic; proportional Public Sans is not) — a deliberate, visible font change. Adopted by the comment box and both ReportsAdmin composers (their hardcoded maxlength="2000" literals retired for CommentRules.MaxLength). site.js MutationObserver extended to Prism-highlight code blocks rendered by InteractiveServer islands (comments/inboxes/preview never highlighted before — only static-SSR load and enhancedload had hooks). Module lifecycle mirrors crop.js (per-circuit import via JsModuleUrl, silent plain-textarea fallback, IAsyncDisposable, AbortController re-init hygiene). Zero new dependencies; no server pipeline changes; build -warnaserror clean; 258/258 tests; headless-Edge harness 22/22 against the real module (token cases, Prism pickup/alias/unknown fallback, escape-first rendering, scroll sync, metric parity incl. trailing-newline sentinel, refresh/dispose/re-init).
+**Context**: Construction, feature PR from feat/live-markdown-input, Copilot review gate before squash merge; Closes #59
+
+---

@@ -1,0 +1,109 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject ILogger<MarkdownInput> Logger
+
+<div class="md-input @(_live ? "md-live" : null)" id="@_id">
+    <div class="md-input-mirror" aria-hidden="true"></div>
+    <textarea rows="@Rows" maxlength="@MaxLength" @bind="Bound"></textarea>
+</div>
+
+@code {
+    /// <summary>The markdown source being composed.</summary>
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>Raised on change (blur), mirroring plain @@bind semantics.</summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>Visible rows of the textarea.</summary>
+    [Parameter]
+    public int Rows { get; set; } = 4;
+
+    /// <summary>Source length cap; comments and user messages share
+    /// <see cref="CommentRules.MaxLength"/>.</summary>
+    [Parameter]
+    public int MaxLength { get; set; } = CommentRules.MaxLength;
+
+    private readonly string _id = $"md-input-{Guid.NewGuid():N}";
+    private string _current = string.Empty;
+    private bool _initTried;
+    private bool _live;
+    private IJSObjectReference? _module;
+
+    private string Bound
+    {
+        get => _current;
+        set
+        {
+            _current = value;
+            _ = ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    protected override void OnParametersSet() => _current = Value;
+
+    /// <summary>
+    /// Imports the mirror module per circuit (crop-tool precedent: a document
+    /// script tag would not survive redeploys, and bare fingerprinted paths
+    /// are rejected by native import()). On failure the composer silently
+    /// stays a plain visible textarea — the mirror is progressive polish,
+    /// not a required control.
+    /// </summary>
+    /// <param name="firstRender">Whether this is the component's first render.</param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initTried)
+        {
+            _initTried = true;
+            try
+            {
+                _module = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", JsModuleUrl.Resolve(Assets["js/md-input.js"]));
+                await _module.InvokeVoidAsync("init", _id);
+                _live = true;
+                StateHasChanged();
+            }
+            catch (JSException ex)
+            {
+                Logger.LogError(ex, "Markdown mirror init failed; composer stays a plain textarea.");
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit died while the import was in flight; nothing to show.
+            }
+        }
+        else if (_live && _module is not null)
+        {
+            // Programmatic value changes (draft cleared after posting) fire no
+            // input event; nudge the mirror after every subsequent render.
+            try
+            {
+                await _module.InvokeVoidAsync("refresh", _id);
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync("dispose", _id);
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (JSException)
+        {
+        }
+    }
+}

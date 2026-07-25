@@ -23,7 +23,22 @@
         }
     }
 
-    // Coalesce bursts of DOM mutations into one localization pass per frame.
+    // Prism auto-highlights the initial static document and onEnhancedLoad
+    // covers enhanced navigations, but InteractiveServer islands (comments,
+    // inboxes, the composer preview) render after both hooks. Highlight
+    // whatever the mutation observer surfaces, exactly once per block.
+    function highlightNewCode() {
+        if (!window.Prism) {
+            return;
+        }
+        var blocks = document.querySelectorAll('pre > code[class*="language-"]:not([data-highlighted])');
+        for (var i = 0; i < blocks.length; i++) {
+            blocks[i].setAttribute('data-highlighted', '');
+            window.Prism.highlightElement(blocks[i]);
+        }
+    }
+
+    // Coalesce bursts of DOM mutations into one enhancement pass per frame.
     var localizePending = false;
     function scheduleLocalizeTimes() {
         if (localizePending) {
@@ -33,6 +48,7 @@
         requestAnimationFrame(function () {
             localizePending = false;
             localizeTimes();
+            highlightNewCode();
         });
     }
 
@@ -63,6 +79,7 @@
     new MutationObserver(scheduleLocalizeTimes)
         .observe(document.body, { childList: true, subtree: true });
     localizeTimes();
+    highlightNewCode();
 
     window.__toggleNav = function (button) {
         var nav = document.getElementById('site-nav');
