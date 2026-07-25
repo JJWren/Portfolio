@@ -21,6 +21,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public DbSet<SiteContent> SiteContents => Set<SiteContent>();
 
+    public DbSet<ThemeSettings> ThemeSettings => Set<ThemeSettings>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -132,6 +134,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             content.Property(c => c.HeroHeading).HasMaxLength(SiteContentRules.HeroHeadingMaxLength);
             content.Property(c => c.Tagline).HasMaxLength(SiteContentRules.TaglineMaxLength);
             content.Property(c => c.About).HasMaxLength(SiteContentRules.AboutMaxLength);
+        });
+
+        builder.Entity<ThemeSettings>(theme =>
+        {
+            // Single fixed-key row (ThemeSettings.SingletonId) upserted by ThemeService.
+            theme.Property(t => t.Id).ValueGeneratedNever();
+            // Explicit jsonb: Npgsql's default mapping for string dictionaries is hstore.
+            theme.Property(t => t.Overrides).HasColumnType("jsonb");
         });
     }
 }

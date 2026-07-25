@@ -31,6 +31,7 @@ builder.Services.AddSingleton<MessageService>();
 builder.Services.AddSingleton<ReportService>();
 builder.Services.AddSingleton<ModerationService>();
 builder.Services.AddSingleton<SiteContentService>();
+builder.Services.AddSingleton<ThemeService>();
 
 // Factory for interactive components; scoped context for Identity stores.
 builder.Services.AddDbContextFactory<AppDbContext>(options =>
