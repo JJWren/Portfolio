@@ -34,10 +34,18 @@ builder.Services.AddSingleton<SiteContentService>();
 builder.Services.AddSingleton<ThemeService>();
 
 // Factory for interactive components; scoped context for Identity stores.
-builder.Services.AddDbContextFactory<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+// EnableDynamicJson: ThemeSettings.Overrides maps Dictionary<string,string>
+// to jsonb, which Npgsql only (de)serializes behind this explicit opt-in —
+// without it every read throws and the theme silently falls back to the
+// built-in palette (ThemeService's DB-blip guard swallows the error).
+void UseNpgsqlWithDynamicJson(DbContextOptionsBuilder options)
+    => options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Default"),
+        npgsql => npgsql.ConfigureDataSource(dataSource => dataSource.EnableDynamicJson()));
+
+builder.Services.AddDbContextFactory<AppDbContext>(UseNpgsqlWithDynamicJson);
 builder.Services.AddDbContext<AppDbContext>(
-    options => options.UseNpgsql(builder.Configuration.GetConnectionString("Default")),
+    UseNpgsqlWithDynamicJson,
     optionsLifetime: ServiceLifetime.Singleton);
 
 // Persist data-protection keys so auth cookies survive container restarts.
