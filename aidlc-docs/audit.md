@@ -255,3 +255,11 @@
 **Context**: Operations phase, domain cutover; docs-only PR from docs/domain-move-joshuamykitta, Copilot review gate before squash merge; docs: commit → no release
 
 ---
+
+## Feature — Markdown-Compatible Comments & Messages (Issue #56)
+**Timestamp**: 2026-07-25T20:35:00Z
+**User Input**: "/research-workflow https://github.com/JJWren/Portfolio I want comments and messages to be markdown compatible." → "Include the admin contact inbox and then proceed with the github issue and the pr-with-copilot gate flow"
+**AI Response**: Three-phase research (wiki decision Portfolio-Comments-Messages-Markdown) determined render-time markdown for user-generated text via a hardened path split from the trusted blog pipeline (whose UseAdvancedExtensions includes GenericAttributes — arbitrary HTML attributes — plus raw-HTML passthrough, so it must never see visitor input). Implementation: MarkdownService.ToSafeHtml — restricted pipeline (DisableHtml; autolinks, pipe tables, strikethrough, softline→hardline) with a DocumentProcessed AST guard stripping images and non-http/https/mailto link schemes (CommonMark treats javascript: destinations as legal) and tagging surviving links rel="nofollow ugc noopener"; ToPlainText for one-line excerpts. Four surfaces render through it: CommentSection, /messages inbox, MyReports responses, admin contact inbox. QuotedComment snapshots, the CommentsAdmin moderation cell, and report details stay plain-encoded for source fidelity. Comment form gains a markdown hint + preview toggle (PostEditor pattern); .prose gets a compact .prose-sm modifier. The planned HtmlSanitizer 9.0.967 dependency was dropped mid-implementation: NuGet audit failed the -warnaserror build — its latest stable exact-pins AngleSharp [0.17.1], vulnerable to CVE-2026-54570 (mXSS; the advisory warns sanitizers that trust AngleSharp may be bypassable), and the patched line is beta-only — replaced by the zero-dependency AST-level guard. Build warning-clean; 255/255 tests (+16 covering XSS vectors: raw HTML, event-handler injection, generic-attribute syntax, javascript: links/autolinks, image stripping; plus feature/flattening cases).
+**Context**: Construction, feature PR from feat/markdown-comments-messages, Copilot review gate before squash merge; Closes #56
+
+---

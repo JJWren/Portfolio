@@ -1,5 +1,6 @@
 @rendermode InteractiveServer
 @inject CommentService Comments
+@inject MarkdownService Markdown
 @inject ProfileService Profiles
 @inject ReportService Reports
 @inject NavigationManager Nav
@@ -55,7 +56,7 @@
                                     @onclick="() => ToggleReportForm(comment.Id)">Report</button>
                         }
                     </div>
-                    <p class="comment-body">@comment.Body</p>
+                    <div class="comment-body prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(comment.Body))</div>
 
                     @if (_reportedCommentId == comment.Id)
                     {
@@ -124,16 +125,31 @@
                 <p class="alert" role="alert">@_error</p>
             }
             <label class="field">
-                <span>Add a comment</span>
-                <textarea rows="4" maxlength="@CommentRules.MaxLength" @bind="_draft"></textarea>
+                <span>Add a comment <span class="muted">(markdown supported)</span></span>
+                @if (!_previewing)
+                {
+                    <textarea rows="4" maxlength="@CommentRules.MaxLength" @bind="_draft"></textarea>
+                }
             </label>
+            @if (_previewing)
+            {
+                <div class="comment-preview">
+                    <p class="preview-label mono-small">Preview</p>
+                    <div class="prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(_draft))</div>
+                </div>
+            }
             <label class="check-field">
                 <input type="checkbox" @bind="_postAnonymously" />
                 <span>Post anonymously <span class="muted">(the site owner can still see it's you)</span></span>
             </label>
-            <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@_busy">
-                @(_busy ? "Posting…" : "Post comment")
-            </button>
+            <div class="editor-actions">
+                <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@_busy">
+                    @(_busy ? "Posting…" : "Post comment")
+                </button>
+                <button class="btn btn-ghost" @onclick="() => _previewing = !_previewing">
+                    @(_previewing ? "Keep writing" : "Preview")
+                </button>
+            </div>
         </div>
     }
     else
@@ -166,6 +182,7 @@
     private bool _isAdmin;
     private bool _isBanned;
     private string _draft = string.Empty;
+    private bool _previewing;
     private bool _postAnonymously;
     private string? _error;
     private bool _busy;
@@ -214,6 +231,7 @@
             if (comment is not null)
             {
                 _draft = string.Empty;
+                _previewing = false;
                 // The new comment sorts last (beyond the loaded window on long
                 // threads); append it locally instead of loading the whole thread.
                 if (_profile is not null)

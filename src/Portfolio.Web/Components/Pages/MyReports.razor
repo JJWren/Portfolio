@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ReportService Reports
+@inject MarkdownService Markdown
 @inject MessageService MessageStore
 @inject SiteConfig Site
 
@@ -75,7 +76,7 @@
                                                     @response.CreatedAt.ToString("yyyy-MM-dd HH:mm") UTC
                                                 </time>
                                             </p>
-                                            <p class="inbox-text">@response.Body</p>
+                                            <div class="inbox-text prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(response.Body))</div>
                                         </div>
                                     }
                                 }

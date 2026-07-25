@@ -10,6 +10,8 @@ public class ContactMessage
 
     public required string Subject { get; set; }
 
+    /// <summary>Markdown source; rendered via MarkdownService.ToSafeHtml in
+    /// the admin inbox.</summary>
     public required string Body { get; set; }
 
     public DateTime ReceivedAt { get; set; }

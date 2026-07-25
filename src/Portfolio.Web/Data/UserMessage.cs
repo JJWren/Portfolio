@@ -17,9 +17,11 @@ public class UserMessage
 
     public ApplicationUser? Sender { get; set; }
 
+    /// <summary>Markdown source; rendered via MarkdownService.ToSafeHtml.</summary>
     public required string Body { get; set; }
 
-    /// <summary>Snapshot of the offending comment being referenced, if any.</summary>
+    /// <summary>Snapshot of the offending comment being referenced, if any.
+    /// Rendered plain-encoded — a truncated snapshot isn't valid markdown.</summary>
     public string? QuotedComment { get; set; }
 
     /// <summary>Related report, when the message is a report outcome/response.</summary>

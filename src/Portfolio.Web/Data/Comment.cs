@@ -12,7 +12,8 @@ public class Comment
 
     public ApplicationUser User { get; set; } = null!;
 
-    /// <summary>Plain text; rendered encoded, never as HTML or markdown.</summary>
+    /// <summary>Markdown source; rendered through the restricted UGC pipeline
+    /// (MarkdownService.ToSafeHtml), never as raw HTML.</summary>
     public required string Body { get; set; }
 
     public DateTime CreatedAt { get; set; }
