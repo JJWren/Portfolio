@@ -1348,6 +1348,77 @@ select:focus {
     border-color: var(--accent);
 }
 
+/* Live markdown composer: a styled mirror sits under a glyph-transparent
+   textarea. The two layers must share identical glyph metrics — same mono
+   font, size, line height, padding, and wrap rules — or the caret drifts
+   off the visible text (mono keeps advance widths fixed under bold/italic;
+   the body font would not). */
+.md-input {
+    position: relative;
+}
+
+.md-input textarea,
+.md-input .md-input-mirror {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.md-input .md-input-mirror {
+    position: absolute;
+    inset: 0;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.md-input textarea {
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+/* Classic (non-overlay) scrollbars reserve a gutter that narrows the
+   content box and shifts soft-wrap points away from the mirror's. Hiding
+   the bar keeps both layers gutterless and wrap-identical — the box still
+   scrolls by wheel, keys, and caret drag. Live mode only: the fallback
+   plain textarea has no mirror to align with and keeps its native bar. */
+.md-input.md-live textarea {
+    scrollbar-width: none;
+}
+
+.md-input.md-live textarea::-webkit-scrollbar {
+    display: none;
+}
+
+.md-input.md-live textarea {
+    color: transparent;
+    caret-color: var(--text);
+    background: transparent;
+}
+
+.md-input .mdt-syntax { color: var(--text-muted); }
+.md-input .mdt-bold { font-weight: 700; }
+.md-input .mdt-italic { font-style: italic; }
+.md-input .mdt-strike { text-decoration: line-through; }
+
+.md-input .mdt-code,
+.md-input .mdt-fence {
+    background: var(--surface-2);
+    border-radius: 3px;
+}
+
+.md-input .mdt-link { color: var(--accent); }
+.md-input .mdt-url { color: var(--text-muted); }
+.md-input .mdt-quote { color: var(--text-muted); }
+.md-input .mdt-heading { font-weight: 700; }
+
 .field {
     display: block;
     margin-bottom: 1.1rem;

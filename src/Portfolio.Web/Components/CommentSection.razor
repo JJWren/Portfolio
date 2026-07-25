@@ -128,7 +128,7 @@
                 <span>Add a comment <span class="muted">(markdown supported)</span></span>
                 @if (!_previewing)
                 {
-                    <textarea rows="4" maxlength="@CommentRules.MaxLength" @bind="_draft"></textarea>
+                    <MarkdownInput @bind-Value="_draft" Rows="4" />
                 }
             </label>
             @if (_previewing)

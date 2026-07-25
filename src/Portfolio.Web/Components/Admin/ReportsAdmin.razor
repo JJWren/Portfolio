@@ -156,8 +156,8 @@
                                             <p class="alert" role="alert">@_composeError</p>
                                         }
                                         <label class="field">
-                                            <span>Message to @report.TargetUser.PublicName <span class="muted">their offending comment is quoted automatically</span></span>
-                                            <textarea rows="4" maxlength="2000" @bind="_composeBody"></textarea>
+                                            <span>Message to @report.TargetUser.PublicName <span class="muted">their offending comment is quoted automatically — markdown supported</span></span>
+                                            <MarkdownInput @bind-Value="_composeBody" Rows="4" />
                                         </label>
                                         <div class="editor-actions">
                                             <button class="btn btn-primary" @onclick="() => SendMessageAsync(report)" disabled="@_busy">Send</button>
@@ -170,8 +170,8 @@
                                 {
                                     <div class="report-form">
                                         <label class="field">
-                                            <span>@(_resolveStatus == Portfolio.Web.Data.ReportStatus.Resolved ? "Resolve" : "Dismiss") with a note to the reporter <span class="muted">optional — leave blank to close silently</span></span>
-                                            <textarea rows="3" maxlength="2000" @bind="_resolveNote"></textarea>
+                                            <span>@(_resolveStatus == Portfolio.Web.Data.ReportStatus.Resolved ? "Resolve" : "Dismiss") with a note to the reporter <span class="muted">optional — leave blank to close silently, markdown supported</span></span>
+                                            <MarkdownInput @bind-Value="_resolveNote" Rows="3" />
                                         </label>
                                         <div class="editor-actions">
                                             <button class="btn btn-primary" @onclick="() => ResolveAsync(report)" disabled="@_busy">

@@ -23,7 +23,29 @@
         }
     }
 
-    // Coalesce bursts of DOM mutations into one localization pass per frame.
+    // Prism auto-highlights the initial static document and onEnhancedLoad
+    // covers enhanced navigations, but InteractiveServer islands (comments,
+    // inboxes, the composer preview) render after both hooks. Highlight
+    // whatever the mutation observer surfaces, exactly once per block.
+    function highlightNewCode() {
+        if (!window.Prism) {
+            return;
+        }
+        var blocks = document.querySelectorAll('pre > code[class*="language-"]:not([data-highlighted])');
+        for (var i = 0; i < blocks.length; i++) {
+            // Marked before highlighting on purpose: a block Prism throws on
+            // would otherwise be retried on every mutation, forever. The
+            // per-block catch keeps one bad block from aborting the rest.
+            blocks[i].setAttribute('data-highlighted', '');
+            try {
+                window.Prism.highlightElement(blocks[i]);
+            } catch (e) {
+                // Leave the block as plain monospace.
+            }
+        }
+    }
+
+    // Coalesce bursts of DOM mutations into one enhancement pass per frame.
     var localizePending = false;
     function scheduleLocalizeTimes() {
         if (localizePending) {
@@ -33,6 +55,7 @@
         requestAnimationFrame(function () {
             localizePending = false;
             localizeTimes();
+            highlightNewCode();
         });
     }
 
@@ -40,9 +63,10 @@
         if (typeof window.__applyTheme === 'function') {
             window.__applyTheme();
         }
-        if (window.Prism) {
-            window.Prism.highlightAll();
-        }
+        // Marker-guarded like the observer path: enhanced navigation swaps in
+        // fresh unmarked markup, while surviving already-highlighted blocks
+        // keep their attribute and are skipped instead of re-churned.
+        highlightNewCode();
         // The merged markup arrives with the mobile menu closed; keep the
         // burger's state in sync in case the header survived the merge.
         var nav = document.getElementById('site-nav');
@@ -63,6 +87,7 @@
     new MutationObserver(scheduleLocalizeTimes)
         .observe(document.body, { childList: true, subtree: true });
     localizeTimes();
+    highlightNewCode();
 
     window.__toggleNav = function (button) {
         var nav = document.getElementById('site-nav');
