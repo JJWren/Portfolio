@@ -154,6 +154,10 @@ export function init(dialogId) {
     var dragging = false;
     sv.addEventListener('pointerdown', function (event) {
         event.preventDefault();
+        // preventDefault also suppresses the browser's native focus-on-press,
+        // so focus explicitly (without scrolling the dialog) — the arrow-key
+        // nudging must work immediately after a pointer interaction.
+        sv.focus({ preventScroll: true });
         dragging = true;
         sv.setPointerCapture(event.pointerId);
         updateFromPointer(event);
