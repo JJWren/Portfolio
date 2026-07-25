@@ -1550,9 +1550,15 @@ fieldset.token-group {
 .swatch {
     width: 1.9rem;
     height: 1.9rem;
+    padding: 0;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     flex: none;
+    cursor: pointer;
+}
+
+.swatch:disabled {
+    cursor: default;
 }
 
 .preview-mode-toggle {
@@ -1592,6 +1598,77 @@ fieldset.token-group {
 
 .theme-preview-frame .hero {
     padding: 3rem 0 2.5rem;
+}
+
+/* Color-picker dialog (opened from the token swatches). */
+.theme-picker {
+    width: min(19rem, calc(100vw - 2rem));
+    padding: 1rem;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.theme-picker::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* The saturation/brightness field: white→hue horizontally, transparent→black
+   vertically; colorpicker.js drives --picker-hue. */
+.picker-sv {
+    position: relative;
+    height: 11rem;
+    border-radius: var(--radius);
+    background:
+        linear-gradient(to top, #000, transparent),
+        linear-gradient(to right, #fff, hsl(var(--picker-hue, 0) 100% 50%));
+    touch-action: none;
+    user-select: none;
+    cursor: crosshair;
+}
+
+.picker-thumb {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.6);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.picker-hue {
+    width: 100%;
+    margin: 0.8rem 0 0;
+    accent-color: var(--accent);
+}
+
+.picker-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.8rem 0;
+}
+
+.picker-swatch {
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex: none;
+}
+
+.picker-row .picker-hex {
+    width: 7.5rem;
+    font-family: var(--font-mono);
+}
+
+.picker-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
 }
 
 .editor-actions {
