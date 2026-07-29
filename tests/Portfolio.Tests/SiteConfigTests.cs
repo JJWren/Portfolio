@@ -33,6 +33,7 @@ public class SiteConfigTests
         Assert.Equal("Jane Developer", site.OwnerName);
         Assert.Equal("Jane Developer — Portfolio", site.SiteTitle);
         Assert.Equal(string.Empty, site.Tagline);
+        Assert.Null(site.MetaDescription);
         Assert.Null(site.ContactPhone);
         Assert.Null(site.LinkedInUrl);
         Assert.Null(site.GitHubUrl);
@@ -72,6 +73,26 @@ public class SiteConfigTests
         var site = SiteConfig.FromConfiguration(config);
 
         Assert.Equal(new[] { "C#", "ASP.NET Core", "Docker" }, site.Skills);
+    }
+
+    [Fact]
+    public void FromConfiguration_MetaDescription_IsOptionalAndBlankBecomesNull()
+    {
+        var withValue = SiteConfig.FromConfiguration(BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_META_DESCRIPTION"] = "Software engineer building useful things.",
+        }));
+        var blank = SiteConfig.FromConfiguration(BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_META_DESCRIPTION"] = "   ",
+        }));
+
+        Assert.Equal("Software engineer building useful things.", withValue.MetaDescription);
+        Assert.Null(blank.MetaDescription);
     }
 
     [Fact]

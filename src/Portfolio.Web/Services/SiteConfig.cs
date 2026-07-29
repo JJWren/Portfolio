@@ -9,6 +9,7 @@ public record SiteConfig(
     string OwnerName,
     string SiteTitle,
     string Tagline,
+    string? MetaDescription,
     string ContactEmail,
     string? ContactPhone,
     string? LinkedInUrl,
@@ -47,6 +48,8 @@ public record SiteConfig(
             OwnerName: ownerName,
             SiteTitle: config["SITE_TITLE"] ?? $"{ownerName} — Portfolio",
             Tagline: config["SITE_TAGLINE"] ?? string.Empty,
+            // Search/social snippet; pages fall back to the tagline when unset.
+            MetaDescription: NullIfEmpty(config["SITE_META_DESCRIPTION"]),
             ContactEmail: contactEmail,
             ContactPhone: NullIfEmpty(config["CONTACT_PHONE"]),
             LinkedInUrl: NullIfEmpty(config["LINKEDIN_URL"]),

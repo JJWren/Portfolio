@@ -1,0 +1,67 @@
+@inject NavigationManager Nav
+@inject IConfiguration Config
+
+@* Per-page search/social meta. Exactly one HeadContent renders per page (the
+   framework keeps only the most recently rendered one), so page-specific
+   extras — the JSON-LD scripts — ride in as ChildContent instead of a second
+   HeadContent. Request-level tags (canonical, og:url, og:site_name,
+   twitter:card) live in App.razor. *@
+<HeadContent>
+    <meta name="description" content="@Description" />
+    <meta property="og:title" content="@Title" />
+    <meta property="og:description" content="@Description" />
+    <meta property="og:type" content="@Type" />
+    <meta property="og:image" content="@_imageUrl" />
+    @if (PublishedAt is { } published)
+    {
+        <meta property="article:published_time" content="@published.ToString("o")" />
+    }
+    @if ((ModifiedAt ?? PublishedAt) is { } modified)
+    {
+        <meta property="article:modified_time" content="@modified.ToString("o")" />
+    }
+    @ChildContent
+</HeadContent>
+
+@code {
+    /// <summary>og:title — the page's own name; og:site_name carries the site.</summary>
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Description { get; set; }
+
+    /// <summary>Open Graph object type; post pages pass "article".</summary>
+    [Parameter]
+    public string Type { get; set; } = "website";
+
+    /// <summary>
+    /// Page-specific image, relative or absolute; the neutral ribbon card is
+    /// the fallback so every shared link renders with an image. Open Graph
+    /// requires absolute image URLs, so relative paths gain the canonical
+    /// origin here.
+    /// </summary>
+    [Parameter]
+    public string? ImagePath { get; set; }
+
+    [Parameter]
+    public DateTime? PublishedAt { get; set; }
+
+    [Parameter]
+    public DateTime? ModifiedAt { get; set; }
+
+    /// <summary>Extra head markup (JSON-LD scripts) rendered inside this
+    /// component's HeadContent.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string _imageUrl = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        var origin = SeoRules.CanonicalOrigin(
+            Config["PUBLIC_BASE_URL"],
+            new Uri(Nav.BaseUri).GetLeftPart(UriPartial.Authority));
+        _imageUrl = SeoRules.AbsoluteUrl(origin, ImagePath ?? Assets["social-card.png"]);
+    }
+}

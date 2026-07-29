@@ -1,25 +1,36 @@
 @page "/"
 @inject SiteConfig Site
 @inject SiteContentService ContentStore
+@inject NavigationManager Nav
+@inject IConfiguration Config
 
 <PageTitle>@Site.SiteTitle</PageTitle>
-<HeadContent>
-    <meta name="description" content="@_content.Tagline" />
-    <meta property="og:title" content="@Site.SiteTitle" />
-    <meta property="og:description" content="@_content.Tagline" />
-    <meta property="og:type" content="website" />
-</HeadContent>
+<SocialMeta Title="@Site.SiteTitle" Description="@(Site.MetaDescription ?? _content.Tagline)">
+    @* Serializer-escaped in SeoRules — the MarkupString cannot break out of
+       the script blocks. *@
+    <script type="application/ld+json">@((MarkupString)_personJsonLd)</script>
+    <script type="application/ld+json">@((MarkupString)_websiteJsonLd)</script>
+</SocialMeta>
 
 <LandingSections Content="_content" />
 
 @code {
     private EffectiveSiteContent _content = default!;
+    private string _personJsonLd = string.Empty;
+    private string _websiteJsonLd = string.Empty;
 
     // Seed synchronously so any render is safe (streaming or interactive
     // rendering could paint before OnInitializedAsync completes), then
     // overwrite with the DB-resolved values.
     protected override void OnInitialized()
-        => _content = SiteContentRules.Resolve(Site, null);
+    {
+        _content = SiteContentRules.Resolve(Site, null);
+
+        var origin = SeoRules.CanonicalOrigin(
+            Config["PUBLIC_BASE_URL"], new Uri(Nav.BaseUri).GetLeftPart(UriPartial.Authority));
+        _personJsonLd = SeoRules.PersonJsonLd(Site.OwnerName, origin, [Site.GitHubUrl, Site.LinkedInUrl]);
+        _websiteJsonLd = SeoRules.WebSiteJsonLd(Site.SiteTitle, origin);
+    }
 
     protected override async Task OnInitializedAsync()
         => _content = await ContentStore.GetEffectiveAsync();

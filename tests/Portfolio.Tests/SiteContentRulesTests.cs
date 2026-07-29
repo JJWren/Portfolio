@@ -12,6 +12,7 @@ public class SiteContentRulesTests
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
             Tagline: "Building useful things.",
+            MetaDescription: null,
             ContactEmail: "jane@example.com",
             ContactPhone: null,
             LinkedInUrl: null,

@@ -82,12 +82,7 @@ public static class SeoEndpoints
 
     /// <summary>PUBLIC_BASE_URL when configured (canonical), otherwise the request origin.</summary>
     private static string BaseUrl(HttpContext ctx, IConfiguration config)
-    {
-        var configured = config["PUBLIC_BASE_URL"];
-        return string.IsNullOrWhiteSpace(configured)
-            ? $"{ctx.Request.Scheme}://{ctx.Request.Host}"
-            : configured.TrimEnd('/');
-    }
+        => SeoRules.CanonicalOrigin(config["PUBLIC_BASE_URL"], $"{ctx.Request.Scheme}://{ctx.Request.Host}");
 
     private static string Declaration(XDocument doc)
         => $"<?xml version=\"1.0\" encoding=\"utf-8\"?>{Environment.NewLine}{doc}";

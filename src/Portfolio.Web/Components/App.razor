@@ -1,5 +1,7 @@
 @inject Portfolio.Web.Services.SiteConfig Site
 @inject Portfolio.Web.Services.ThemeService ThemeStore
+@inject NavigationManager Nav
+@inject IConfiguration Config
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +11,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="@_theme.MetaThemeColor" />
     <meta property="og:site_name" content="@Site.SiteTitle" />
+    <link rel="canonical" href="@_canonical" />
+    <meta property="og:url" content="@_canonical" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="alternate" type="application/rss+xml" title="@Site.SiteTitle" href="/feed.xml" />
     <base href="/" />
     <ResourcePreloader />
@@ -43,6 +48,19 @@
     // and no page streams, so OnInitializedAsync always completes before the
     // head is written — the override style block can never flash in late.
     private Portfolio.Web.Services.ThemeSnapshot _theme = Portfolio.Web.Services.ThemeRules.DefaultSnapshot;
+    private string _canonical = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Canonical + og:url for every page: PUBLIC_BASE_URL (or the request
+        // origin) plus the request path, query dropped — filter and pager
+        // variants of a page all self-canonicalize to the bare listing.
+        var uri = new Uri(Nav.Uri);
+        _canonical = Portfolio.Web.Services.SeoRules.CanonicalUrl(
+            Portfolio.Web.Services.SeoRules.CanonicalOrigin(
+                Config["PUBLIC_BASE_URL"], uri.GetLeftPart(UriPartial.Authority)),
+            uri.AbsolutePath);
+    }
 
     protected override async Task OnInitializedAsync()
         => _theme = await ThemeStore.GetSnapshotAsync();

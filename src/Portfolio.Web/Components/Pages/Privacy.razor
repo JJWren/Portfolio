@@ -2,9 +2,8 @@
 @inject SiteConfig Site
 
 <PageTitle>Privacy Notice — @Site.SiteTitle</PageTitle>
-<HeadContent>
-    <meta name="description" content="Privacy notice for @Site.SiteTitle" />
-</HeadContent>
+<SocialMeta Title="@($"Privacy Notice — {Site.SiteTitle}")"
+            Description="@($"Privacy notice for {Site.SiteTitle}")" />
 
 <section class="section page-head">
     <div class="container">
