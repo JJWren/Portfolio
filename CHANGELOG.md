@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/JJWren/Portfolio/compare/v1.15.0...v1.16.0) (2026-07-29)
+
+
+### Features
+
+* canonical urls, social sharing metadata, and structured data ([#63](https://github.com/JJWren/Portfolio/issues/63)) ([8c4593b](https://github.com/JJWren/Portfolio/commit/8c4593b3b5797f6a2bd5f6e4c758a52dac592959))
+
 ## [1.15.0](https://github.com/JJWren/Portfolio/compare/v1.14.0...v1.15.0) (2026-07-25)
 
 
