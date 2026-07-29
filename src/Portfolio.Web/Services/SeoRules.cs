@@ -19,7 +19,7 @@ public static class SeoRules
     /// request origin; never with a trailing slash.
     /// </summary>
     public static string CanonicalOrigin(string? publicBaseUrl, string requestOrigin)
-        => (string.IsNullOrWhiteSpace(publicBaseUrl) ? requestOrigin : publicBaseUrl).TrimEnd('/');
+        => (string.IsNullOrWhiteSpace(publicBaseUrl) ? requestOrigin : publicBaseUrl).Trim().TrimEnd('/');
 
     /// <summary>
     /// Canonical absolute URL for a request path: no query, no trailing
@@ -53,6 +53,9 @@ public static class SeoRules
     /// </summary>
     public static string TruncateDescription(string? text, int limit = DescriptionLimit)
     {
+        // Below 2 there is no room for even one character plus the ellipsis.
+        ArgumentOutOfRangeException.ThrowIfLessThan(limit, 2);
+
         var collapsed = string.Join(' ',
             (text ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         if (collapsed.Length <= limit)

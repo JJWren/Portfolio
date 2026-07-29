@@ -23,6 +23,11 @@ public class SeoRulesTests
         => Assert.Equal("http://localhost:8080",
             SeoRules.CanonicalOrigin(configured, "http://localhost:8080/"));
 
+    [Fact]
+    public void CanonicalOrigin_ConfiguredWithStrayWhitespace_IsTrimmed()
+        => Assert.Equal("https://site.dev",
+            SeoRules.CanonicalOrigin("  https://site.dev/  ", "http://localhost:8080"));
+
     // -- CanonicalUrl --------------------------------------------------------
 
     [Theory]
@@ -110,6 +115,14 @@ public class SeoRulesTests
     [Fact]
     public void TruncateDescription_CustomLimit_IsHonored()
         => Assert.Equal("alpha beta…", SeoRules.TruncateDescription("alpha beta gamma delta", 12));
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void TruncateDescription_LimitBelowTwo_Throws(int limit)
+        => Assert.Throws<ArgumentOutOfRangeException>(
+            () => SeoRules.TruncateDescription("anything", limit));
 
     // -- JSON-LD ---------------------------------------------------------------
 

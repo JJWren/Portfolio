@@ -17,8 +17,8 @@ else if (_post is not null)
                 Description="@_description"
                 Type="article"
                 ImagePath="@_post.HeaderImagePath"
-                PublishedAt="_post.PublishedAt"
-                ModifiedAt="_post.UpdatedAt">
+                PublishedAt="@_post.PublishedAt"
+                ModifiedAt="@_post.UpdatedAt">
         @* Serializer-escaped in SeoRules — the MarkupString cannot break out
            of the script block. *@
         <script type="application/ld+json">@((MarkupString)_jsonLd)</script>
