@@ -64,11 +64,12 @@ built-in colors).
 | `CONTACT_EMAIL` | ✅ | Contact-form notifications + mailto links |
 | `POSTGRES_PASSWORD` | ✅ | Database password (compose wires the connection string) |
 | `SITE_TITLE`, `SITE_TAGLINE`, `SITE_ABOUT`, `SITE_SKILLS` | | Copy for the home page (`\n` splits paragraphs; skills comma-separated) |
+| `SITE_META_DESCRIPTION` | | Search/social snippet; blank falls back to `SITE_TAGLINE` |
 | `CONTACT_PHONE`, `LINKEDIN_URL`, `GITHUB_URL` | | Contact & social links; `GITHUB_URL` drives the projects-page CTA |
 | `ADMIN_EMAILS` | | Comma-separated; matching OAuth emails get the hidden admin area |
 | `OAUTH__<P>__CLIENTID` / `CLIENTSECRET` | | Enable sign-in per provider (`GITHUB`, `GOOGLE`, `DISCORD`) |
 | `SMTP__HOST/PORT/USER/PASSWORD/FROM` | | Email notifications; blank host = DB-only mode |
-| `PUBLIC_BASE_URL` | | Canonical origin for the feed/sitemap (e.g. `https://you.example`) |
+| `PUBLIC_BASE_URL` | | Canonical origin for canonical/og URLs, social cards, the feed, and the sitemap (e.g. `https://you.example`) |
 | `SEED_DEMO_DATA` | | `true` seeds sample posts/projects into empty tables |
 
 ### OAuth callback URLs

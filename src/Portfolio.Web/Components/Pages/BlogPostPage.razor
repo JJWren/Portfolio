@@ -2,6 +2,8 @@
 @inject BlogService BlogPosts
 @inject MarkdownService Markdown
 @inject SiteConfig Site
+@inject NavigationManager Nav
+@inject IConfiguration Config
 
 @if (_notFound)
 {
@@ -11,16 +13,16 @@
 else if (_post is not null)
 {
     <PageTitle>@_post.Title — @Site.SiteTitle</PageTitle>
-    <HeadContent>
-        <meta name="description" content="@_post.Summary" />
-        <meta property="og:title" content="@_post.Title" />
-        <meta property="og:description" content="@_post.Summary" />
-        <meta property="og:type" content="article" />
-        @if (!string.IsNullOrEmpty(_post.HeaderImagePath))
-        {
-            <meta property="og:image" content="@_post.HeaderImagePath" />
-        }
-    </HeadContent>
+    <SocialMeta Title="@_post.Title"
+                Description="@_description"
+                Type="article"
+                ImagePath="@_post.HeaderImagePath"
+                PublishedAt="_post.PublishedAt"
+                ModifiedAt="_post.UpdatedAt">
+        @* Serializer-escaped in SeoRules — the MarkupString cannot break out
+           of the script block. *@
+        <script type="application/ld+json">@((MarkupString)_jsonLd)</script>
+    </SocialMeta>
 
     <article>
         <header class="section page-head post-head">
@@ -77,6 +79,8 @@ else if (_post is not null)
 
     private Portfolio.Web.Data.BlogPost? _post;
     private bool _notFound;
+    private string _description = string.Empty;
+    private string _jsonLd = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,6 +92,21 @@ else if (_post is not null)
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             }
+            return;
         }
+
+        _description = SeoRules.TruncateDescription(_post.Summary);
+        var origin = SeoRules.CanonicalOrigin(
+            Config["PUBLIC_BASE_URL"], new Uri(Nav.BaseUri).GetLeftPart(UriPartial.Authority));
+        _jsonLd = SeoRules.BlogPostingJsonLd(
+            _post.Title,
+            _description,
+            SeoRules.CanonicalUrl(origin, $"/blog/{_post.Slug}"),
+            Site.OwnerName,
+            _post.PublishedAt,
+            _post.UpdatedAt,
+            string.IsNullOrEmpty(_post.HeaderImagePath)
+                ? null
+                : SeoRules.AbsoluteUrl(origin, _post.HeaderImagePath));
     }
 }

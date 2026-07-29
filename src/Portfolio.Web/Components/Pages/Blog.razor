@@ -4,6 +4,8 @@
 @inject SiteConfig Site
 
 <PageTitle>Blog — @Site.SiteTitle</PageTitle>
+<SocialMeta Title="@($"Blog — {Site.SiteTitle}")"
+            Description="@($"Notes and write-ups by {Site.OwnerName} — projects, experiments, and lessons learned along the way.")" />
 
 <section class="section page-head">
     <div class="container">

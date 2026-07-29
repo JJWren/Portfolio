@@ -2,9 +2,8 @@
 @inject SiteConfig Site
 
 <PageTitle>Terms of Service — @Site.SiteTitle</PageTitle>
-<HeadContent>
-    <meta name="description" content="Terms of service for @Site.SiteTitle" />
-</HeadContent>
+<SocialMeta Title="@($"Terms of Service — {Site.SiteTitle}")"
+            Description="@($"Terms of service for {Site.SiteTitle}")" />
 
 <section class="section page-head">
     <div class="container">
