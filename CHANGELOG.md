@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/JJWren/Portfolio/compare/v1.17.0...v1.18.0) (2026-07-30)
+
+
+### Features
+
+* admin-supplied alt text for header and card images ([#69](https://github.com/JJWren/Portfolio/issues/69)) ([5954074](https://github.com/JJWren/Portfolio/commit/595407424dcc650f2777ab19a8925decf1985132))
+
 ## [1.17.0](https://github.com/JJWren/Portfolio/compare/v1.16.0...v1.17.0) (2026-07-30)
 
 
