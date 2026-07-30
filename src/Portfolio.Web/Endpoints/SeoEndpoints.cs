@@ -78,6 +78,15 @@ public static class SeoEndpoints
                 Sitemap: {baseUrl}/sitemap.xml
                 """);
         });
+
+        app.MapGet("/site.webmanifest", async (SiteConfig site, ThemeService theme) =>
+        {
+            var snapshot = await theme.GetSnapshotAsync();
+            return Results.Content(
+                SeoRules.WebManifest(site.SiteTitle, site.OwnerName, snapshot.MetaThemeColor),
+                "application/manifest+json",
+                Encoding.UTF8);
+        });
     }
 
     /// <summary>PUBLIC_BASE_URL when configured (canonical), otherwise the request origin.</summary>

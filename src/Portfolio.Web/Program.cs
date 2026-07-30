@@ -154,6 +154,31 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 
+// Blazor component endpoints match GET only, so bare HEAD requests 405.
+// Serve HEAD as GET with the body discarded (RFC 9110: same status and
+// headers, no content); the method is restored afterwards for logging.
+app.Use(async (context, next) =>
+{
+    if (!HttpMethods.IsHead(context.Request.Method))
+    {
+        await next(context);
+        return;
+    }
+
+    context.Request.Method = HttpMethods.Get;
+    var originalBody = context.Response.Body;
+    context.Response.Body = Stream.Null;
+    try
+    {
+        await next(context);
+    }
+    finally
+    {
+        context.Response.Body = originalBody;
+        context.Request.Method = HttpMethods.Head;
+    }
+});
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -169,6 +194,11 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+// Explicit so endpoint selection happens after the HEAD-as-GET rewrite
+// above — the implicit UseRouting would run before every middleware in
+// this file and match HEAD against GET-only endpoints (405).
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
@@ -182,6 +212,10 @@ app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(uploadsRoot),
     RequestPath = "/uploads",
+    // Upload filenames are single-use GUIDs — the content behind a URL can
+    // never change, so clients may cache it forever.
+    OnPrepareResponse = static ctx =>
+        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable",
 });
 
 app.MapAuthEndpoints();
