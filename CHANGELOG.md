@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/JJWren/Portfolio/compare/v1.16.0...v1.17.0) (2026-07-30)
+
+
+### Features
+
+* web manifest, touch icons, and seo hygiene fixes ([#66](https://github.com/JJWren/Portfolio/issues/66)) ([069d332](https://github.com/JJWren/Portfolio/commit/069d332d7bb78d5da9b629386c41ec0560b06527))
+
 ## [1.16.0](https://github.com/JJWren/Portfolio/compare/v1.15.0...v1.16.0) (2026-07-29)
 
 
