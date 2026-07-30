@@ -1,7 +1,26 @@
 @page "/not-found"
+@using Microsoft.AspNetCore.Diagnostics
 @layout MainLayout
 @inject SiteConfig Site
 
 <PageTitle>Not found — @Site.SiteTitle</PageTitle>
 
 <NotFoundContent />
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    // Direct requests to /not-found would otherwise return a 200 whose
+    // content says "not found" — a soft-404. The status-code re-execute
+    // path is left alone: it already carries the original error status
+    // (404 for unknown URLs, 405 for method misuse) and must keep it.
+    protected override void OnInitialized()
+    {
+        if (HttpContext is { Response.HasStarted: false }
+            && HttpContext.Features.Get<IStatusCodeReExecuteFeature>() is null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+        }
+    }
+}

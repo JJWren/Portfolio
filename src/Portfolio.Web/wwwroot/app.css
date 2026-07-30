@@ -718,17 +718,17 @@ button.pager-link:not(:disabled):hover {
     }
 }
 
-.post-card h3 {
+.post-card h2 {
     margin: 0 0 0.35rem;
     font-size: 1.35rem;
 }
 
-.post-card h3 a {
+.post-card h2 a {
     color: var(--text);
     text-decoration: none;
 }
 
-.post-card h3 a:hover {
+.post-card h2 a:hover {
     color: var(--accent);
 }
 
@@ -989,7 +989,7 @@ button.pager-link:not(:disabled):hover {
     padding: 1rem 1.2rem 1.2rem;
 }
 
-.project-body h3 {
+.project-body h2 {
     margin: 0 0 0.4rem;
     font-size: 1.25rem;
 }

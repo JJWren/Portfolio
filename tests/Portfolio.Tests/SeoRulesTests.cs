@@ -233,4 +233,41 @@ public class SeoRulesTests
         Assert.Equal(published, DateTime.Parse(doc.RootElement.GetProperty("dateModified").GetString()!,
             null, DateTimeStyles.RoundtripKind));
     }
+
+    // -- WebManifest -----------------------------------------------------------
+
+    [Fact]
+    public void WebManifest_CarriesIdentityColorsAndIcons()
+    {
+        var json = SeoRules.WebManifest("Jane — Portfolio", "Jane", "#151515");
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        Assert.Equal("Jane — Portfolio", root.GetProperty("name").GetString());
+        Assert.Equal("Jane", root.GetProperty("short_name").GetString());
+        Assert.Equal("/", root.GetProperty("start_url").GetString());
+        Assert.Equal("standalone", root.GetProperty("display").GetString());
+        Assert.Equal("#151515", root.GetProperty("theme_color").GetString());
+        Assert.Equal("#151515", root.GetProperty("background_color").GetString());
+
+        var icons = root.GetProperty("icons").EnumerateArray().ToArray();
+        Assert.Equal(2, icons.Length);
+        Assert.Equal("/favicon-192.png", icons[0].GetProperty("src").GetString());
+        Assert.Equal("192x192", icons[0].GetProperty("sizes").GetString());
+        Assert.Equal("/favicon-512.png", icons[1].GetProperty("src").GetString());
+        Assert.Equal("512x512", icons[1].GetProperty("sizes").GetString());
+        Assert.All(icons, static icon => Assert.Equal("image/png", icon.GetProperty("type").GetString()));
+    }
+
+    [Fact]
+    public void WebManifest_HostileName_RoundTripsSafely()
+    {
+        var hostile = "\"Jane\" </script> & Co";
+
+        var json = SeoRules.WebManifest(hostile, hostile, "#151515");
+
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal(hostile, doc.RootElement.GetProperty("name").GetString());
+        Assert.DoesNotContain("</script>", json, StringComparison.OrdinalIgnoreCase);
+    }
 }

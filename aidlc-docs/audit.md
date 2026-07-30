@@ -279,3 +279,11 @@
 **Context**: Construction, feature PR from feat/seo-metadata, Copilot review gate before squash merge
 
 ---
+
+## Feature — Hygiene: HEAD Support, Upload Caching, Soft-404, Headings, PWA Icons (SEO P2)
+**Timestamp**: 2026-07-29T16:40:00Z
+**User Input**: "explain to me what these are" → "Go ahead an work on these using the standard loop process"
+**AI Response**: The five P2 hygiene items from Portfolio-SEO-Improvements, one PR: (1) /uploads now sends Cache-Control public,max-age=31536000,immutable (GUID filenames are single-use, content immutable; previously ETag/Last-Modified only). (2) HEAD requests no longer 405 — a HEAD-as-GET middleware discards the body per RFC 9110; smoke testing exposed that WebApplication's implicit UseRouting runs before all user middleware, so endpoint selection saw HEAD before the rewrite (405 → re-execute → 404 regression) — fixed with an explicit app.UseRouting() after the rewrite, the documented placement for UseStatusCodePagesWithReExecute anyway. (3) Direct GET /not-found returned 200 thin content (soft-404); NotFound.razor now stamps 404 on direct visits only, using IStatusCodeReExecuteFeature to leave re-executed statuses (404/405) untouched. (4) Listing cards jumped h1→h3; /blog and /projects cards are now h2 with selectors retargeted (admin .card h3 untouched). (5) apple-touch-icon (180) + favicon-192/512 generated from logo.png centered on #151515, site.webmanifest served by a new endpoint (SeoRules.WebManifest — name/short_name from SiteConfig, colors from the effective ThemeService snapshot, so admin theme overrides flow into the manifest) with head links in App.razor. Build -warnaserror clean; 297/297 tests (+2 manifest). Compose smoke matrix: HEAD 200/200/200 on pages+feed and 404 on garbage, direct /not-found 404, re-execute preserved, uploads header verified via exec-dropped file, manifest application/manifest+json with theme color, icons 200 image/png, h2 cards, home head regression-free.
+**Context**: Construction, feature PR from feat/seo-hygiene, Copilot review gate before squash merge
+
+---

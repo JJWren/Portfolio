@@ -142,4 +142,34 @@ public static class SeoRules
 
         return JsonSerializer.Serialize(payload);
     }
+
+    /// <summary>
+    /// Web-app manifest JSON — name/short_name from site config, colors from
+    /// the effective theme; icon paths are fixed wwwroot assets.
+    /// </summary>
+    public static string WebManifest(string name, string shortName, string themeColor)
+        => JsonSerializer.Serialize(new Dictionary<string, object>
+        {
+            ["name"] = name,
+            ["short_name"] = shortName,
+            ["start_url"] = "/",
+            ["display"] = "standalone",
+            ["background_color"] = themeColor,
+            ["theme_color"] = themeColor,
+            ["icons"] = new object[]
+            {
+                new Dictionary<string, object>
+                {
+                    ["src"] = "/favicon-192.png",
+                    ["sizes"] = "192x192",
+                    ["type"] = "image/png",
+                },
+                new Dictionary<string, object>
+                {
+                    ["src"] = "/favicon-512.png",
+                    ["sizes"] = "512x512",
+                    ["type"] = "image/png",
+                },
+            },
+        });
 }
