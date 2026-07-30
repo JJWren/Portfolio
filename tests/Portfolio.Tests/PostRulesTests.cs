@@ -11,7 +11,8 @@ public class PostRulesTests
             new string('t', PostRules.TitleMaxLength),
             new string('s', PostRules.SlugMaxLength),
             new string('m', PostRules.SummaryMaxLength),
-            new string('h', PostRules.HeaderImagePathMaxLength));
+            new string('h', PostRules.HeaderImagePathMaxLength),
+            new string('a', PostRules.HeaderImageAltMaxLength));
 
         Assert.Null(error);
     }
@@ -19,14 +20,14 @@ public class PostRulesTests
     [Fact]
     public void CheckLengths_AcceptsMissingHeaderImage()
     {
-        Assert.Null(PostRules.CheckLengths("Title", "title", string.Empty, null));
+        Assert.Null(PostRules.CheckLengths("Title", "title", string.Empty, null, null));
     }
 
     [Fact]
     public void CheckLengths_RejectsTitleOverLimit()
     {
         var error = PostRules.CheckLengths(
-            new string('t', PostRules.TitleMaxLength + 1), "slug", string.Empty, null);
+            new string('t', PostRules.TitleMaxLength + 1), "slug", string.Empty, null, null);
 
         Assert.NotNull(error);
         Assert.Contains(PostRules.TitleMaxLength.ToString(), error);
@@ -36,7 +37,7 @@ public class PostRulesTests
     public void CheckLengths_RejectsSlugOverLimit()
     {
         var error = PostRules.CheckLengths(
-            "Title", new string('s', PostRules.SlugMaxLength + 1), string.Empty, null);
+            "Title", new string('s', PostRules.SlugMaxLength + 1), string.Empty, null, null);
 
         Assert.NotNull(error);
         Assert.Contains(PostRules.SlugMaxLength.ToString(), error);
@@ -46,7 +47,7 @@ public class PostRulesTests
     public void CheckLengths_RejectsSummaryOverLimit()
     {
         var error = PostRules.CheckLengths(
-            "Title", "slug", new string('m', PostRules.SummaryMaxLength + 1), null);
+            "Title", "slug", new string('m', PostRules.SummaryMaxLength + 1), null, null);
 
         Assert.NotNull(error);
         Assert.Contains(PostRules.SummaryMaxLength.ToString(), error);
@@ -56,9 +57,19 @@ public class PostRulesTests
     public void CheckLengths_RejectsHeaderImagePathOverLimit()
     {
         var error = PostRules.CheckLengths(
-            "Title", "slug", string.Empty, new string('h', PostRules.HeaderImagePathMaxLength + 1));
+            "Title", "slug", string.Empty, new string('h', PostRules.HeaderImagePathMaxLength + 1), null);
 
         Assert.NotNull(error);
         Assert.Contains(PostRules.HeaderImagePathMaxLength.ToString(), error);
+    }
+
+    [Fact]
+    public void CheckLengths_RejectsHeaderImageAltOverLimit()
+    {
+        var error = PostRules.CheckLengths(
+            "Title", "slug", string.Empty, null, new string('a', PostRules.HeaderImageAltMaxLength + 1));
+
+        Assert.NotNull(error);
+        Assert.Contains(PostRules.HeaderImageAltMaxLength.ToString(), error);
     }
 }

@@ -8,9 +8,11 @@ public static class PostRules
     public const int TitleMaxLength = 200;
     public const int SummaryMaxLength = 500;
     public const int HeaderImagePathMaxLength = 400;
+    public const int HeaderImageAltMaxLength = 200;
 
     /// <summary>Returns a friendly error for the first field over its stored size, or null when everything fits.</summary>
-    public static string? CheckLengths(string title, string slug, string summary, string? headerImagePath)
+    public static string? CheckLengths(
+        string title, string slug, string summary, string? headerImagePath, string? headerImageAlt)
     {
         if (title.Length > TitleMaxLength)
         {
@@ -30,6 +32,11 @@ public static class PostRules
         if (headerImagePath is not null && headerImagePath.Length > HeaderImagePathMaxLength)
         {
             return $"Header image paths are limited to {HeaderImagePathMaxLength} characters (yours is {headerImagePath.Length}).";
+        }
+
+        if (headerImageAlt is not null && headerImageAlt.Length > HeaderImageAltMaxLength)
+        {
+            return $"Image descriptions are limited to {HeaderImageAltMaxLength} characters (yours is {headerImageAlt.Length}).";
         }
 
         return null;

@@ -12,6 +12,10 @@
     <meta property="og:description" content="@Description" />
     <meta property="og:type" content="@Type" />
     <meta property="og:image" content="@_imageUrl" />
+    @if (!string.IsNullOrEmpty(ImageAlt))
+    {
+        <meta property="og:image:alt" content="@ImageAlt" />
+    }
     @if (PublishedAt is { } published)
     {
         <meta property="article:published_time" content="@published.ToString("o")" />
@@ -43,6 +47,10 @@
     /// </summary>
     [Parameter]
     public string? ImagePath { get; set; }
+
+    /// <summary>Accessible description for the page-specific image.</summary>
+    [Parameter]
+    public string? ImageAlt { get; set; }
 
     [Parameter]
     public DateTime? PublishedAt { get; set; }

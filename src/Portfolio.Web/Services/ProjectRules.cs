@@ -7,12 +7,14 @@ public static class ProjectRules
     public const int TitleMaxLength = 120;
     public const int SummaryMaxLength = 500;
     public const int HeaderImagePathMaxLength = 400;
+    public const int HeaderImageAltMaxLength = 200;
     public const int HomepageUrlMaxLength = 400;
     public const int RepoUrlMaxLength = 400;
 
     /// <summary>Returns a friendly error for the first field over its stored size, or null when everything fits.</summary>
     public static string? CheckLengths(
-        string title, string summary, string? headerImagePath, string? homepageUrl, string? repoUrl)
+        string title, string summary, string? headerImagePath, string? headerImageAlt,
+        string? homepageUrl, string? repoUrl)
     {
         if (title.Length > TitleMaxLength)
         {
@@ -27,6 +29,11 @@ public static class ProjectRules
         if (headerImagePath is not null && headerImagePath.Length > HeaderImagePathMaxLength)
         {
             return $"Card image paths are limited to {HeaderImagePathMaxLength} characters (yours is {headerImagePath.Length}).";
+        }
+
+        if (headerImageAlt is not null && headerImageAlt.Length > HeaderImageAltMaxLength)
+        {
+            return $"Image descriptions are limited to {HeaderImageAltMaxLength} characters (yours is {headerImageAlt.Length}).";
         }
 
         if (homepageUrl is not null && homepageUrl.Length > HomepageUrlMaxLength)

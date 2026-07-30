@@ -17,6 +17,9 @@ public class BlogPost
     /// <summary>Optional header image path or URL.</summary>
     public string? HeaderImagePath { get; set; }
 
+    /// <summary>Alt text for the header image; null renders it as decorative.</summary>
+    public string? HeaderImageAlt { get; set; }
+
     public List<string> Tags { get; set; } = [];
 
     public bool IsPublished { get; set; }

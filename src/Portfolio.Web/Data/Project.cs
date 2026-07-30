@@ -11,6 +11,9 @@ public class Project
     /// <summary>Card image; a palette placeholder renders when unset.</summary>
     public string? HeaderImagePath { get; set; }
 
+    /// <summary>Alt text for the card image; null renders it as decorative.</summary>
+    public string? HeaderImageAlt { get; set; }
+
     public string? HomepageUrl { get; set; }
 
     public string? RepoUrl { get; set; }
