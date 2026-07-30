@@ -59,6 +59,11 @@
                                     @bind-ImagePath="_headerImagePath" />
 
                     <label class="field">
+                        <span>Image description <span class="muted">alt text for screen readers and image search; blank = decorative</span></span>
+                        <input type="text" maxlength="@PostRules.HeaderImageAltMaxLength" @bind="_headerImageAlt" />
+                    </label>
+
+                    <label class="field">
                         <span>Body <span class="muted">markdown</span></span>
                         <textarea class="editor-body" rows="18" value="@_body" @oninput="OnBodyInput"></textarea>
                     </label>
@@ -115,6 +120,7 @@
     private string _summary = string.Empty;
     private string _tagsText = string.Empty;
     private string? _headerImagePath;
+    private string? _headerImageAlt;
     private string _body = string.Empty;
     private bool _isPublished;
 
@@ -135,6 +141,7 @@
             _summary = _existing.Summary;
             _tagsText = string.Join(", ", _existing.Tags);
             _headerImagePath = _existing.HeaderImagePath;
+            _headerImageAlt = _existing.HeaderImageAlt;
             _body = _existing.BodyMarkdown;
             _isPublished = _existing.IsPublished;
         }
@@ -165,6 +172,7 @@
         _error = null;
         _title = _title.Trim();
         _summary = _summary.Trim();
+        _headerImageAlt = string.IsNullOrWhiteSpace(_headerImageAlt) ? null : _headerImageAlt.Trim();
         _slug = SlugHelper.Slugify(_slug);
 
         if (_title.Length == 0)
@@ -184,7 +192,7 @@
             return;
         }
 
-        if (PostRules.CheckLengths(_title, _slug, _summary, _headerImagePath) is { } lengthError)
+        if (PostRules.CheckLengths(_title, _slug, _summary, _headerImagePath, _headerImageAlt) is { } lengthError)
         {
             _error = lengthError;
             return;
@@ -207,6 +215,7 @@
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToList();
             post.HeaderImagePath = _headerImagePath;
+            post.HeaderImageAlt = _headerImageAlt;
             post.BodyMarkdown = _body;
             post.IsPublished = _isPublished;
 

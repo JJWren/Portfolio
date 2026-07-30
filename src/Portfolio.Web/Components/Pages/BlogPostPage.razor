@@ -17,6 +17,7 @@ else if (_post is not null)
                 Description="@_description"
                 Type="article"
                 ImagePath="@_post.HeaderImagePath"
+                ImageAlt="@_post.HeaderImageAlt"
                 PublishedAt="@_post.PublishedAt"
                 ModifiedAt="@_post.UpdatedAt">
         @* Serializer-escaped in SeoRules — the MarkupString cannot break out
@@ -54,7 +55,11 @@ else if (_post is not null)
         @if (!string.IsNullOrEmpty(_post.HeaderImagePath))
         {
             <div class="container">
-                <img class="post-hero-image" src="@_post.HeaderImagePath" alt="" />
+                @* NormalizeAltText never returns null (Blazor would omit the
+                   attribute — worse than an empty one on a content image)
+                   and treats whitespace-only stored values as decorative. *@
+                <img class="post-hero-image" src="@_post.HeaderImagePath"
+                     alt="@SeoRules.NormalizeAltText(_post.HeaderImageAlt)" />
             </div>
         }
 

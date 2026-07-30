@@ -41,7 +41,8 @@
                         <li class="project-card">
                             @if (!string.IsNullOrEmpty(project.HeaderImagePath))
                             {
-                                <img class="project-image" src="@project.HeaderImagePath" alt="" loading="lazy" />
+                                <img class="project-image" src="@project.HeaderImagePath"
+                                     alt="@SeoRules.NormalizeAltText(project.HeaderImageAlt)" loading="lazy" />
                             }
                             else
                             {

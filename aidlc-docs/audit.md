@@ -287,3 +287,11 @@
 **Context**: Construction, feature PR from feat/seo-hygiene, Copilot review gate before squash merge
 
 ---
+
+## Feature — Admin-Supplied Alt Text for Header/Card Images (SEO backlog close-out)
+**Timestamp**: 2026-07-30T02:05:00Z
+**User Input**: "Would the adjustment for that alt-text also allow me to put that alt-text somewhere (such as when creating/editing blogs/projects)?" → "go for it"
+**AI Response**: The last open SEO-backlog item: nullable HeaderImageAlt (varchar 200) on BlogPost + Project (migration AddHeaderImageAlt, auto-applied), caps single-sourced as PostRules/ProjectRules.HeaderImageAltMaxLength with CheckLengths coverage, "Image description" inputs under the ImageCropField in both editors (trim-to-null on save, maxlength, friendly over-limit errors), and render wiring: post hero alt (coalesced — Blazor omits null-valued attributes and a content image without alt is worse than an empty one), og:image:alt via a new SocialMeta ImageAlt parameter (emitted only when set), project card alt. Blog list thumbnails deliberately stay alt=""/aria-hidden — decorative next to the linked title. Build -warnaserror clean; 299/299 tests (+2). Compose smoke: migration applied on startup, psql-injected image+alt rendered on the post hero and project card, og:image:alt present with alt and absent without, home head regression-free.
+**Context**: Construction, feature PR from feat/header-image-alt, Copilot review gate before squash merge
+
+---

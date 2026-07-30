@@ -42,6 +42,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             post.Property(p => p.Title).HasMaxLength(PostRules.TitleMaxLength);
             post.Property(p => p.Summary).HasMaxLength(PostRules.SummaryMaxLength);
             post.Property(p => p.HeaderImagePath).HasMaxLength(PostRules.HeaderImagePathMaxLength);
+            post.Property(p => p.HeaderImageAlt).HasMaxLength(PostRules.HeaderImageAltMaxLength);
         });
 
         builder.Entity<Comment>(comment =>
@@ -63,6 +64,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             project.Property(p => p.Title).HasMaxLength(ProjectRules.TitleMaxLength);
             project.Property(p => p.Summary).HasMaxLength(ProjectRules.SummaryMaxLength);
             project.Property(p => p.HeaderImagePath).HasMaxLength(ProjectRules.HeaderImagePathMaxLength);
+            project.Property(p => p.HeaderImageAlt).HasMaxLength(ProjectRules.HeaderImageAltMaxLength);
             project.Property(p => p.HomepageUrl).HasMaxLength(ProjectRules.HomepageUrlMaxLength);
             project.Property(p => p.RepoUrl).HasMaxLength(ProjectRules.RepoUrlMaxLength);
         });

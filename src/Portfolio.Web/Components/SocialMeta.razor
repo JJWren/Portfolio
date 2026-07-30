@@ -12,6 +12,10 @@
     <meta property="og:description" content="@Description" />
     <meta property="og:type" content="@Type" />
     <meta property="og:image" content="@_imageUrl" />
+    @if (_imageAlt.Length > 0)
+    {
+        <meta property="og:image:alt" content="@_imageAlt" />
+    }
     @if (PublishedAt is { } published)
     {
         <meta property="article:published_time" content="@published.ToString("o")" />
@@ -44,6 +48,10 @@
     [Parameter]
     public string? ImagePath { get; set; }
 
+    /// <summary>Accessible description for the page-specific image.</summary>
+    [Parameter]
+    public string? ImageAlt { get; set; }
+
     [Parameter]
     public DateTime? PublishedAt { get; set; }
 
@@ -56,6 +64,7 @@
     public RenderFragment? ChildContent { get; set; }
 
     private string _imageUrl = string.Empty;
+    private string _imageAlt = string.Empty;
 
     protected override void OnParametersSet()
     {
@@ -63,5 +72,6 @@
             Config["PUBLIC_BASE_URL"],
             new Uri(Nav.BaseUri).GetLeftPart(UriPartial.Authority));
         _imageUrl = SeoRules.AbsoluteUrl(origin, ImagePath ?? Assets["social-card.png"]);
+        _imageAlt = SeoRules.NormalizeAltText(ImageAlt);
     }
 }
