@@ -55,10 +55,11 @@ else if (_post is not null)
         @if (!string.IsNullOrEmpty(_post.HeaderImagePath))
         {
             <div class="container">
-                @* Coalesce: Blazor omits null-valued attributes, and a
-                   content image without alt is worse than an empty one. *@
+                @* NormalizeAltText never returns null (Blazor would omit the
+                   attribute — worse than an empty one on a content image)
+                   and treats whitespace-only stored values as decorative. *@
                 <img class="post-hero-image" src="@_post.HeaderImagePath"
-                     alt="@(_post.HeaderImageAlt ?? string.Empty)" />
+                     alt="@SeoRules.NormalizeAltText(_post.HeaderImageAlt)" />
             </div>
         }
 

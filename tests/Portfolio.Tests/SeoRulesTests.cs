@@ -234,6 +234,19 @@ public class SeoRulesTests
             null, DateTimeStyles.RoundtripKind));
     }
 
+    // -- NormalizeAltText --------------------------------------------------------
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   \t ")]
+    public void NormalizeAltText_Blank_IsEmptyNeverNull(string? altText)
+        => Assert.Equal(string.Empty, SeoRules.NormalizeAltText(altText));
+
+    [Fact]
+    public void NormalizeAltText_PaddedValue_IsTrimmed()
+        => Assert.Equal("A whiteboard diagram", SeoRules.NormalizeAltText("  A whiteboard diagram  "));
+
     // -- WebManifest -----------------------------------------------------------
 
     [Fact]

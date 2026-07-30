@@ -12,9 +12,9 @@
     <meta property="og:description" content="@Description" />
     <meta property="og:type" content="@Type" />
     <meta property="og:image" content="@_imageUrl" />
-    @if (!string.IsNullOrEmpty(ImageAlt))
+    @if (_imageAlt.Length > 0)
     {
-        <meta property="og:image:alt" content="@ImageAlt" />
+        <meta property="og:image:alt" content="@_imageAlt" />
     }
     @if (PublishedAt is { } published)
     {
@@ -64,6 +64,7 @@
     public RenderFragment? ChildContent { get; set; }
 
     private string _imageUrl = string.Empty;
+    private string _imageAlt = string.Empty;
 
     protected override void OnParametersSet()
     {
@@ -71,5 +72,6 @@
             Config["PUBLIC_BASE_URL"],
             new Uri(Nav.BaseUri).GetLeftPart(UriPartial.Authority));
         _imageUrl = SeoRules.AbsoluteUrl(origin, ImagePath ?? Assets["social-card.png"]);
+        _imageAlt = SeoRules.NormalizeAltText(ImageAlt);
     }
 }

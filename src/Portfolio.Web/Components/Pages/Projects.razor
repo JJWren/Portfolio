@@ -42,7 +42,7 @@
                             @if (!string.IsNullOrEmpty(project.HeaderImagePath))
                             {
                                 <img class="project-image" src="@project.HeaderImagePath"
-                                     alt="@(project.HeaderImageAlt ?? string.Empty)" loading="lazy" />
+                                     alt="@SeoRules.NormalizeAltText(project.HeaderImageAlt)" loading="lazy" />
                             }
                             else
                             {

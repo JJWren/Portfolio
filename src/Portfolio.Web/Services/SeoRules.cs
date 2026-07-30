@@ -68,6 +68,14 @@ public static class SeoRules
         return head + "…";
     }
 
+    /// <summary>
+    /// Alt text ready for rendering: trimmed, or empty (decorative) when
+    /// null/whitespace — guards values that bypassed the editors' trim,
+    /// e.g. legacy rows or direct database writes.
+    /// </summary>
+    public static string NormalizeAltText(string? altText)
+        => string.IsNullOrWhiteSpace(altText) ? string.Empty : altText.Trim();
+
     /// <summary>schema.org Person for the landing page.</summary>
     public static string PersonJsonLd(string name, string url, IEnumerable<string?> sameAs)
     {
