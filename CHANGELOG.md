@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/JJWren/Portfolio/compare/v1.18.0...v1.19.0) (2026-08-14)
+
+
+### Features
+
+* contact-form spam hardening + first-party privacy-preserving analytics ([#71](https://github.com/JJWren/Portfolio/issues/71)) ([88f3271](https://github.com/JJWren/Portfolio/commit/88f3271a0775bcc3037ca7e8f0c141faaf18ff0e))
+
 ## [1.18.0](https://github.com/JJWren/Portfolio/compare/v1.17.0...v1.18.0) (2026-07-30)
 
 
