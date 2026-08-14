@@ -32,9 +32,15 @@ public class DnsClientMxResolver : IMxResolver
     public async Task<bool?> HasMailServerAsync(string domain, CancellationToken cancellationToken)
     {
         var mx = await _client.QueryAsync(domain, QueryType.MX, cancellationToken: cancellationToken);
-        // NXDOMAIN is a definitive "no such domain"; any other DNS error is
-        // inconclusive and must fail open.
-        if (mx.HasError && mx.Header.ResponseCode != DnsHeaderResponseCode.NotExistentDomain)
+        // NXDOMAIN is a definitive "no such domain" — no point in fallbacks.
+        if (mx.Header.ResponseCode == DnsHeaderResponseCode.NotExistentDomain)
+        {
+            return false;
+        }
+
+        // Any other DNS error is inconclusive and must fail open — here and
+        // on every fallback query below.
+        if (mx.HasError)
         {
             return null;
         }
@@ -46,13 +52,23 @@ public class DnsClientMxResolver : IMxResolver
 
         // RFC 5321: no MX means fall back to an address record on the domain.
         var a = await _client.QueryAsync(domain, QueryType.A, cancellationToken: cancellationToken);
+        if (a.HasError)
+        {
+            return null;
+        }
+
         if (a.Answers.ARecords().Any())
         {
             return true;
         }
 
         var aaaa = await _client.QueryAsync(domain, QueryType.AAAA, cancellationToken: cancellationToken);
-        return aaaa.Answers.AaaaRecords().Any() ? true : false;
+        if (aaaa.HasError)
+        {
+            return null;
+        }
+
+        return aaaa.Answers.AaaaRecords().Any();
     }
 }
 

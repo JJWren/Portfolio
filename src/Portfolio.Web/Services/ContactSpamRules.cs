@@ -31,7 +31,9 @@ public static partial class ContactSpamRules
     {
         var bare = UrlPattern.Matches(body).Count;
         // Markdown targets without a scheme, e.g. [x](www.spam.example).
-        var markdown = Regex.Matches(body, @"\]\((?!https?://)[^)\s]+\)").Count;
+        // IgnoreCase keeps [x](HTTPS://…) from double-counting: the bare
+        // pattern already matched it case-insensitively.
+        var markdown = Regex.Matches(body, @"\]\((?!https?://)[^)\s]+\)", RegexOptions.IgnoreCase).Count;
         return bare + markdown;
     }
 

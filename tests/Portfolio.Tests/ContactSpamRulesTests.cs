@@ -13,6 +13,7 @@ public class ContactSpamRulesTests
     [InlineData("http://a.example and https://b.example", 2)]
     [InlineData("Check [this](www.spam.example) out.", 1)]
     [InlineData("[a](https://x.example) plus [b](www.y.example)", 2)]
+    [InlineData("[x](HTTPS://example.com)", 1)]
     public void CountLinks_CountsBareAndMarkdownLinks(string body, int expected)
         => Assert.Equal(expected, ContactSpamRules.CountLinks(body));
 
