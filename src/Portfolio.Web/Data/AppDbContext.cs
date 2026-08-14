@@ -23,6 +23,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public DbSet<ThemeSettings> ThemeSettings => Set<ThemeSettings>();
 
+    public DbSet<PageView> PageViews => Set<PageView>();
+
+    public DbSet<AnalyticsEvent> AnalyticsEvents => Set<AnalyticsEvent>();
+
+    public DbSet<AnalyticsState> AnalyticsStates => Set<AnalyticsState>();
+
+    public DbSet<DailySiteStat> DailySiteStats => Set<DailySiteStat>();
+
+    public DbSet<DailyRouteStat> DailyRouteStats => Set<DailyRouteStat>();
+
+    public DbSet<DailyReferrerStat> DailyReferrerStats => Set<DailyReferrerStat>();
+
+    public DbSet<DailyEventStat> DailyEventStats => Set<DailyEventStat>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -75,6 +89,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             message.Property(m => m.Email).HasMaxLength(254);
             message.Property(m => m.Subject).HasMaxLength(200);
             message.Property(m => m.Body).HasMaxLength(4000);
+            message.Property(m => m.FlagReason).HasMaxLength(ContactSpamRules.FlagReasonMaxLength);
+            message.HasIndex(m => new { m.IsFlagged, m.IsRead });
         });
 
         builder.Entity<Report>(report =>
@@ -136,6 +152,56 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             content.Property(c => c.HeroHeading).HasMaxLength(SiteContentRules.HeroHeadingMaxLength);
             content.Property(c => c.Tagline).HasMaxLength(SiteContentRules.TaglineMaxLength);
             content.Property(c => c.About).HasMaxLength(SiteContentRules.AboutMaxLength);
+        });
+
+        builder.Entity<PageView>(view =>
+        {
+            view.Property(v => v.Path).HasMaxLength(AnalyticsRules.PathMaxLength);
+            view.Property(v => v.ReferrerHost).HasMaxLength(AnalyticsRules.ReferrerMaxLength);
+            view.Property(v => v.VisitorKey).HasMaxLength(AnalyticsRules.VisitorKeyLength);
+            // Rollup and retention both scan by time.
+            view.HasIndex(v => v.OccurredAt);
+        });
+
+        builder.Entity<AnalyticsEvent>(evt =>
+        {
+            evt.Property(e => e.Name).HasMaxLength(AnalyticsRules.EventNameMaxLength);
+            evt.Property(e => e.Target).HasMaxLength(AnalyticsRules.EventTargetMaxLength);
+            evt.Property(e => e.VisitorKey).HasMaxLength(AnalyticsRules.VisitorKeyLength);
+            evt.HasIndex(e => e.OccurredAt);
+        });
+
+        builder.Entity<AnalyticsState>(state =>
+        {
+            // Single fixed-key row (AnalyticsState.SingletonId) created lazily
+            // by AnalyticsService.
+            state.Property(s => s.Id).ValueGeneratedNever();
+            state.Property(s => s.Secret).HasMaxLength(64);
+        });
+
+        builder.Entity<DailySiteStat>(stat =>
+        {
+            // Day is the natural key and the rollup watermark.
+            stat.HasKey(s => s.Day);
+        });
+
+        builder.Entity<DailyRouteStat>(stat =>
+        {
+            stat.Property(s => s.Path).HasMaxLength(AnalyticsRules.PathMaxLength);
+            stat.HasIndex(s => new { s.Day, s.Path }).IsUnique();
+        });
+
+        builder.Entity<DailyReferrerStat>(stat =>
+        {
+            stat.Property(s => s.ReferrerHost).HasMaxLength(AnalyticsRules.ReferrerMaxLength);
+            stat.HasIndex(s => new { s.Day, s.ReferrerHost }).IsUnique();
+        });
+
+        builder.Entity<DailyEventStat>(stat =>
+        {
+            stat.Property(s => s.Name).HasMaxLength(AnalyticsRules.EventNameMaxLength);
+            stat.Property(s => s.Target).HasMaxLength(AnalyticsRules.EventTargetMaxLength);
+            stat.HasIndex(s => new { s.Day, s.Name });
         });
 
         builder.Entity<ThemeSettings>(theme =>

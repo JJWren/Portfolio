@@ -2,6 +2,10 @@
 @using System.ComponentModel.DataAnnotations
 @inject ContactService ContactStore
 @inject ContactRateLimiter RateLimiter
+@inject ContactFormTimestamp Timestamps
+@inject MailDomainChecker MailCheck
+@inject DisposableEmailDomains DisposableDomains
+@inject AnalyticsService Analytics
 @inject SiteConfig Site
 
 <PageTitle>Contact — @Site.SiteTitle</PageTitle>
@@ -68,6 +72,9 @@
                         </label>
                     </div>
 
+                    @* Protected render timestamp: sub-4s submits are bots. *@
+                    <InputText @bind-Value="Model!.RenderedToken" type="hidden" autocomplete="off" tabindex="-1" />
+
                     <button class="btn btn-primary" type="submit">Send message</button>
                 </EditForm>
             }
@@ -77,6 +84,10 @@
             <p class="eyebrow">Elsewhere</p>
             <ul class="contact-links">
                 <li><a href="mailto:@Site.ContactEmail"><Icon Kind="email" />@Site.ContactEmail</a></li>
+                @if (Site.ResumeFile is not null)
+                {
+                    <li><a href="/resume" data-enhance-nav="false"><Icon Kind="file" />Résumé</a></li>
+                }
                 @if (Site.ContactPhone is not null)
                 {
                     <li><a href="tel:@Site.ContactPhone"><Icon Kind="phone" />@Site.ContactPhone</a></li>
@@ -98,7 +109,16 @@
     [SupplyParameterFromForm]
     private ContactFormModel? Model { get; set; }
 
-    protected override void OnInitialized() => Model ??= new();
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        // Issued on the GET render; POST re-renders keep the posted token so
+        // elapsed time keeps growing across validation failures.
+        if (string.IsNullOrEmpty(Model.RenderedToken))
+        {
+            Model.RenderedToken = Timestamps.Issue();
+        }
+    }
 
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
@@ -115,6 +135,23 @@
             return;
         }
 
+        // Sub-4s submit: provably a bot, quiet "success". An undecipherable
+        // token is NOT proof (DataProtection keys rotate across deploys), so
+        // that only quarantines — a real message must never be lost to it.
+        string? tokenFlag = null;
+        if (Timestamps.TryGetElapsed(Model!.RenderedToken, out var elapsed))
+        {
+            if (elapsed < ContactSpamRules.MinSubmitTime)
+            {
+                _sent = true;
+                return;
+            }
+        }
+        else
+        {
+            tokenFlag = ContactSpamRules.InvalidTokenReason;
+        }
+
         var ip = HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         if (!RateLimiter.Allow(ip))
         {
@@ -122,7 +159,25 @@
             return;
         }
 
-        await ContactStore.SubmitAsync(Model!.Name, Model!.Email, Model!.Subject, Model!.Message);
+        // Undeliverable domain gets a visible error — it catches typos, and a
+        // typo'd address means the reply could never arrive anyway.
+        if (await MailCheck.CheckAsync(Model!.Email) == MailDomainResult.NoMailServer)
+        {
+            _error = "That email domain doesn't appear to accept mail — double-check the address.";
+            return;
+        }
+
+        var flag = ContactSpamRules.CombineReasons(
+            tokenFlag,
+            ContactSpamRules.SoftFlagReason(Model!.Email, Model!.Subject, Model!.Message, DisposableDomains));
+
+        await ContactStore.SubmitAsync(Model!.Name, Model!.Email, Model!.Subject, Model!.Message, flag);
+        if (HttpContext is not null)
+        {
+            await Analytics.TryRecordEventAsync(
+                HttpContext, AnalyticsRules.ContactSubmitEvent, flag is null ? "ok" : "flagged");
+        }
+
         _sent = true;
     }
 
@@ -146,6 +201,8 @@
         public string Message { get; set; } = string.Empty;
 
         public string? Website { get; set; }
+
+        public string? RenderedToken { get; set; }
     }
 }
 

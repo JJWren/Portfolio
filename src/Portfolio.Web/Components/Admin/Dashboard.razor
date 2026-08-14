@@ -3,6 +3,7 @@
 @inject SiteConfig Site
 @inject ReportService Reports
 @inject ContactService Contacts
+@inject AnalyticsService Analytics
 
 <PageTitle>Admin — @Site.SiteTitle</PageTitle>
 
@@ -31,8 +32,16 @@
                     {
                         <span class="badge badge-draft">@_unreadMessages unread</span>
                     }
+                    @if (_flaggedMessages > 0)
+                    {
+                        <span class="badge badge-danger">@_flaggedMessages flagged</span>
+                    }
                 </h3>
                 <p class="muted">Read contact-form messages.</p>
+            </a>
+            <a class="card card-link" href="/admin/stats">
+                <h3>Stats</h3>
+                <p class="muted">@_viewsLast7.ToString("N0") views in the last 7 days.</p>
             </a>
             <a class="card card-link" href="/admin/reports">
                 <h3>
@@ -59,11 +68,17 @@
 @code {
     private int _openReports;
     private int _unreadMessages;
+    private int _flaggedMessages;
+    private int _viewsLast7;
 
     protected override async Task OnInitializedAsync()
     {
-        var counts = await Task.WhenAll(Reports.OpenCountAsync(), Contacts.UnreadCountAsync());
+        var counts = await Task.WhenAll(
+            Reports.OpenCountAsync(), Contacts.UnreadCountAsync(),
+            Contacts.FlaggedCountAsync(), Analytics.ViewsInLastDaysAsync(7));
         _openReports = counts[0];
         _unreadMessages = counts[1];
+        _flaggedMessages = counts[2];
+        _viewsLast7 = counts[3];
     }
 }

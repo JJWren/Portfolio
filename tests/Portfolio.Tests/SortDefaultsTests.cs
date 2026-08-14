@@ -28,4 +28,11 @@ public class SortDefaultsTests
     [InlineData(ReportSortColumn.Status, SortDirection.Ascending)]
     public void For_ReportColumns_DatesDescendOthersAscend(ReportSortColumn column, SortDirection expected)
         => Assert.Equal(expected, SortDefaults.For(column));
+
+    [Theory]
+    [InlineData(RouteStatSortColumn.Path, SortDirection.Ascending)]
+    [InlineData(RouteStatSortColumn.Views, SortDirection.Descending)]
+    [InlineData(RouteStatSortColumn.Visitors, SortDirection.Descending)]
+    public void For_RouteStatColumns_CountsDescendPathAscends(RouteStatSortColumn column, SortDirection expected)
+        => Assert.Equal(expected, SortDefaults.For(column));
 }

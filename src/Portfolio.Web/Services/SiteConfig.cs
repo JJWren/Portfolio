@@ -17,7 +17,8 @@ public record SiteConfig(
     string? About,
     IReadOnlyList<string> Skills,
     string? SponsorUrl,
-    string SponsorText)
+    string SponsorText,
+    string? ResumeFile = null)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -58,7 +59,10 @@ public record SiteConfig(
             About: NullIfEmpty(config["SITE_ABOUT"])?.Replace("\\n", "\n"),
             Skills: skills,
             SponsorUrl: NullIfEmpty(config["SPONSOR_URL"]),
-            SponsorText: NullIfEmpty(config["SPONSOR_TEXT"]) ?? "Buy me a coffee");
+            SponsorText: NullIfEmpty(config["SPONSOR_TEXT"]) ?? "Buy me a coffee",
+            // Path to a PDF served at /resume; the endpoint and links only
+            // exist when this is set.
+            ResumeFile: NullIfEmpty(config["RESUME_FILE"]));
     }
 
     private static string? NullIfEmpty(string? value)

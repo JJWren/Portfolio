@@ -59,9 +59,13 @@
                                 <p class="project-links">
                                     @{ var showHomepage = ProjectUrlRules.IsHttp(project.HomepageUrl); }
                                     @{ var showRepo = ProjectUrlRules.IsHttp(project.RepoUrl); }
+                                    @* Outbound links route through /go so clicks count without
+                                       any client-side script; data-enhance-nav keeps Blazor's
+                                       enhanced navigation from intercepting the redirect. *@
                                     @if (showHomepage)
                                     {
-                                        <a href="@project.HomepageUrl" rel="noopener" target="_blank">Homepage</a>
+                                        <a href="/go/@project.Id/home" rel="noopener" target="_blank"
+                                           data-enhance-nav="false">Homepage</a>
                                     }
                                     @if (showHomepage && showRepo)
                                     {
@@ -69,7 +73,8 @@
                                     }
                                     @if (showRepo)
                                     {
-                                        <a href="@project.RepoUrl" rel="noopener" target="_blank">Repo</a>
+                                        <a href="/go/@project.Id/repo" rel="noopener" target="_blank"
+                                           data-enhance-nav="false">Repo</a>
                                     }
                                 </p>
                             </div>
