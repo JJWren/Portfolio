@@ -26,6 +26,14 @@ public enum MessageSortColumn
     State,
 }
 
+/// <summary>Sortable columns of the admin stats top-pages table.</summary>
+public enum RouteStatSortColumn
+{
+    Path,
+    Views,
+    Visitors,
+}
+
 /// <summary>Sortable columns of the admin reports inbox.</summary>
 public enum ReportSortColumn
 {
@@ -65,6 +73,10 @@ public static class SortDefaults
 
     public static SortDirection For(ReportSortColumn column)
         => column == ReportSortColumn.CreatedAt ? SortDirection.Descending : SortDirection.Ascending;
+
+    /// <summary>Count columns show biggest first; Path ascends.</summary>
+    public static SortDirection For(RouteStatSortColumn column)
+        => column == RouteStatSortColumn.Path ? SortDirection.Ascending : SortDirection.Descending;
 }
 
 /// <summary>Applies a key selector in the requested direction.</summary>

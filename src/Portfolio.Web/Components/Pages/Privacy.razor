@@ -9,7 +9,7 @@
     <div class="container">
         <p class="eyebrow">Privacy Notice</p>
         <h1>What this site knows about you</h1>
-        <p class="muted">The complete list — it's short. No ads, no analytics trackers, no data sales. Ever.</p>
+        <p class="muted">The complete list — it's short. No ads, no tracking scripts, no third parties, no data sales. Ever.</p>
     </div>
 </section>
 
@@ -17,9 +17,23 @@
     <div class="container prose">
         <h2>If you just browse</h2>
         <p>
-            Nothing is collected about you. There are no third-party trackers, ad networks, or
-            analytics scripts on this site. Your theme choice (dark/light) is stored in your own
-            browser's localStorage and never leaves your device.
+            There are no third-party trackers, ad networks, analytics scripts, or tracking
+            cookies on this site. The server keeps <strong>self-hosted, anonymous, aggregate
+            statistics</strong> — which pages are viewed and how often — recorded entirely
+            server-side with nothing running in your browser.
+        </p>
+        <p>
+            To tell visitors apart within a single day, the server derives an identifier from a
+            one-way hash of your IP address and browser signature mixed with a secret and the
+            current date. The raw IP address and browser details are <strong>never stored</strong>,
+            the hash cannot be reversed, and because the date is part of it, it cannot link your
+            visits across days. Per-view records are deleted after 90 days; only daily totals are
+            kept. Browsers sending <strong>Do&nbsp;Not&nbsp;Track</strong> or <strong>Global
+            Privacy Control</strong> signals are not recorded at all.
+        </p>
+        <p>
+            Your theme choice (dark/light) is stored in your own browser's localStorage and never
+            leaves your device.
         </p>
 
         <h2>If you sign in</h2>

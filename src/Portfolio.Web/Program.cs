@@ -22,6 +22,13 @@ builder.Services.AddSingleton<CommentService>();
 builder.Services.AddSingleton<ProjectService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<ContactRateLimiter>();
+builder.Services.AddSingleton<ContactFormTimestamp>();
+// Explicit factory: container-driven construction would pick the
+// IEnumerable<string> test constructor (DI resolves IEnumerable<T> as "all
+// registered T" — an empty list) and silently produce an empty blocklist.
+builder.Services.AddSingleton(_ => new DisposableEmailDomains());
+builder.Services.AddSingleton<IMxResolver, DnsClientMxResolver>();
+builder.Services.AddSingleton<MailDomainChecker>();
 builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton<ContactService>();
 builder.Services.AddSingleton<ImageUploadService>();
@@ -32,6 +39,9 @@ builder.Services.AddSingleton<ReportService>();
 builder.Services.AddSingleton<ModerationService>();
 builder.Services.AddSingleton<SiteContentService>();
 builder.Services.AddSingleton<ThemeService>();
+builder.Services.AddSingleton<AnalyticsService>();
+builder.Services.AddSingleton<AnalyticsRollupService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<AnalyticsRollupService>());
 
 // Factory for interactive components; scoped context for Identity stores.
 // EnableDynamicJson: ThemeSettings.Overrides maps Dictionary<string,string>
@@ -166,6 +176,8 @@ app.Use(async (context, next) =>
     }
 
     context.Request.Method = HttpMethods.Get;
+    // Mark the rewrite so analytics doesn't count probes as page views.
+    context.Items[AnalyticsMiddleware.RewrittenHeadKey] = true;
     var originalBody = context.Response.Body;
     context.Response.Body = Stream.Null;
     try
@@ -203,6 +215,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
+// After auth so the Admin-role exclusion sees the signed-in user.
+app.UseMiddleware<AnalyticsMiddleware>();
+
 app.MapStaticAssets();
 
 // User-uploaded images live outside wwwroot (a volume in production).
@@ -220,6 +235,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.MapAuthEndpoints();
 app.MapSeoEndpoints();
+app.MapAnalyticsEndpoints();
 app.MapHealthChecks("/healthz");
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

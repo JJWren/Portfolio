@@ -25,7 +25,14 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
   crop-box editor — zoom, drag, rule-of-thirds guides, and live previews of exactly
   what the card and hero will show
 - **Contact form**: messages always stored in the database, email notification via
-  SMTP on top (best-effort), honeypot + per-IP rate limiting
+  SMTP on top (best-effort), honeypot + per-IP rate limiting + timing check +
+  sender-domain MX validation; suspicious-but-plausible messages (disposable
+  domains, link-heavy bodies) are quarantined for admin review instead of emailed
+- **Privacy-preserving analytics**: server-side, cookieless, script-free page-view
+  and engagement counts (project clicks, résumé downloads, contact submissions)
+  with daily-rotating anonymous visitor hashes — raw IP/UA never stored, raw rows
+  rolled up nightly into permanent daily aggregates and deleted after 90 days,
+  DNT/GPC honored; viewable at `/admin/stats`
 - **Hidden admin area** at `/admin` — invisible and 404 for everyone not in
   `ADMIN_EMAILS`; sortable, filterable, paginated admin tables throughout
 - **In-app site content**: the landing page's hero heading, tagline, about, and
@@ -70,6 +77,7 @@ built-in colors).
 | `OAUTH__<P>__CLIENTID` / `CLIENTSECRET` | | Enable sign-in per provider (`GITHUB`, `GOOGLE`, `DISCORD`) |
 | `SMTP__HOST/PORT/USER/PASSWORD/FROM` | | Email notifications; blank host = DB-only mode |
 | `PUBLIC_BASE_URL` | | Canonical origin for canonical/og URLs, social cards, the feed, and the sitemap (e.g. `https://you.example`) |
+| `RESUME_FILE` | | Path to a PDF served at `/resume` (with download counting); unset = no résumé link |
 | `SEED_DEMO_DATA` | | `true` seeds sample posts/projects into empty tables |
 
 ### OAuth callback URLs

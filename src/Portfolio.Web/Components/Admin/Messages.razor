@@ -21,6 +21,7 @@
                 <option value="">All</option>
                 <option value="unread">Unread</option>
                 <option value="read">Read</option>
+                <option value="flagged">Flagged</option>
             </select>
         </div>
 
@@ -58,7 +59,11 @@
                             <time class="inbox-date" datetime="@message.ReceivedAt.ToString("o")" data-local="datetime">
                                 @message.ReceivedAt.ToString("yyyy-MM-dd HH:mm") UTC
                             </time>
-                            @if (!message.IsRead)
+                            @if (message.IsFlagged)
+                            {
+                                <span class="badge badge-danger" title="@message.FlagReason">Flagged · @message.FlagReason</span>
+                            }
+                            else if (!message.IsRead)
                             {
                                 <span class="badge badge-draft">New</span>
                             }
@@ -71,6 +76,13 @@
                                 </p>
                                 <div class="inbox-text prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(message.Body))</div>
                                 <div class="editor-actions">
+                                    @if (message.IsFlagged)
+                                    {
+                                        <button class="btn btn-ghost"
+                                                @onclick="() => UnflagAsync(message.Id)">
+                                            Not spam
+                                        </button>
+                                    }
                                     <button class="btn btn-ghost"
                                             @onclick="() => SetReadAsync(message, !message.IsRead)">
                                         Mark @(message.IsRead ? "unread" : "read")
@@ -111,7 +123,8 @@
             "unread" => false,
             _ => null,
         };
-        _result = await Contact.GetAdminPageAsync(_page, _search, isRead, _sortColumn, _sortDirection);
+        bool? isFlagged = _state == "flagged" ? true : null;
+        _result = await Contact.GetAdminPageAsync(_page, _search, isRead, isFlagged, _sortColumn, _sortDirection);
         _page = _result.Page; // service clamps out-of-range pages
     }
 
@@ -148,6 +161,12 @@
     {
         await Contact.DeleteAsync(id);
         _expandedId = null;
+        await ReloadAsync();
+    }
+
+    private async Task UnflagAsync(int id)
+    {
+        await Contact.SetFlaggedAsync(id, false);
         await ReloadAsync();
     }
 }

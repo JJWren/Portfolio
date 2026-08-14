@@ -17,4 +17,11 @@ public class ContactMessage
     public DateTime ReceivedAt { get; set; }
 
     public bool IsRead { get; set; }
+
+    /// <summary>Quarantined by a soft spam signal: stored and admin-reviewable,
+    /// but no SMTP notification and excluded from unread counts.</summary>
+    public bool IsFlagged { get; set; }
+
+    /// <summary>Comma-joined ContactSpamRules reasons; null when not flagged.</summary>
+    public string? FlagReason { get; set; }
 }

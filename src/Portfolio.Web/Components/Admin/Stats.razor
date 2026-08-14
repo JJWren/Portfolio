@@ -1,0 +1,186 @@
+@page "/admin/stats"
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject AnalyticsService Analytics
+@inject SiteConfig Site
+
+<PageTitle>Stats — Admin — @Site.SiteTitle</PageTitle>
+
+<section class="section">
+    <div class="container">
+        <p class="eyebrow">Admin</p>
+        <div class="admin-head">
+            <h1>Stats</h1>
+        </div>
+        <p class="muted">
+            Self-hosted anonymous aggregates — no cookies, no scripts, no personal data.
+            Visitors are unique per UTC day by design.
+        </p>
+
+        <div class="blog-filters">
+            <select aria-label="Period" @bind="_period" @bind:after="ReloadAsync">
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last 365 days</option>
+                <option value="all">All time</option>
+            </select>
+        </div>
+
+        @if (_summary is null)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else
+        {
+            <div class="stat-tiles">
+                <div class="card stat-tile">
+                    <span class="stat-value">@_summary.Views.ToString("N0")</span>
+                    <span class="stat-label muted">Page views</span>
+                </div>
+                <div class="card stat-tile">
+                    <span class="stat-value">@_summary.DailyVisitors.ToString("N0")</span>
+                    <span class="stat-label muted">Daily visitors</span>
+                </div>
+                <div class="card stat-tile">
+                    <span class="stat-value">@_summary.ContactSubmits.ToString("N0")</span>
+                    <span class="stat-label muted">Contact messages</span>
+                </div>
+                <div class="card stat-tile">
+                    <span class="stat-value">@_summary.ProjectClicks.ToString("N0")</span>
+                    <span class="stat-label muted">Project clicks</span>
+                </div>
+                <div class="card stat-tile">
+                    <span class="stat-value">@_summary.ResumeDownloads.ToString("N0")</span>
+                    <span class="stat-label muted">Résumé downloads</span>
+                </div>
+            </div>
+
+            <h2>Top pages</h2>
+            @if (_routes is null || _routes.TotalCount == 0)
+            {
+                <p class="muted">No page views in this period.</p>
+            }
+            else
+            {
+                <div class="inbox-sort-bar stats-sort-bar">
+                    <span class="stats-path">
+                        <SortHeader TColumn="RouteStatSortColumn" Label="Path" Column="RouteStatSortColumn.Path"
+                                    ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                    </span>
+                    <SortHeader TColumn="RouteStatSortColumn" Label="Views" Column="RouteStatSortColumn.Views"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                    <SortHeader TColumn="RouteStatSortColumn" Label="Visitors" Column="RouteStatSortColumn.Visitors"
+                                ActiveColumn="_sortColumn" Direction="_sortDirection" OnSort="SortAsync" />
+                </div>
+                <ul class="inbox stats-rows">
+                    @foreach (var route in _routes.Items)
+                    {
+                        <li class="inbox-item read stats-row">
+                            <span class="stats-path mono-small">@route.Path</span>
+                            <span class="stats-count">@route.Views.ToString("N0")</span>
+                            <span class="stats-count">@route.Visitors.ToString("N0")</span>
+                        </li>
+                    }
+                </ul>
+                <PagerControls TItem="RouteStatRow" Result="_routes" OnPage="GoToPageAsync" />
+            }
+
+            <div class="stats-columns">
+                <div>
+                    <h2>Top referrers</h2>
+                    @if (_referrers is null || _referrers.Count == 0)
+                    {
+                        <p class="muted">No external referrers yet.</p>
+                    }
+                    else
+                    {
+                        <ul class="inbox stats-rows">
+                            @foreach (var referrer in _referrers)
+                            {
+                                <li class="inbox-item read stats-row">
+                                    <span class="stats-path mono-small">@referrer.ReferrerHost</span>
+                                    <span class="stats-count">@referrer.Views.ToString("N0")</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div>
+                    <h2>Events</h2>
+                    @if (_events is null || _events.Count == 0)
+                    {
+                        <p class="muted">No events in this period.</p>
+                    }
+                    else
+                    {
+                        <ul class="inbox stats-rows">
+                            @foreach (var evt in _events)
+                            {
+                                <li class="inbox-item read stats-row">
+                                    <span class="stats-path mono-small">
+                                        @evt.Name@(evt.Target is null ? "" : $" · {evt.Target}")
+                                    </span>
+                                    <span class="stats-count">@evt.Count.ToString("N0")</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private string _period = "30";
+    private StatsSummary? _summary;
+    private PagedResult<RouteStatRow>? _routes;
+    private IReadOnlyList<ReferrerStatRow>? _referrers;
+    private IReadOnlyList<EventStatRow>? _events;
+    private int _page = 1;
+    private RouteStatSortColumn _sortColumn = RouteStatSortColumn.Views;
+    private SortDirection _sortDirection = SortDirection.Descending;
+
+    protected override async Task OnInitializedAsync()
+        => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var (from, to) = await PeriodRangeAsync();
+        _summary = await Analytics.GetSummaryAsync(from, to);
+        _routes = await Analytics.GetTopRoutesAsync(from, to, _page, _sortColumn, _sortDirection);
+        _page = _routes.Page;
+        _referrers = await Analytics.GetTopReferrersAsync(from, to);
+        _events = await Analytics.GetEventBreakdownAsync(from, to);
+    }
+
+    private async Task<(DateOnly From, DateOnly To)> PeriodRangeAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var from = _period == "all"
+            ? await Analytics.FirstDayAsync()
+            : today.AddDays(1 - int.Parse(_period));
+        return (from, today);
+    }
+
+    private async Task SortAsync(RouteStatSortColumn column)
+    {
+        (_sortColumn, _sortDirection) = SortState.Toggle(
+            _sortColumn, _sortDirection, column, SortDefaults.For(column));
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        _page = page;
+        await LoadAsync();
+    }
+}

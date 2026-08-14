@@ -17,6 +17,7 @@ public static class IconKind
         "linkedin",
         "email",
         "phone",
+        "file",
         "heart",
         Fallback,
     };
