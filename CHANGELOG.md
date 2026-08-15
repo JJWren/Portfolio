@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/JJWren/Portfolio/compare/v1.21.1...v1.22.0) (2026-08-15)
+
+
+### Features
+
+* branded HTML contact-form notification emails ([#83](https://github.com/JJWren/Portfolio/issues/83)) ([7851e8a](https://github.com/JJWren/Portfolio/commit/7851e8aa12098802d83baf88d89961116ed24d2d))
+
 ## [1.21.1](https://github.com/JJWren/Portfolio/compare/v1.21.0...v1.21.1) (2026-08-15)
 
 
