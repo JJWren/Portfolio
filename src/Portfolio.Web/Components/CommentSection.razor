@@ -166,6 +166,7 @@
                 {
                     <button class="comment-pin @(comment.IsPinned ? "pinned" : null)"
                             title="@(comment.IsPinned ? "Unpin comment" : "Pin comment")"
+                            aria-label="@(comment.IsPinned ? "Unpin comment" : "Pin comment")"
                             aria-pressed="@(comment.IsPinned ? "true" : "false")"
                             @onclick="() => TogglePinAsync(comment)">
                         <Icon Kind="pin" />
