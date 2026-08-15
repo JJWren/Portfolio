@@ -11,13 +11,19 @@ public class ContactService(IDbContextFactory<AppDbContext> dbFactory, EmailServ
     public async Task SubmitAsync(
         string name, string senderEmail, string subject, string body, string? flagReason = null)
     {
+        // Trim once so the stored row and the notification email agree.
+        name = name.Trim();
+        senderEmail = senderEmail.Trim();
+        subject = subject.Trim();
+        body = body.Trim();
+
         await using var db = await dbFactory.CreateDbContextAsync();
         db.ContactMessages.Add(new ContactMessage
         {
-            Name = name.Trim(),
-            Email = senderEmail.Trim(),
-            Subject = subject.Trim(),
-            Body = body.Trim(),
+            Name = name,
+            Email = senderEmail,
+            Subject = subject,
+            Body = body,
             ReceivedAt = DateTime.UtcNow,
             IsFlagged = flagReason is not null,
             FlagReason = flagReason,

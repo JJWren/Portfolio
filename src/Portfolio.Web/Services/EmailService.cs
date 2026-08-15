@@ -9,7 +9,8 @@ namespace Portfolio.Web.Services;
 /// Disabled (no-op) when SMTP__HOST is blank so the contact form still works
 /// DB-only for self-hosters without a mail account.
 /// </summary>
-public class EmailService(IConfiguration config, SiteConfig site, ILogger<EmailService> logger)
+public class EmailService(
+    IConfiguration config, SiteConfig site, MarkdownService markdown, ILogger<EmailService> logger)
 {
     public bool Enabled => !string.IsNullOrWhiteSpace(config["SMTP:HOST"]);
 
@@ -30,10 +31,23 @@ public class EmailService(IConfiguration config, SiteConfig site, ILogger<EmailS
             message.To.Add(new MailboxAddress(site.OwnerName, site.ContactEmail));
             message.ReplyTo.Add(new MailboxAddress(visitorName, visitorEmail));
             message.Subject = $"[Portfolio contact] {subject}";
-            message.Body = new TextPart("plain")
-            {
-                Text = $"From: {visitorName} <{visitorEmail}>\n\n{body}",
-            };
+
+            // The body is visitor markdown — render through the sanitizing UGC
+            // pipeline (never ToHtml); everything else the template escapes.
+            var baseUrl = config["PUBLIC_BASE_URL"]?.TrimEnd('/');
+            var hasBaseUrl = !string.IsNullOrWhiteSpace(baseUrl);
+            var siteLabel = hasBaseUrl && Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri)
+                ? uri.Host
+                : site.SiteTitle;
+            var (html, text) = EmailTemplates.ContactNotification(
+                visitorName, visitorEmail, subject,
+                bodyHtml: markdown.ToSafeHtml(body),
+                bodyText: body,
+                receivedAtUtc: DateTime.UtcNow,
+                siteLabel: siteLabel,
+                adminUrl: hasBaseUrl ? $"{baseUrl}/admin" : null);
+            var builder = new BodyBuilder { HtmlBody = html, TextBody = text };
+            message.Body = builder.ToMessageBody();
 
             using var client = new SmtpClient();
             var port = int.TryParse(config["SMTP:PORT"], out var p) ? p : 587;
