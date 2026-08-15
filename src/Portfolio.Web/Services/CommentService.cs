@@ -5,19 +5,30 @@ namespace Portfolio.Web.Services;
 
 public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
 {
-    /// <summary>Oldest-first window for incremental "show more" loading.</summary>
-    public async Task<(List<Comment> Items, int TotalCount)> GetVisibleForPostWindowAsync(int postId, int take)
+    /// <summary>Newest-first window for incremental "show more" loading. Pinned
+    /// comments are returned separately, in full — never windowed — and excluded
+    /// from Items and TotalCount.</summary>
+    public async Task<(List<Comment> Pinned, List<Comment> Items, int TotalCount)> GetVisibleForPostWindowAsync(
+        int postId, int take)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var visible = db.Comments.AsNoTracking()
             .Where(c => c.BlogPostId == postId && !c.IsHidden);
-        var total = await visible.CountAsync();
-        var items = await visible
+        var pinned = await visible
+            .Where(c => c.IsPinned)
             .Include(c => c.User)
-            .OrderBy(c => c.CreatedAt)
+            .OrderByDescending(c => c.CreatedAt)
+            .ThenByDescending(c => c.Id)
+            .ToListAsync();
+        var regular = visible.Where(c => !c.IsPinned);
+        var total = await regular.CountAsync();
+        var items = await regular
+            .Include(c => c.User)
+            .OrderByDescending(c => c.CreatedAt)
+            .ThenByDescending(c => c.Id)
             .Take(take)
             .ToListAsync();
-        return (items, total);
+        return (pinned, items, total);
     }
 
     public async Task<PagedResult<Comment>> GetAdminPageAsync(
@@ -131,5 +142,13 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
         await db.Comments
             .Where(c => c.Id == commentId)
             .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsHidden, hidden));
+    }
+
+    public async Task SetPinnedAsync(int commentId, bool pinned)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        await db.Comments
+            .Where(c => c.Id == commentId)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsPinned, pinned));
     }
 }

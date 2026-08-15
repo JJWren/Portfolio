@@ -90,6 +90,10 @@
                                     {
                                         <span class="badge badge-published">Visible</span>
                                     }
+                                    @if (comment.IsPinned)
+                                    {
+                                        <span class="pin-indicator" title="Pinned"><Icon Kind="pin" /></span>
+                                    }
                                 </td>
                                 <td class="actions">
                                     <button class="link-button" @onclick="() => ToggleHiddenAsync(comment)">
