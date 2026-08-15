@@ -305,20 +305,22 @@ main {
 }
 
 /* Owner photo: the hero only becomes a grid when a photo resolves, so the
-   photo-less page renders exactly as before. */
+   photo-less page renders exactly as before. The photo track must be a
+   definite size — an auto track sizes from the image's natural width
+   (percentages are indefinite there) and crushes the text column to its
+   min-content. */
 .hero .container.has-photo {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 2.5rem;
     align-items: start;
 }
 
 .owner-photo {
-    width: min(320px, 100%);
+    width: 100%;
     aspect-ratio: 4 / 5;
     object-fit: cover;
     border-radius: var(--radius);
-    justify-self: end;
     /* Sits under the ribbon stripes; the offset lets them overlap its top edge. */
     position: relative;
     z-index: 1;
@@ -463,8 +465,7 @@ main {
         width: 7px;
     }
 
-    /* Photo first so the ribbons still pin its top edge; capped so the
-       heading stays near the fold. */
+    /* Photo first and centered; capped so the heading stays near the fold. */
     .hero .container.has-photo {
         grid-template-columns: 1fr;
         gap: 1.5rem;
@@ -473,6 +474,7 @@ main {
     .owner-photo {
         order: -1;
         width: min(60vw, 260px);
+        justify-self: center;
         margin-top: 2rem;
     }
 
