@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1](https://github.com/JJWren/Portfolio/compare/v1.21.0...v1.21.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* hero photo track sizing and mobile centering ([#80](https://github.com/JJWren/Portfolio/issues/80)) ([98eb0e6](https://github.com/JJWren/Portfolio/commit/98eb0e69eabc591d680f1de4a2a3d12d12e3442f))
+
 ## [1.21.0](https://github.com/JJWren/Portfolio/compare/v1.20.0...v1.21.0) (2026-08-15)
 
 
