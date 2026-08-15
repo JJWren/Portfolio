@@ -34,18 +34,22 @@ public class EmailService(
 
             // The body is visitor markdown — render through the sanitizing UGC
             // pipeline (never ToHtml); everything else the template escapes.
-            var baseUrl = config["PUBLIC_BASE_URL"]?.TrimEnd('/');
-            var hasBaseUrl = !string.IsNullOrWhiteSpace(baseUrl);
-            var siteLabel = hasBaseUrl && Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri)
-                ? uri.Host
-                : site.SiteTitle;
+            // Normalized like SeoRules.CanonicalOrigin; the admin link only
+            // renders when the base URL parses as an absolute URI.
+            var baseUrl = config["PUBLIC_BASE_URL"]?.Trim().TrimEnd('/');
+            Uri? origin = null;
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                Uri.TryCreate(baseUrl, UriKind.Absolute, out origin);
+            }
+
             var (html, text) = EmailTemplates.ContactNotification(
                 visitorName, visitorEmail, subject,
                 bodyHtml: markdown.ToSafeHtml(body),
                 bodyText: body,
                 receivedAtUtc: DateTime.UtcNow,
-                siteLabel: siteLabel,
-                adminUrl: hasBaseUrl ? $"{baseUrl}/admin" : null);
+                siteLabel: origin?.Host ?? site.SiteTitle,
+                adminUrl: origin is null ? null : $"{baseUrl}/admin");
             var builder = new BodyBuilder { HtmlBody = html, TextBody = text };
             message.Body = builder.ToMessageBody();
 
