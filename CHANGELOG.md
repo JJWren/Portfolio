@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/JJWren/Portfolio/compare/v1.19.0...v1.20.0) (2026-08-15)
+
+
+### Features
+
+* pinnable blog comments with newest-first ordering ([#74](https://github.com/JJWren/Portfolio/issues/74)) ([10b159a](https://github.com/JJWren/Portfolio/commit/10b159af7f93bb4a52b74905150279f29be6a725))
+
 ## [1.19.0](https://github.com/JJWren/Portfolio/compare/v1.18.0...v1.19.0) (2026-08-14)
 
 
