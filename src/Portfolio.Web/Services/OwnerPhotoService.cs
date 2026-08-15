@@ -74,9 +74,28 @@ public class OwnerPhotoService(SiteConfig site)
             }));
         }
 
-        var temp = $"{target}.tmp";
-        await image.SaveAsync(temp, new WebpEncoder(), cancellationToken);
-        File.Move(temp, target, overwrite: true);
+        // Per-call temp name so overlapping saves can't clobber each other's
+        // half-written file; last Move wins either way.
+        var temp = $"{target}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            await image.SaveAsync(temp, new WebpEncoder(), cancellationToken);
+            File.Move(temp, target, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temp))
+            {
+                try
+                {
+                    File.Delete(temp);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // A stranded temp file is harmless clutter.
+                }
+            }
+        }
     }
 
     /// <summary>Best-effort removal; the hero and endpoint fall back to photo-less.</summary>
@@ -108,8 +127,8 @@ public class OwnerPhotoService(SiteConfig site)
             return "image/jpeg";
         }
 
-        if (header.Length >= 4 && header[0] == 0x89 && header[1] == (byte)'P'
-            && header[2] == (byte)'N' && header[3] == (byte)'G')
+        ReadOnlySpan<byte> pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        if (header.Length >= 8 && header[..8].SequenceEqual(pngSignature))
         {
             return "image/png";
         }
@@ -120,7 +139,8 @@ public class OwnerPhotoService(SiteConfig site)
             return "image/webp";
         }
 
-        if (header.Length >= 4 && header[..4].SequenceEqual("GIF8"u8))
+        if (header.Length >= 6
+            && (header[..6].SequenceEqual("GIF87a"u8) || header[..6].SequenceEqual("GIF89a"u8)))
         {
             return "image/gif";
         }

@@ -127,10 +127,15 @@ public class OwnerPhotoServiceTests : IDisposable
 
     [Theory]
     [InlineData(new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }, "image/jpeg")]
-    [InlineData(new byte[] { 0x89, (byte)'P', (byte)'N', (byte)'G', 0x0D, 0x0A }, "image/png")]
+    [InlineData(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, "image/png")]
     [InlineData(new byte[] { (byte)'G', (byte)'I', (byte)'F', (byte)'8', (byte)'9', (byte)'a' }, "image/gif")]
+    [InlineData(new byte[] { (byte)'G', (byte)'I', (byte)'F', (byte)'8', (byte)'7', (byte)'a' }, "image/gif")]
     public void SniffContentType_KnownSignatures_AreIdentified(byte[] header, string expected)
         => Assert.Equal(expected, OwnerPhotoService.SniffContentType(header));
+
+    [Fact]
+    public void SniffContentType_TruncatedPngSignature_ReturnsNull()
+        => Assert.Null(OwnerPhotoService.SniffContentType([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A]));
 
     [Fact]
     public void SniffContentType_Webp_NeedsRiffAndWebpMarkers()

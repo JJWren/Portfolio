@@ -69,7 +69,13 @@ public static class SeoEndpoints
                 return Results.NotFound();
             }
 
-            ctx.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+            // Only versioned links (?v={write-ticks}) are safe to cache forever;
+            // bare /owner-photo (e.g. the JSON-LD image URL) must revalidate so
+            // a swapped photo propagates. Results.File emits Last-Modified/ETag
+            // for the conditional requests.
+            ctx.Response.Headers.CacheControl = ctx.Request.Query.ContainsKey("v")
+                ? "public, max-age=31536000, immutable"
+                : "public, no-cache";
             return Results.File(path, contentType);
         });
 
