@@ -1287,6 +1287,54 @@ button.pager-link:not(:disabled):hover {
     color: var(--danger);
 }
 
+.pinned-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 1rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.pinned-comments .comment-list {
+    margin-bottom: 0;
+}
+
+.pinned-divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 0;
+}
+
+.pinned-divider + .comment-list {
+    margin-top: 0;
+}
+
+.pinned-divider + .comment-list .comment:first-child {
+    border-top: none;
+}
+
+.comment-pin {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 0;
+}
+
+.comment-pin:hover,
+.comment-pin.pinned {
+    color: var(--accent);
+}
+
+.comment-pin.pinned .icon {
+    fill: currentColor;
+}
+
 .comment-body {
     margin: 0.4rem 0 0;
     white-space: pre-wrap;
@@ -1321,6 +1369,16 @@ button.pager-link:not(:disabled):hover {
 
 .row-hidden td {
     opacity: 0.55;
+}
+
+.pin-indicator {
+    margin-left: 0.4rem;
+    color: var(--accent);
+}
+
+.pin-indicator .icon {
+    fill: currentColor;
+    vertical-align: -0.1em;
 }
 
 /* ================================================================

@@ -12,6 +12,7 @@ public class IconKindTests
     [InlineData("email")]
     [InlineData("phone")]
     [InlineData("heart")]
+    [InlineData("pin")]
     [InlineData("external")]
     public void Normalize_KnownKind_PassesThrough(string kind)
         => Assert.Equal(kind, IconKind.Normalize(kind));

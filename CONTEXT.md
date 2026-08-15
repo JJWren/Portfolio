@@ -1,10 +1,25 @@
 # Portfolio
 
 A self-hosted personal portfolio site (Blazor + Postgres). This glossary pins
-down the language of its contact-form spam defense and privacy-preserving
-analytics.
+down the language of its contact-form spam defense, privacy-preserving
+analytics, and blog comments.
 
 ## Language
+
+### Comments
+
+**Pinned Comment**:
+A comment an admin has surfaced above the regular list of a blog post. Pinned
+state is independent of hidden state — hiding a pinned comment removes it from
+view without unpinning it, so it returns to the pinned section when unhidden.
+_Avoid_: featured comment, sticky comment, highlight
+
+**Pinned Section**:
+The labeled block of pinned comments at the top of a post's comment list,
+separated from regular comments by a divider. Absent entirely — label, divider
+and all — when the post has no visible pinned comments. Regular comments never
+appear in it, and pinned comments never appear below it.
+_Avoid_: highlights, featured section
 
 ### Contact-form spam defense
 

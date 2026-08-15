@@ -19,6 +19,7 @@ public static class IconKind
         "phone",
         "file",
         "heart",
+        "pin",
         Fallback,
     };
 

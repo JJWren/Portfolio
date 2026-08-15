@@ -12,95 +12,38 @@
     {
         <p class="muted">Loading comments…</p>
     }
-    else if (_comments.Count == 0)
+    else if (_comments.Count == 0 && _pinned.Count == 0)
     {
         <p class="muted">No comments yet — start the conversation.</p>
     }
     else
     {
-        <ul class="comment-list">
-            @foreach (var comment in _comments)
+        @if (_pinned.Count > 0)
+        {
+            <div class="pinned-comments">
+                <p class="pinned-label"><Icon Kind="pin" /> Pinned comments</p>
+                <ul class="comment-list">
+                    @foreach (var comment in _pinned)
+                    {
+                        @CommentItem(comment)
+                    }
+                </ul>
+            </div>
+            @if (_comments.Count > 0)
             {
-                <li class="comment">
-                    <div class="comment-head">
-                        @if (comment.IsAnonymous)
-                        {
-                            <span class="avatar avatar-fallback avatar-anon" aria-hidden="true">?</span>
-                            <span class="comment-author">Anonymous</span>
-                        }
-                        else if (!string.IsNullOrEmpty(comment.User.AvatarUrl))
-                        {
-                            <img class="avatar" src="@comment.User.AvatarUrl" alt="" />
-                            <span class="comment-author">@comment.User.PublicName</span>
-                        }
-                        else
-                        {
-                            <span class="avatar avatar-fallback" aria-hidden="true">@InitialOf(comment.User.PublicName)</span>
-                            <span class="comment-author">@comment.User.PublicName</span>
-                        }
-                        @if (_userId is not null && comment.UserId == _userId)
-                        {
-                            <span class="comment-you">you</span>
-                        }
-                        <time class="comment-date" datetime="@comment.CreatedAt.ToString("o")" data-local="datetime">
-                            @comment.CreatedAt.ToString("MMM d, yyyy HH:mm") UTC
-                        </time>
-                        @if (_userId is not null && (_isAdmin || comment.UserId == _userId))
-                        {
-                            <button class="comment-delete" title="Delete comment"
-                                    @onclick="() => DeleteAsync(comment.Id)">Delete</button>
-                        }
-                        @if (_userId is not null && !_isBanned && comment.UserId != _userId)
-                        {
-                            <button class="comment-delete" title="Report this comment or its author"
-                                    @onclick="() => ToggleReportForm(comment.Id)">Report</button>
-                        }
-                    </div>
-                    <div class="comment-body prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(comment.Body))</div>
-
-                    @if (_reportedCommentId == comment.Id)
-                    {
-                        <p class="saved-note" role="status">Thanks — the report is in the moderation queue.</p>
-                    }
-                    else if (_reportingCommentId == comment.Id)
-                    {
-                        <div class="report-form">
-                            @if (_reportError is not null)
-                            {
-                                <p class="alert" role="alert">@_reportError</p>
-                            }
-                            <label class="field">
-                                <span>What are you reporting?</span>
-                                <select @bind="_reportTarget">
-                                    <option value="comment">This comment</option>
-                                    <option value="user">This user</option>
-                                </select>
-                            </label>
-                            <label class="field">
-                                <span>Reason</span>
-                                <select @bind="_reportReason">
-                                    <option value="">Choose a reason…</option>
-                                    @foreach (var reason in ReportRules.Reasons)
-                                    {
-                                        <option value="@reason">@reason</option>
-                                    }
-                                </select>
-                            </label>
-                            <label class="field">
-                                <span>Details <span class="muted">@(_reportReason == ReportRules.OtherReason ? "required" : "optional")</span></span>
-                                <textarea rows="2" maxlength="@ReportRules.MaxDetailsLength" @bind="_reportDetails"></textarea>
-                            </label>
-                            <div class="editor-actions">
-                                <button class="btn btn-primary" @onclick="() => SubmitReportAsync(comment.Id)" disabled="@_busy">
-                                    @(_busy ? "Sending…" : "Send report")
-                                </button>
-                                <button class="btn btn-ghost" @onclick="() => _reportingCommentId = null">Cancel</button>
-                            </div>
-                        </div>
-                    }
-                </li>
+                <hr class="pinned-divider" />
             }
-        </ul>
+        }
+
+        @if (_comments.Count > 0)
+        {
+            <ul class="comment-list">
+                @foreach (var comment in _comments)
+                {
+                    @CommentItem(comment)
+                }
+            </ul>
+        }
 
         @if (_comments.Count < _totalComments)
         {
@@ -172,9 +115,7 @@
     private Task<AuthenticationState>? AuthState { get; set; }
 
     private List<Portfolio.Web.Data.Comment>? _comments;
-    // Own comments posted this session that sit beyond the loaded window;
-    // shown appended at the end and absorbed once the window reaches them.
-    private readonly List<Portfolio.Web.Data.Comment> _appendedOwn = [];
+    private List<Portfolio.Web.Data.Comment> _pinned = [];
     private Portfolio.Web.Data.ApplicationUser? _profile;
     private int _visibleTake = PageSizes.Comments;
     private int _totalComments;
@@ -193,6 +134,98 @@
     private string _reportReason = string.Empty;
     private string _reportDetails = string.Empty;
     private string? _reportError;
+
+    // Shared by the pinned section and the regular list so a comment renders
+    // identically in both.
+    private RenderFragment<Portfolio.Web.Data.Comment> CommentItem => comment =>
+        @<li class="comment">
+            <div class="comment-head">
+                @if (comment.IsAnonymous)
+                {
+                    <span class="avatar avatar-fallback avatar-anon" aria-hidden="true">?</span>
+                    <span class="comment-author">Anonymous</span>
+                }
+                else if (!string.IsNullOrEmpty(comment.User.AvatarUrl))
+                {
+                    <img class="avatar" src="@comment.User.AvatarUrl" alt="" />
+                    <span class="comment-author">@comment.User.PublicName</span>
+                }
+                else
+                {
+                    <span class="avatar avatar-fallback" aria-hidden="true">@InitialOf(comment.User.PublicName)</span>
+                    <span class="comment-author">@comment.User.PublicName</span>
+                }
+                @if (_userId is not null && comment.UserId == _userId)
+                {
+                    <span class="comment-you">you</span>
+                }
+                <time class="comment-date" datetime="@comment.CreatedAt.ToString("o")" data-local="datetime">
+                    @comment.CreatedAt.ToString("MMM d, yyyy HH:mm") UTC
+                </time>
+                @if (_isAdmin)
+                {
+                    <button class="comment-pin @(comment.IsPinned ? "pinned" : null)"
+                            title="@(comment.IsPinned ? "Unpin comment" : "Pin comment")"
+                            aria-label="@(comment.IsPinned ? "Unpin comment" : "Pin comment")"
+                            aria-pressed="@(comment.IsPinned ? "true" : "false")"
+                            @onclick="() => TogglePinAsync(comment)">
+                        <Icon Kind="pin" />
+                    </button>
+                }
+                @if (_userId is not null && (_isAdmin || comment.UserId == _userId))
+                {
+                    <button class="comment-delete" title="Delete comment"
+                            @onclick="() => DeleteAsync(comment.Id)">Delete</button>
+                }
+                @if (_userId is not null && !_isBanned && comment.UserId != _userId)
+                {
+                    <button class="comment-delete" title="Report this comment or its author"
+                            @onclick="() => ToggleReportForm(comment.Id)">Report</button>
+                }
+            </div>
+            <div class="comment-body prose prose-sm">@((MarkupString)Markdown.ToSafeHtml(comment.Body))</div>
+
+            @if (_reportedCommentId == comment.Id)
+            {
+                <p class="saved-note" role="status">Thanks — the report is in the moderation queue.</p>
+            }
+            else if (_reportingCommentId == comment.Id)
+            {
+                <div class="report-form">
+                    @if (_reportError is not null)
+                    {
+                        <p class="alert" role="alert">@_reportError</p>
+                    }
+                    <label class="field">
+                        <span>What are you reporting?</span>
+                        <select @bind="_reportTarget">
+                            <option value="comment">This comment</option>
+                            <option value="user">This user</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Reason</span>
+                        <select @bind="_reportReason">
+                            <option value="">Choose a reason…</option>
+                            @foreach (var reason in ReportRules.Reasons)
+                            {
+                                <option value="@reason">@reason</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Details <span class="muted">@(_reportReason == ReportRules.OtherReason ? "required" : "optional")</span></span>
+                        <textarea rows="2" maxlength="@ReportRules.MaxDetailsLength" @bind="_reportDetails"></textarea>
+                    </label>
+                    <div class="editor-actions">
+                        <button class="btn btn-primary" @onclick="() => SubmitReportAsync(comment.Id)" disabled="@_busy">
+                            @(_busy ? "Sending…" : "Send report")
+                        </button>
+                        <button class="btn btn-ghost" @onclick="() => _reportingCommentId = null">Cancel</button>
+                    </div>
+                </div>
+            }
+        </li>;
 
     private static string InitialOf(string name)
         => (name.Length > 0 ? name[..1] : "?").ToUpperInvariant();
@@ -232,13 +265,8 @@
             {
                 _draft = string.Empty;
                 _previewing = false;
-                // The new comment sorts last (beyond the loaded window on long
-                // threads); append it locally instead of loading the whole thread.
-                if (_profile is not null)
-                {
-                    comment.User = _profile;
-                    _appendedOwn.Add(comment);
-                }
+                // Newest-first: the fresh comment sorts to the top of the
+                // window, so a plain reload always shows it.
                 await LoadCommentsAsync();
             }
         }
@@ -250,9 +278,9 @@
 
     private async Task LoadCommentsAsync()
     {
-        var (items, total) = await Comments.GetVisibleForPostWindowAsync(PostId, _visibleTake);
-        _appendedOwn.RemoveAll(a => items.Any(i => i.Id == a.Id)); // absorbed by the window
-        _comments = [.. items, .. _appendedOwn];
+        var (pinned, items, total) = await Comments.GetVisibleForPostWindowAsync(PostId, _visibleTake);
+        _pinned = pinned;
+        _comments = items;
         _totalComments = total;
     }
 
@@ -319,6 +347,17 @@
         }
     }
 
+    private async Task TogglePinAsync(Portfolio.Web.Data.Comment comment)
+    {
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        await Comments.SetPinnedAsync(comment.Id, !comment.IsPinned);
+        await LoadCommentsAsync();
+    }
+
     private async Task DeleteAsync(int commentId)
     {
         if (_userId is null)
@@ -327,7 +366,6 @@
         }
 
         await Comments.DeleteAsync(commentId, _userId, _isAdmin);
-        _appendedOwn.RemoveAll(a => a.Id == commentId);
         await LoadCommentsAsync();
     }
 }
