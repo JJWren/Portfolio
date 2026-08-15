@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/JJWren/Portfolio/compare/v1.20.0...v1.21.0) (2026-08-15)
+
+
+### Features
+
+* owner photo on the landing hero + logo-only navbar brand ([#77](https://github.com/JJWren/Portfolio/issues/77)) ([5ace3dc](https://github.com/JJWren/Portfolio/commit/5ace3dc3430fed4a5e3a292a1929cc7384db5d32))
+
 ## [1.20.0](https://github.com/JJWren/Portfolio/compare/v1.19.0...v1.20.0) (2026-08-15)
 
 
