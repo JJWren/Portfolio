@@ -152,6 +152,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             content.Property(c => c.HeroHeading).HasMaxLength(SiteContentRules.HeroHeadingMaxLength);
             content.Property(c => c.Tagline).HasMaxLength(SiteContentRules.TaglineMaxLength);
             content.Property(c => c.About).HasMaxLength(SiteContentRules.AboutMaxLength);
+            content.Property(c => c.OwnerPhotoAlt).HasMaxLength(SiteContentRules.OwnerPhotoAltMaxLength);
         });
 
         builder.Entity<PageView>(view =>

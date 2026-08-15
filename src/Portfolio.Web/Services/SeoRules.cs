@@ -77,7 +77,7 @@ public static class SeoRules
         => string.IsNullOrWhiteSpace(altText) ? string.Empty : altText.Trim();
 
     /// <summary>schema.org Person for the landing page.</summary>
-    public static string PersonJsonLd(string name, string url, IEnumerable<string?> sameAs)
+    public static string PersonJsonLd(string name, string url, IEnumerable<string?> sameAs, string? imageUrl = null)
     {
         var payload = new Dictionary<string, object>
         {
@@ -86,6 +86,11 @@ public static class SeoRules
             ["name"] = name,
             ["url"] = url,
         };
+
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            payload["image"] = imageUrl;
+        }
 
         var links = sameAs.OfType<string>()
             .Where(static link => !string.IsNullOrWhiteSpace(link))

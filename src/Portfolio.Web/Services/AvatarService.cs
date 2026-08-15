@@ -29,16 +29,11 @@ public class AvatarService(IConfiguration config, IWebHostEnvironment env)
     /// </summary>
     public async Task<string> SaveAsync(Stream source, string userId, CancellationToken cancellationToken = default)
     {
-        // Enforce the size limit here too — not every caller is a Blazor
-        // InputFile stream with its own cap.
-        await using var buffered = await BufferWithLimitAsync(source, cancellationToken);
+        await using var buffered = await ImageGuards.BufferWithLimitAsync(
+            source, MaxBytes, "Avatar", cancellationToken);
 
         var info = await Image.IdentifyAsync(buffered, cancellationToken);
-        if (info.Width > MaxSourceDimension || info.Height > MaxSourceDimension)
-        {
-            throw new IOException(
-                $"Images larger than {MaxSourceDimension}px on a side aren't supported.");
-        }
+        ImageGuards.EnsureDecodedSizeAllowed(info, MaxSourceDimension);
 
         buffered.Position = 0;
         Directory.CreateDirectory(AvatarsRoot);
@@ -88,23 +83,4 @@ public class AvatarService(IConfiguration config, IWebHostEnvironment env)
         }
     }
 
-    private static async Task<MemoryStream> BufferWithLimitAsync(Stream source, CancellationToken cancellationToken)
-    {
-        var buffered = new MemoryStream();
-        var chunk = new byte[81920];
-        int read;
-        while ((read = await source.ReadAsync(chunk, cancellationToken)) > 0)
-        {
-            if (buffered.Length + read > MaxBytes)
-            {
-                await buffered.DisposeAsync();
-                throw new IOException($"Avatar uploads are limited to {MaxBytes / (1024 * 1024)} MB.");
-            }
-
-            buffered.Write(chunk, 0, read);
-        }
-
-        buffered.Position = 0;
-        return buffered;
-    }
 }

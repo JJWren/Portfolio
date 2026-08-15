@@ -18,7 +18,9 @@ public record SiteConfig(
     IReadOnlyList<string> Skills,
     string? SponsorUrl,
     string SponsorText,
-    string? ResumeFile = null)
+    string? ResumeFile = null,
+    string? OwnerPhotoFile = null,
+    string? OwnerPhotoAlt = null)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -62,7 +64,11 @@ public record SiteConfig(
             SponsorText: NullIfEmpty(config["SPONSOR_TEXT"]) ?? "Buy me a coffee",
             // Path to a PDF served at /resume; the endpoint and links only
             // exist when this is set.
-            ResumeFile: NullIfEmpty(config["RESUME_FILE"]));
+            ResumeFile: NullIfEmpty(config["RESUME_FILE"]),
+            // Path to the Owner Photo served at /owner-photo and shown on the
+            // landing hero; blank = the hero renders photo-less.
+            OwnerPhotoFile: NullIfEmpty(config["OWNER_PHOTO_FILE"]),
+            OwnerPhotoAlt: NullIfEmpty(config["OWNER_PHOTO_ALT"]));
     }
 
     private static string? NullIfEmpty(string? value)

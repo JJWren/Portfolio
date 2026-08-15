@@ -1,28 +1,35 @@
 @inject SiteConfig Site
+@inject OwnerPhotoService Photo
 
 @* The landing hero + about/skills, shared verbatim between Home and the
    admin theme editor's live preview so the preview can never drift from the
    real page. *@
 
 <section class="hero">
-    <div class="container">
+    <div class="container @(_photoUrl is not null ? "has-photo" : null)">
         <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <h1>@Content.HeroHeading</h1>
-        @if (!string.IsNullOrEmpty(Content.Tagline))
-        {
-            <p class="tagline">@Content.Tagline</p>
-        }
-        <div class="actions">
-            @if (Site.GitHubUrl is not null)
+        <div class="hero-text">
+            <h1>@Content.HeroHeading</h1>
+            @if (!string.IsNullOrEmpty(Content.Tagline))
             {
-                <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
+                <p class="tagline">@Content.Tagline</p>
             }
-            @if (Site.LinkedInUrl is not null)
-            {
-                <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
-            }
-            <a class="btn btn-ghost" href="/contact">Get in touch</a>
+            <div class="actions">
+                @if (Site.GitHubUrl is not null)
+                {
+                    <a class="btn btn-primary" href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
+                }
+                @if (Site.LinkedInUrl is not null)
+                {
+                    <a class="btn btn-ghost" href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
+                }
+                <a class="btn btn-ghost" href="/contact">Get in touch</a>
+            </div>
         </div>
+        @if (_photoUrl is not null)
+        {
+            <img class="owner-photo" src="@_photoUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoAlt)" />
+        }
     </div>
 </section>
 
@@ -58,4 +65,10 @@
 @code {
     [Parameter, EditorRequired]
     public EffectiveSiteContent Content { get; set; } = default!;
+
+    private string? _photoUrl;
+
+    // Resolved once per render circuit, not per render: the file probe hits
+    // the filesystem.
+    protected override void OnInitialized() => _photoUrl = Photo.GetVersionedUrl();
 }

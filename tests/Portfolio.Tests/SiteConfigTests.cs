@@ -41,6 +41,9 @@ public class SiteConfigTests
         Assert.Empty(site.Skills);
         Assert.Null(site.SponsorUrl);
         Assert.Equal("Buy me a coffee", site.SponsorText);
+        Assert.Null(site.ResumeFile);
+        Assert.Null(site.OwnerPhotoFile);
+        Assert.Null(site.OwnerPhotoAlt);
     }
 
     [Fact]
@@ -104,11 +107,32 @@ public class SiteConfigTests
             ["CONTACT_EMAIL"] = "jane@example.com",
             ["CONTACT_PHONE"] = "  ",
             ["LINKEDIN_URL"] = "",
+            ["OWNER_PHOTO_FILE"] = "  ",
+            ["OWNER_PHOTO_ALT"] = "",
         });
 
         var site = SiteConfig.FromConfiguration(config);
 
         Assert.Null(site.ContactPhone);
         Assert.Null(site.LinkedInUrl);
+        Assert.Null(site.OwnerPhotoFile);
+        Assert.Null(site.OwnerPhotoAlt);
+    }
+
+    [Fact]
+    public void FromConfiguration_OwnerPhotoIsConfigurable()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["OWNER_PHOTO_FILE"] = "/app/photo/owner-photo.webp",
+            ["OWNER_PHOTO_ALT"] = "Jane at her desk",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal("/app/photo/owner-photo.webp", site.OwnerPhotoFile);
+        Assert.Equal("Jane at her desk", site.OwnerPhotoAlt);
     }
 }

@@ -152,6 +152,27 @@ public class SeoRulesTests
     }
 
     [Fact]
+    public void PersonJsonLd_WithImage_CarriesTheImageUrl()
+    {
+        var json = SeoRules.PersonJsonLd("Jane", Origin, [], $"{Origin}/owner-photo");
+
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal($"{Origin}/owner-photo", doc.RootElement.GetProperty("image").GetString());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void PersonJsonLd_NoImage_OmitsTheProperty(string? imageUrl)
+    {
+        var json = SeoRules.PersonJsonLd("Jane", Origin, [], imageUrl);
+
+        using var doc = JsonDocument.Parse(json);
+        Assert.False(doc.RootElement.TryGetProperty("image", out _));
+    }
+
+    [Fact]
     public void JsonLd_HtmlSensitiveText_CannotTerminateTheScriptBlock()
     {
         var hostile = "</script><script>alert(1)</script>";
