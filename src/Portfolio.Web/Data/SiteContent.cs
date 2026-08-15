@@ -21,5 +21,8 @@ public class SiteContent
 
     public List<string>? Skills { get; set; }
 
+    /// <summary>Alt text for the Owner Photo; "Portrait of {owner}" when unset.</summary>
+    public string? OwnerPhotoAlt { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

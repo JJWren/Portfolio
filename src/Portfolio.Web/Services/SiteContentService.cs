@@ -51,23 +51,24 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
     }
 
     /// <summary>Normalizes each field (blank → null → .env fallback) and upserts the single row.</summary>
-    public async Task SaveAsync(string? heroHeading, string? tagline, string? about, string? skillsText)
+    public async Task SaveAsync(string? heroHeading, string? tagline, string? about, string? skillsText, string? ownerPhotoAlt = null)
     {
         var normalizedHeroHeading = SiteContentRules.NormalizeField(heroHeading);
         var normalizedTagline = SiteContentRules.NormalizeField(tagline);
         var normalizedAbout = SiteContentRules.NormalizeField(about);
         var skills = SiteContentRules.ParseSkills(skillsText);
+        var normalizedOwnerPhotoAlt = SiteContentRules.NormalizeField(ownerPhotoAlt);
 
         try
         {
-            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills);
+            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt);
         }
         catch (DbUpdateException ex) when (
             ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation })
         {
             // Loser of a concurrent first save: the row exists now, so one
             // retry lands on the update path (last write wins).
-            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills);
+            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt);
         }
 
         // Bump the version before clearing so an in-flight reader can tell its
@@ -76,7 +77,7 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         _cache = null;
     }
 
-    private async Task UpsertAsync(string? heroHeading, string? tagline, string? about, List<string>? skills)
+    private async Task UpsertAsync(string? heroHeading, string? tagline, string? about, List<string>? skills, string? ownerPhotoAlt)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var row = await db.SiteContents
@@ -91,6 +92,7 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         row.Tagline = tagline;
         row.About = about;
         row.Skills = skills;
+        row.OwnerPhotoAlt = ownerPhotoAlt;
         row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }

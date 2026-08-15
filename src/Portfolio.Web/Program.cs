@@ -33,6 +33,7 @@ builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton<ContactService>();
 builder.Services.AddSingleton<ImageUploadService>();
 builder.Services.AddSingleton<AvatarService>();
+builder.Services.AddSingleton<OwnerPhotoService>();
 builder.Services.AddSingleton<ProfileService>();
 builder.Services.AddSingleton<MessageService>();
 builder.Services.AddSingleton<ReportService>();

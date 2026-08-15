@@ -78,6 +78,8 @@ built-in colors).
 | `SMTP__HOST/PORT/USER/PASSWORD/FROM` | | Email notifications; blank host = DB-only mode |
 | `PUBLIC_BASE_URL` | | Canonical origin for canonical/og URLs, social cards, the feed, and the sitemap (e.g. `https://you.example`) |
 | `RESUME_FILE` | | Path to a PDF served at `/resume` (with download counting); unset = no résumé link |
+| `OWNER_PHOTO_FILE` | | Path to the owner photo on the landing hero, served at `/owner-photo`; mount its folder read-write so the admin site-content page can replace it; unset = photo-less hero |
+| `OWNER_PHOTO_ALT` | | Alt text for the owner photo; defaults to `Portrait of {SITE_OWNER_NAME}`, admin-overridable |
 | `SEED_DEMO_DATA` | | `true` seeds sample posts/projects into empty tables |
 
 ### OAuth callback URLs

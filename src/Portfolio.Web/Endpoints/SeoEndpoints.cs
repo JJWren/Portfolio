@@ -43,6 +43,36 @@ public static class SeoEndpoints
             return Results.Content(Declaration(rss), "application/rss+xml", Encoding.UTF8);
         });
 
+        // Config-gated like /resume: no OWNER_PHOTO_FILE, no photo anywhere.
+        // Immutable caching is safe because renders always link it as
+        // /owner-photo?v={write-time ticks}.
+        app.MapGet("/owner-photo", async (HttpContext ctx, SiteConfig site) =>
+        {
+            var path = site.OwnerPhotoFile;
+            if (path is null || !File.Exists(path))
+            {
+                return Results.NotFound();
+            }
+
+            var header = new byte[12];
+            int read;
+            await using (var probe = File.OpenRead(path))
+            {
+                read = await probe.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false);
+            }
+
+            // Sniffed, not trusted from the extension — the owner can copy any
+            // file over the mount; refuse to serve bytes we can't identify.
+            var contentType = OwnerPhotoService.SniffContentType(header.AsSpan(0, read));
+            if (contentType is null)
+            {
+                return Results.NotFound();
+            }
+
+            ctx.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+            return Results.File(path, contentType);
+        });
+
         app.MapGet("/sitemap.xml", async (HttpContext ctx, BlogService blog, IConfiguration config) =>
         {
             var baseUrl = BaseUrl(ctx, config);

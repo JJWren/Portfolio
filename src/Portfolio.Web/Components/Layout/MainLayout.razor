@@ -7,9 +7,10 @@
 
 <header class="site-header">
     <div class="container inner">
-        <a class="brand" href="/">
+        @* Logo-only brand: the img stays decorative, so the link carries the
+           accessible name. *@
+        <a class="brand" href="/" aria-label="@Site.OwnerName — home">
             <img class="brand-logo" src="logo.png" alt="" />
-            @Site.OwnerName
         </a>
         <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false"
                 aria-controls="site-nav" onclick="__toggleNav(this)">

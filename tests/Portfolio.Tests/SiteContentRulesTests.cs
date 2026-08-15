@@ -7,7 +7,8 @@ public class SiteContentRulesTests
 {
     private static SiteConfig BuildConfig(
         string? about = "First paragraph.\nSecond paragraph.",
-        IReadOnlyList<string>? skills = null)
+        IReadOnlyList<string>? skills = null,
+        string? ownerPhotoAlt = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -20,7 +21,8 @@ public class SiteContentRulesTests
             About: about,
             Skills: skills ?? ["C#", "Docker"],
             SponsorUrl: null,
-            SponsorText: "Buy me a coffee");
+            SponsorText: "Buy me a coffee",
+            OwnerPhotoAlt: ownerPhotoAlt);
 
     [Theory]
     [InlineData(null)]
@@ -72,7 +74,18 @@ public class SiteContentRulesTests
         => Assert.Null(SiteContentRules.CheckLengths(
             new string('x', SiteContentRules.HeroHeadingMaxLength),
             new string('x', SiteContentRules.TaglineMaxLength),
-            new string('x', SiteContentRules.AboutMaxLength)));
+            new string('x', SiteContentRules.AboutMaxLength),
+            new string('x', SiteContentRules.OwnerPhotoAltMaxLength)));
+
+    [Fact]
+    public void CheckLengths_OverlongPhotoAlt_NamesTheField()
+    {
+        var error = SiteContentRules.CheckLengths(
+            null, null, null, new string('x', SiteContentRules.OwnerPhotoAltMaxLength + 1));
+
+        Assert.NotNull(error);
+        Assert.Contains("Photo alt text", error);
+    }
 
     [Fact]
     public void Resolve_NullOverrides_FallsBackToConfig()
@@ -85,6 +98,29 @@ public class SiteContentRulesTests
         Assert.Equal(site.Tagline, effective.Tagline);
         Assert.Equal(site.About, effective.About);
         Assert.Equal(site.Skills, effective.Skills);
+        // No override and no env value: the alt text derives from the owner.
+        Assert.Equal("Portrait of Jane Developer", effective.OwnerPhotoAlt);
+    }
+
+    [Fact]
+    public void Resolve_OwnerPhotoAlt_EnvValueBeatsTheDerivedDefault()
+    {
+        var site = BuildConfig(ownerPhotoAlt: "Jane at her desk");
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal("Jane at her desk", effective.OwnerPhotoAlt);
+    }
+
+    [Fact]
+    public void Resolve_OwnerPhotoAlt_OverrideBeatsEnv()
+    {
+        var site = BuildConfig(ownerPhotoAlt: "Jane at her desk");
+        var overrides = new SiteContent { OwnerPhotoAlt = "Jane on stage" };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Equal("Jane on stage", effective.OwnerPhotoAlt);
     }
 
     [Fact]

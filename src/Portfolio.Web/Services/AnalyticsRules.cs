@@ -16,7 +16,7 @@ public static class AnalyticsRules
     private static readonly string[] ExcludedPrefixes =
     [
         "/admin", "/auth", "/signin", "/go", "/resume", "/uploads",
-        "/healthz", "/_blazor", "/_framework", "/not-found", "/Error",
+        "/owner-photo", "/healthz", "/_blazor", "/_framework", "/not-found", "/Error",
     ];
 
     private static readonly string[] BotUserAgentFragments =

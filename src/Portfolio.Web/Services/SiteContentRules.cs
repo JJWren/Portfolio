@@ -7,7 +7,8 @@ public record EffectiveSiteContent(
     string HeroHeading,
     string Tagline,
     string? About,
-    IReadOnlyList<string> Skills);
+    IReadOnlyList<string> Skills,
+    string OwnerPhotoAlt);
 
 /// <summary>
 /// Rules for the admin site-content overrides. Blank input means "use the
@@ -21,6 +22,7 @@ public static class SiteContentRules
     public const int HeroHeadingMaxLength = 120;
     public const int TaglineMaxLength = 200;
     public const int AboutMaxLength = 4000;
+    public const int OwnerPhotoAltMaxLength = 200;
 
     /// <summary>Trims and normalizes line endings; whitespace-only collapses to null.</summary>
     public static string? NormalizeField(string? value)
@@ -52,8 +54,13 @@ public static class SiteContentRules
         => skills is null ? string.Empty : string.Join('\n', skills);
 
     /// <summary>Returns a friendly error for the first field over its stored size, or null when everything fits.</summary>
-    public static string? CheckLengths(string? heroHeading, string? tagline, string? about)
+    public static string? CheckLengths(string? heroHeading, string? tagline, string? about, string? ownerPhotoAlt = null)
     {
+        if (ownerPhotoAlt is not null && ownerPhotoAlt.Length > OwnerPhotoAltMaxLength)
+        {
+            return $"Photo alt text is limited to {OwnerPhotoAltMaxLength} characters (yours is {ownerPhotoAlt.Length}).";
+        }
+
         if (heroHeading is not null && heroHeading.Length > HeroHeadingMaxLength)
         {
             return $"Hero heading is limited to {HeroHeadingMaxLength} characters (yours is {heroHeading.Length}).";
@@ -80,5 +87,6 @@ public static class SiteContentRules
             overrides?.About ?? site.About,
             // Copy: the resolved snapshot gets cached and must not alias the
             // (mutable) entity list.
-            overrides?.Skills is { Count: > 0 } skills ? skills.ToArray() : site.Skills);
+            overrides?.Skills is { Count: > 0 } skills ? skills.ToArray() : site.Skills,
+            overrides?.OwnerPhotoAlt ?? site.OwnerPhotoAlt ?? $"Portrait of {site.OwnerName}");
 }

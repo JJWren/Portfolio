@@ -1,6 +1,7 @@
 @page "/"
 @inject SiteConfig Site
 @inject SiteContentService ContentStore
+@inject OwnerPhotoService Photo
 @inject NavigationManager Nav
 @inject IConfiguration Config
 
@@ -28,7 +29,12 @@
 
         var origin = SeoRules.CanonicalOrigin(
             Config["PUBLIC_BASE_URL"], new Uri(Nav.BaseUri).GetLeftPart(UriPartial.Authority));
-        _personJsonLd = SeoRules.PersonJsonLd(Site.OwnerName, origin, [Site.GitHubUrl, Site.LinkedInUrl]);
+        // The Owner Photo feeds the Person knowledge-panel image; og:image
+        // deliberately stays the neutral ribbon social card.
+        var photoUrl = Photo.GetVersionedUrl() is null
+            ? null
+            : SeoRules.AbsoluteUrl(origin, "/owner-photo");
+        _personJsonLd = SeoRules.PersonJsonLd(Site.OwnerName, origin, [Site.GitHubUrl, Site.LinkedInUrl], photoUrl);
         _websiteJsonLd = SeoRules.WebSiteJsonLd(Site.SiteTitle, origin);
     }
 

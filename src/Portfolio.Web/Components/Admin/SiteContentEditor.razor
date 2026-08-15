@@ -4,6 +4,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject SiteContentService ContentStore
 @inject SiteConfig Site
+@inject OwnerPhotoService Photo
 
 <PageTitle>Site content — Admin — @Site.SiteTitle</PageTitle>
 
@@ -59,6 +60,51 @@
                           placeholder="@SiteContentRules.SkillsText(Site.Skills)"></textarea>
             </label>
 
+            <div class="field">
+                <span>Owner photo <span class="muted">shown on the landing hero</span></span>
+                @if (!Photo.IsConfigured)
+                {
+                    <p class="muted">
+                        Set OWNER_PHOTO_FILE in .env (and mount its folder read-write)
+                        to enable the landing-page photo.
+                    </p>
+                }
+                else
+                {
+                    @if (_photoUrl is not null)
+                    {
+                        <img class="owner-photo-preview" src="@_photoUrl" alt="Current owner photo" />
+                    }
+                    else
+                    {
+                        <p class="muted">
+                            No photo yet — upload one here, or copy an image file onto
+                            the OWNER_PHOTO_FILE path.
+                        </p>
+                    }
+                    <div class="editor-actions">
+                        <label class="btn btn-ghost photo-upload">
+                            @(_photoBusy ? "Uploading…" : "Upload photo")
+                            <InputFile OnChange="UploadPhotoAsync" accept="image/png,image/jpeg,image/webp,image/gif" disabled="@_photoBusy" />
+                        </label>
+                        @if (_photoUrl is not null)
+                        {
+                            <button class="btn btn-ghost" @onclick="RemovePhoto" disabled="@_photoBusy">Remove</button>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (Photo.IsConfigured)
+            {
+                <label class="field">
+                    <span>Photo alt text <span class="muted">describes the photo for screen readers</span></span>
+                    <input type="text" maxlength="@SiteContentRules.OwnerPhotoAltMaxLength"
+                           @bind="_ownerPhotoAlt" @bind:after="MarkDirty"
+                           placeholder="@(Site.OwnerPhotoAlt ?? $"Portrait of {Site.OwnerName}")" />
+                </label>
+            }
+
             <div class="editor-actions">
                 <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
                     @(_busy ? "Saving…" : "Save")
@@ -78,9 +124,13 @@
     private string _tagline = string.Empty;
     private string _about = string.Empty;
     private string _skillsText = string.Empty;
+    private string _ownerPhotoAlt = string.Empty;
+    private string? _photoUrl;
+    private bool _photoBusy;
 
     protected override async Task OnInitializedAsync()
     {
+        _photoUrl = Photo.GetVersionedUrl();
         try
         {
             SeedForm(await ContentStore.GetOverridesAsync());
@@ -104,6 +154,40 @@
         _tagline = overrides?.Tagline ?? string.Empty;
         _about = overrides?.About ?? string.Empty;
         _skillsText = SiteContentRules.SkillsText(overrides?.Skills);
+        _ownerPhotoAlt = overrides?.OwnerPhotoAlt ?? string.Empty;
+    }
+
+    private async Task UploadPhotoAsync(InputFileChangeEventArgs e)
+    {
+        if (_photoBusy)
+        {
+            return;
+        }
+
+        _photoBusy = true;
+        _error = null;
+        try
+        {
+            await using var stream = e.File.OpenReadStream(OwnerPhotoService.MaxBytes);
+            await Photo.SaveAsync(stream);
+            _photoUrl = Photo.GetVersionedUrl();
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or SixLabors.ImageSharp.ImageFormatException)
+        {
+            _error = ex is SixLabors.ImageSharp.ImageFormatException
+                ? "That file isn't a readable image — use a PNG, JPEG, WebP, or GIF."
+                : ex.Message;
+        }
+        finally
+        {
+            _photoBusy = false;
+        }
+    }
+
+    private void RemovePhoto()
+    {
+        Photo.Delete();
+        _photoUrl = Photo.GetVersionedUrl();
     }
 
     private async Task SaveAsync()
@@ -117,7 +201,8 @@
         _error = SiteContentRules.CheckLengths(
             SiteContentRules.NormalizeField(_heroHeading),
             SiteContentRules.NormalizeField(_tagline),
-            SiteContentRules.NormalizeField(_about));
+            SiteContentRules.NormalizeField(_about),
+            SiteContentRules.NormalizeField(_ownerPhotoAlt));
         if (_error is not null)
         {
             return;
@@ -126,7 +211,7 @@
         _busy = true;
         try
         {
-            await ContentStore.SaveAsync(_heroHeading, _tagline, _about, _skillsText);
+            await ContentStore.SaveAsync(_heroHeading, _tagline, _about, _skillsText, _ownerPhotoAlt);
             // Re-seed so the form shows what was actually stored (trimmed, normalized).
             SeedForm(await ContentStore.GetOverridesAsync());
             _saved = true;

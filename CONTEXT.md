@@ -6,6 +6,15 @@ analytics, and blog comments.
 
 ## Language
 
+### Site identity
+
+**Owner Photo**:
+The site owner's portrait on the landing hero — a single owner-supplied file,
+swappable either by replacing the file directly or from the admin site-content
+page (both paths end at the same file). When no photo is supplied the hero
+simply renders without one; nothing takes its place.
+_Avoid_: profile picture, avatar (those belong to user Profiles)
+
 ### Comments
 
 **Pinned Comment**:
