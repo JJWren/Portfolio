@@ -15,7 +15,8 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
   with pagination; RSS feed at `/feed.xml`
 - **Comments**: visitors sign in with GitHub, Google, or Discord (any subset you
   configure); profiles carry a display name and avatar, or comments can be posted
-  anonymously; authors delete their own, admins moderate everything
+  anonymously; comments run newest-first with admin-pinned comments on top;
+  authors delete their own, admins moderate everything
 - **Moderation**: readers report comments; admins work a queue with notification
   badges, hide/delete controls, site-wide bans, and per-user messages — users track
   replies and report outcomes on their own messages and reports pages
@@ -24,8 +25,8 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
 - **Image cropping**: blog headers and project images go through a built-in 16:9
   crop-box editor — zoom, drag, rule-of-thirds guides, and live previews of exactly
   what the card and hero will show
-- **Contact form**: messages always stored in the database, email notification via
-  SMTP on top (best-effort), honeypot + per-IP rate limiting + timing check +
+- **Contact form**: messages always stored in the database, branded HTML email
+  notification via SMTP on top (best-effort), honeypot + per-IP rate limiting + timing check +
   sender-domain MX validation; suspicious-but-plausible messages (disposable
   domains, link-heavy bodies) are quarantined for admin review instead of emailed
 - **Privacy-preserving analytics**: server-side, cookieless, script-free page-view
@@ -67,7 +68,7 @@ built-in colors).
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `SITE_OWNER_NAME` | ✅ | Your name (hero, nav, footer) |
+| `SITE_OWNER_NAME` | ✅ | Your name (hero, footer, and the nav logo's accessible label) |
 | `CONTACT_EMAIL` | ✅ | Contact-form notifications + mailto links |
 | `POSTGRES_PASSWORD` | ✅ | Database password (compose wires the connection string) |
 | `SITE_TITLE`, `SITE_TAGLINE`, `SITE_ABOUT`, `SITE_SKILLS` | | Copy for the home page (`\n` splits paragraphs; skills comma-separated) |
