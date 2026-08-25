@@ -26,9 +26,10 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
   crop-box editor — zoom, drag, rule-of-thirds guides, and live previews of exactly
   what the card and hero will show
 - **Contact form**: messages always stored in the database, branded HTML email
-  notification via SMTP on top (best-effort), honeypot + per-IP rate limiting + timing check +
-  sender-domain MX validation; suspicious-but-plausible messages (disposable
-  domains, link-heavy bodies) are quarantined for admin review instead of emailed
+  notification via SMTP on top (best-effort); spam defenses include a honeypot,
+  per-IP rate limiting, a timing check, and sender-domain MX validation;
+  suspicious-but-plausible messages (disposable domains, link-heavy bodies) are
+  quarantined for admin review instead of emailed
 - **Privacy-preserving analytics**: server-side, cookieless, script-free page-view
   and engagement counts (project clicks, résumé downloads, contact submissions)
   with daily-rotating anonymous visitor hashes — raw IP/UA never stored, raw rows
