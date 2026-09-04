@@ -25,11 +25,14 @@ public class NoInlineOnClickTests
     [Fact]
     public void RazorComponents_ContainNoInlineOnClickAttribute()
     {
-        var files = Directory.GetFiles(RazorComponentsRoot, "*.razor", SearchOption.AllDirectories);
+        // Sanity checks on the harness itself: if the csproj's copy-to-output
+        // link (Portfolio.Tests.csproj) ever stops copying files, this must fail
+        // with a message that names the cause, not with a DirectoryNotFoundException
+        // from GetFiles or a trivially "clean" pass on an empty list.
+        Assert.True(Directory.Exists(RazorComponentsRoot),
+            $"Expected the linked .razor sources under {RazorComponentsRoot}; the directory is missing (check the None/LinkBase item in Portfolio.Tests.csproj).");
 
-        // Sanity check on the harness itself: if the csproj's copy-to-output
-        // link (Portfolio.Tests.csproj) ever stops matching files, this must
-        // fail loudly instead of passing on a trivially "clean" empty list.
+        var files = Directory.GetFiles(RazorComponentsRoot, "*.razor", SearchOption.AllDirectories);
         Assert.True(files.Length > 10, $"Expected many .razor files under {RazorComponentsRoot}; found {files.Length}.");
 
         var offenders = files
