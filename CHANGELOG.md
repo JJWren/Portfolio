@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/JJWren/Portfolio/compare/v1.24.0...v1.25.0) (2026-09-04)
+
+
+### Features
+
+* second owner photo slot with the hero portrait switch ([#94](https://github.com/JJWren/Portfolio/issues/94)) ([18b1788](https://github.com/JJWren/Portfolio/commit/18b1788147dd172d5f823b3ac6fbd0399edc9222))
+
 ## [1.24.0](https://github.com/JJWren/Portfolio/compare/v1.23.0...v1.24.0) (2026-09-04)
 
 
