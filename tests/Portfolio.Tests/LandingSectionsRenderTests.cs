@@ -545,7 +545,7 @@ public class LandingSectionsRenderTests : IDisposable
         new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym A", "City A", "Role A."),
         new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym B", "City B", "Role B."),
         new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym C", "City C", "Role C."),
-        new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym D", "City D", "Role D."),
+        new(new DateOnly(2016, 9, 9), Belt.Brown, 4, "Gym D", "City D", "Role D."),
         new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym E", "City E", "Role E."),
     ];
 

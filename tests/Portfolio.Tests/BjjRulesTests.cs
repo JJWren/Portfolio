@@ -520,7 +520,7 @@ public class BjjRulesTests
             new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym", "City", "Role"),
             new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym", "City", "Role"),
             new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym", "City", "Role"),
-            new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role"),
+            new(new DateOnly(2016, 9, 9), Belt.Brown, 4, "Gym", "City", "Role"),
             new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role"),
         ];
 
@@ -682,7 +682,7 @@ public class BjjRulesTests
             "2010-01-01 | white | 2 | Gym | City | Role.",
             "2012-06-15 | blue | 3 | Gym | City | Role.",
             "2014-03-20 | purple | 1 | Gym | City | Role.",
-            "2013-04-05 | brown | 7 | Gym | City | Role.",
+            "2016-09-09 | brown | 7 | Gym | City | Role.",
         ]);
 
         Assert.NotNull(error);
