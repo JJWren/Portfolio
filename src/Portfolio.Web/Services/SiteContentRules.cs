@@ -19,7 +19,9 @@ public record EffectiveSiteContent(
     int BeltDegrees = 0,
     IReadOnlyList<Principle>? Principles = null,
     IReadOnlyList<Era>? Eras = null,
-    IReadOnlyList<NowItem>? Now = null)
+    IReadOnlyList<NowItem>? Now = null,
+    // -- Second owner-photo slot (Unit 10 Phase 4). --
+    string? OwnerPhotoFlipAlt = null)
 {
     /// <summary>Never null — empty means "no chart" (BR-2). The nullable
     /// constructor parameter only exists so callers that predate the BJJ
@@ -43,6 +45,12 @@ public record EffectiveSiteContent(
 
     /// <summary>Never null — empty means "no Now section" (BR-2).</summary>
     public IReadOnlyList<NowItem> Now { get; init; } = Now ?? [];
+
+    /// <summary>Never null — resolved like <see cref="OwnerPhotoAlt"/>
+    /// (override, then the env value, then "Portrait of {owner}"); the
+    /// nullable constructor parameter only exists so callers that predate
+    /// Phase 4 (tests, other constructors) keep compiling.</summary>
+    public string OwnerPhotoFlipAlt { get; init; } = OwnerPhotoFlipAlt ?? string.Empty;
 }
 
 /// <summary>Every raw admin-form string for the site-content editor, one
@@ -61,7 +69,8 @@ public sealed record SiteContentDraft(
     string? BeltDegreesText,
     string? PrinciplesText,
     string? ErasText,
-    string? NowText);
+    string? NowText,
+    string? OwnerPhotoFlipAlt);
 
 /// <summary>
 /// Rules for the admin site-content overrides. Blank input means "use the
@@ -124,11 +133,18 @@ public static class SiteContentRules
             : null;
 
     /// <summary>Returns a friendly error for the first field over its stored size, or null when everything fits.</summary>
-    public static string? CheckLengths(string? heroHeading, string? tagline, string? about, string? ownerPhotoAlt = null)
+    public static string? CheckLengths(
+        string? heroHeading, string? tagline, string? about, string? ownerPhotoAlt = null, string? ownerPhotoFlipAlt = null)
     {
         if (ownerPhotoAlt is not null && ownerPhotoAlt.Length > OwnerPhotoAltMaxLength)
         {
             return $"Photo alt text is limited to {OwnerPhotoAltMaxLength} characters (yours is {ownerPhotoAlt.Length}).";
+        }
+
+        // Same 200-char limit as the primary photo's alt text (Unit 10 Phase 4).
+        if (ownerPhotoFlipAlt is not null && ownerPhotoFlipAlt.Length > OwnerPhotoAltMaxLength)
+        {
+            return $"Mat photo alt text is limited to {OwnerPhotoAltMaxLength} characters (yours is {ownerPhotoFlipAlt.Length}).";
         }
 
         if (heroHeading is not null && heroHeading.Length > HeroHeadingMaxLength)
@@ -174,7 +190,8 @@ public static class SiteContentRules
             NormalizeField(draft.HeroHeading),
             NormalizeField(draft.Tagline),
             NormalizeField(draft.About),
-            NormalizeField(draft.OwnerPhotoAlt));
+            NormalizeField(draft.OwnerPhotoAlt),
+            NormalizeField(draft.OwnerPhotoFlipAlt));
         if (lengthError is not null)
         {
             return lengthError;
@@ -308,6 +325,7 @@ public static class SiteContentRules
             BjjRules.ClampDegrees(overrides?.BeltDegrees ?? site.BeltDegrees),
             BjjRules.ParsePrinciples(principleLines),
             BjjRules.ParseEras(eraLines),
-            BjjRules.ParseNow(nowLines));
+            BjjRules.ParseNow(nowLines),
+            overrides?.OwnerPhotoFlipAlt ?? site.OwnerPhotoFlipAlt ?? $"Portrait of {site.OwnerName}");
     }
 }
