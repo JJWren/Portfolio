@@ -799,3 +799,35 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Phase 3 PR opened (restored entry)
+**Timestamp**: 2026-09-04T19:34:30Z (restored 2026-09-04T20:55:00Z; the original append was discarded by a hard reset during realignment)
+**User Input**: (none)
+**AI Response**: "Committed 00bcbd7 (chronological five-belt fixtures) and 30c6af9 (orchestrator docs), pushed feat/bjj-road-and-now and opened PR #92 with the plan title: feat: the road and now sections for the BJJ landing. Copilot review requested; watcher started."
+**Context**: Construction, Unit 10, Phase 3 gate: PR and Copilot rounds
+
+---
+
+## Phase 4 PR #94: Copilot round 1 (restored entry)
+**Timestamp**: 2026-09-04T20:43:00Z (restored 2026-09-04T20:55:00Z; the original append was discarded by a hard reset during realignment)
+**User Input**: (none)
+**AI Response**: "Copilot round 1 on PR #94: Approval recommended, 24 of 25 files reviewed, one comment: the OwnerPhotoFlipAlt XML doc described the override/env/fallback order although a direct construction that omits the parameter yields an empty string because resolution happens in Resolve. Fixed the doc comment (96fbae3), replied on the thread, re-requested Copilot; CI green."
+**Context**: Construction, Unit 10, Phase 4 gate: Copilot rounds
+
+---
+
+## Phase 4 merged
+**Timestamp**: 2026-09-04T20:49:01Z
+**User Input**: (none)
+**AI Response**: "Copilot round 2 on PR #94: Approval recommended, zero new comments; CI green. Squash-merged as 18b1788 (release 1.24.0 had landed on master as e2c7c05 in between). Local master realigned after two aborted switches caused by uncommitted audit appends; lesson recorded in the handoff: stash the orchestrator docs before switching, never reset --hard with them uncommitted. Feature branch deleted, plan Phase 4 gate ticked, state updated; Phase 5 next."
+**Context**: Construction, Unit 10, Phase 4 complete
+
+---
+
+## Phase 5 started
+**Timestamp**: 2026-09-04T20:50:10Z
+**User Input**: (none)
+**AI Response**: "Wrote the Phase 5 subagent brief (construction/plans/unit10-phase5-brief.md: Fraunces font preload with the un-fingerprinted URL, one delegated click handler keyed on data-action replacing the four inline onclick attributes with the __toggleNav and __scrollProjects globals removed, README features bullet and env rows for every new key, CONTEXT.md glossary entries and the two-slot Owner Photo entry, unit-test-instructions reconciliation; the optional theme-toggle titles deferred to the owner). Created perf/landing-closeout from master 18b1788 and committed the orchestrator docs; launching the Sonnet build agent."
+**Context**: Construction, Unit 10, Code Generation Part 2, Phase 5 start
+
+---
+
