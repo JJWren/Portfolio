@@ -5,11 +5,28 @@ using SixLabors.ImageSharp.Processing;
 namespace Portfolio.Web.Services;
 
 /// <summary>
-/// The Owner Photo: a single file at OWNER_PHOTO_FILE, shown on the landing
-/// hero and served at /owner-photo. Swappable two ways that end at the same
-/// file — copy a file over it on the host, or upload through the admin
-/// site-content page (write-through). Unset or missing = the hero renders
-/// photo-less.
+/// Which portrait slot an <see cref="OwnerPhotoService"/> call targets:
+/// <see cref="Primary"/> is the original desk photo (OWNER_PHOTO_FILE,
+/// served at /owner-photo); <see cref="Flip"/> is the second, mat photo
+/// added in Unit 10 Phase 4 (OWNER_PHOTO_FLIP_FILE, served at
+/// /owner-photo-flip). The hero's two-photo switch (domain-entities.md
+/// section 4) renders only when both slots resolve to an existing file.
+/// </summary>
+public enum OwnerPhotoSlot
+{
+    Primary,
+    Flip,
+}
+
+/// <summary>
+/// The Owner Photo: up to two files (OWNER_PHOTO_FILE and, since Phase 4,
+/// OWNER_PHOTO_FLIP_FILE), shown on the landing hero and served at
+/// /owner-photo and /owner-photo-flip. Every member takes an
+/// <see cref="OwnerPhotoSlot"/> defaulting to <see cref="OwnerPhotoSlot.Primary"/>
+/// so pre-Phase-4 callers keep compiling unchanged. Swappable two ways that
+/// end at the same file per slot — copy a file over it on the host, or
+/// upload through the admin site-content page (write-through). Unset or
+/// missing = that slot renders nothing.
 /// </summary>
 public class OwnerPhotoService(SiteConfig site)
 {
@@ -20,35 +37,63 @@ public class OwnerPhotoService(SiteConfig site)
     /// the 4:5 crop, so the image itself keeps its aspect.</summary>
     public const int MaxStoredDimension = 1600;
 
-    /// <summary>Whether OWNER_PHOTO_FILE is set — the admin upload control only
-    /// exists when it is, since there is nowhere to write otherwise.</summary>
-    public bool IsConfigured => site.OwnerPhotoFile is not null;
+    /// <summary>The configured file path for a slot, or null when that slot's
+    /// environment variable is unset.</summary>
+    private string? PathFor(OwnerPhotoSlot slot) => slot switch
+    {
+        OwnerPhotoSlot.Primary => site.OwnerPhotoFile,
+        OwnerPhotoSlot.Flip => site.OwnerPhotoFlipFile,
+        _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, null),
+    };
+
+    /// <summary>The .env variable name backing a slot's path, for the
+    /// "not configured" exception message.</summary>
+    private static string EnvVariableFor(OwnerPhotoSlot slot) => slot switch
+    {
+        OwnerPhotoSlot.Primary => "OWNER_PHOTO_FILE",
+        OwnerPhotoSlot.Flip => "OWNER_PHOTO_FLIP_FILE",
+        _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, null),
+    };
+
+    /// <summary>The public route a slot's photo is served at.</summary>
+    private static string RouteFor(OwnerPhotoSlot slot) => slot switch
+    {
+        OwnerPhotoSlot.Primary => "/owner-photo",
+        OwnerPhotoSlot.Flip => "/owner-photo-flip",
+        _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, null),
+    };
+
+    /// <summary>Whether a slot's env variable is set — the admin upload
+    /// control for that slot only exists when it is, since there is nowhere
+    /// to write otherwise.</summary>
+    public bool IsConfigured(OwnerPhotoSlot slot = OwnerPhotoSlot.Primary) => PathFor(slot) is not null;
 
     /// <summary>
-    /// URL for the current photo, or null when unconfigured or the file is
-    /// missing. The version query is the file's write time, so either write
-    /// path busts browser caches on the next render.
+    /// URL for a slot's current photo, or null when unconfigured or the file
+    /// is missing. The version query is the file's write time, so either
+    /// write path busts browser caches on the next render.
     /// </summary>
-    public string? GetVersionedUrl()
+    public string? GetVersionedUrl(OwnerPhotoSlot slot = OwnerPhotoSlot.Primary)
     {
-        var path = site.OwnerPhotoFile;
+        var path = PathFor(slot);
         if (path is null || !File.Exists(path))
         {
             return null;
         }
 
-        return $"/owner-photo?v={File.GetLastWriteTimeUtc(path).Ticks}";
+        return $"{RouteFor(slot)}?v={File.GetLastWriteTimeUtc(path).Ticks}";
     }
 
     /// <summary>
     /// Normalizes the upload (auto-orient strips EXIF, downsize, WebP) and
-    /// writes it over the OWNER_PHOTO_FILE path atomically so a failed encode
-    /// never clobbers the current photo.
+    /// writes it over a slot's configured path atomically so a failed encode
+    /// never clobbers the current photo. Never touches the other slot's file.
     /// </summary>
-    public async Task SaveAsync(Stream source, CancellationToken cancellationToken = default)
+    public async Task SaveAsync(
+        Stream source, OwnerPhotoSlot slot = OwnerPhotoSlot.Primary, CancellationToken cancellationToken = default)
     {
-        var target = site.OwnerPhotoFile
-            ?? throw new InvalidOperationException("OWNER_PHOTO_FILE is not configured.");
+        var target = PathFor(slot)
+            ?? throw new InvalidOperationException($"{EnvVariableFor(slot)} is not configured.");
 
         await using var buffered = await ImageGuards.BufferWithLimitAsync(
             source, MaxBytes, "Photo", cancellationToken);
@@ -98,17 +143,19 @@ public class OwnerPhotoService(SiteConfig site)
         }
     }
 
-    /// <summary>Best-effort removal; the hero and endpoint fall back to photo-less.</summary>
-    public void Delete()
+    /// <summary>Best-effort removal of a slot's file; the hero and endpoint
+    /// fall back to that slot rendering nothing.</summary>
+    public void Delete(OwnerPhotoSlot slot = OwnerPhotoSlot.Primary)
     {
-        if (site.OwnerPhotoFile is null)
+        var path = PathFor(slot);
+        if (path is null)
         {
             return;
         }
 
         try
         {
-            File.Delete(site.OwnerPhotoFile);
+            File.Delete(path);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

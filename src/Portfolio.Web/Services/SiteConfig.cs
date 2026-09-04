@@ -31,7 +31,11 @@ public record SiteConfig(
     int? BeltDegrees = null,
     IReadOnlyList<string>? PrincipleLines = null,
     IReadOnlyList<string>? EraLines = null,
-    IReadOnlyList<string>? NowLines = null)
+    IReadOnlyList<string>? NowLines = null,
+    // -- Second owner-photo slot (Unit 10 Phase 4); same semantics as the
+    // primary pair above. --
+    string? OwnerPhotoFlipFile = null,
+    string? OwnerPhotoFlipAlt = null)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -87,7 +91,9 @@ public record SiteConfig(
             BeltDegrees: ParseDegrees(config["SITE_BELT_DEGREES"]),
             PrincipleLines: SplitEnvLines(config["SITE_PRINCIPLES"]),
             EraLines: SplitEnvLines(config["SITE_ERAS"]),
-            NowLines: SplitEnvLines(config["SITE_NOW"]));
+            NowLines: SplitEnvLines(config["SITE_NOW"]),
+            OwnerPhotoFlipFile: NullIfEmpty(config["OWNER_PHOTO_FLIP_FILE"]),
+            OwnerPhotoFlipAlt: NullIfEmpty(config["OWNER_PHOTO_FLIP_ALT"]));
     }
 
     private static string? NullIfEmpty(string? value)
