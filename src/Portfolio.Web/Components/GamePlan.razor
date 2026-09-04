@@ -1,0 +1,27 @@
+@* Hero game-plan chart: four fixed nodes, positionally colored (BR-5 —
+   Guard/red, Pass/gold, Mount/green, Submit/blue regardless of each node's
+   own term, so the admin theme's brand colors keep recoloring them). Every
+   node links to #principles (decision 4). LandingSections only renders this
+   component when Nodes holds exactly four entries. *@
+<ol class="game-plan hero-plan" aria-label="Game plan">
+    @for (var i = 0; i < NodeClasses.Length; i++)
+    {
+        <li class="gp-node @NodeClasses[i]">
+            <a href="#principles">
+                <span class="term">@Nodes[i].Term</span>
+                <span class="read">@Nodes[i].Reading</span>
+                @if (!string.IsNullOrEmpty(Nodes[i].How))
+                {
+                    <span class="how">@Nodes[i].How</span>
+                }
+            </a>
+        </li>
+    }
+</ol>
+
+@code {
+    private static readonly string[] NodeClasses = ["gp-red", "gp-gold", "gp-green", "gp-blue"];
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<GamePlanNode> Nodes { get; set; }
+}

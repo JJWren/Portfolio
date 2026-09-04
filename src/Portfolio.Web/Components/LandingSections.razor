@@ -3,12 +3,18 @@
 
 @* The landing hero + about/skills, shared verbatim between Home and the
    admin theme editor's live preview so the preview can never drift from the
-   real page. *@
+   real page. Everything gated on Site.Flavor == SiteFlavor.Bjj is additive:
+   under the Default flavor this renders exactly the markup it always did
+   (BR-1), pinned byte-for-byte by LandingSectionsRenderTests. *@
 
 <section class="hero">
     <div class="container @(_photoUrl is not null ? "has-photo" : null)">
         <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <div class="hero-text">
+            @if (Site.Flavor == SiteFlavor.Bjj && Content.HeroEyebrow is { Length: > 0 } heroEyebrow)
+            {
+                <p class="eyebrow">@heroEyebrow</p>
+            }
             <h1>@Content.HeroHeading</h1>
             @if (!string.IsNullOrEmpty(Content.Tagline))
             {
@@ -30,8 +36,19 @@
         {
             <img class="owner-photo" src="@_photoUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoAlt)" />
         }
+        @if (Site.Flavor == SiteFlavor.Bjj && Content.GamePlan.Count == BjjRules.GamePlanNodeCount)
+        {
+            <GamePlan Nodes="Content.GamePlan" />
+        }
     </div>
 </section>
+
+@if (Site.Flavor == SiteFlavor.Bjj && Content.BeltCaption is { Length: > 0 } beltCaption)
+{
+    <div class="container">
+        <RankBar Degrees="Content.BeltDegrees" Caption="@beltCaption" />
+    </div>
+}
 
 @if (Content.About is not null || Content.Skills.Count > 0)
 {
@@ -56,6 +73,27 @@
                             <li>@skill</li>
                         }
                     </ul>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@if (Site.Flavor == SiteFlavor.Bjj && Content.Principles.Count > 0)
+{
+    <section class="section" id="principles">
+        <div class="container">
+            <p class="eyebrow">Principles</p>
+            <div class="principles">
+                @foreach (var principle in Content.Principles)
+                {
+                    <div class="principle">
+                        <h3>@principle.Maxim</h3>
+                        @if (!string.IsNullOrEmpty(principle.Reading))
+                        {
+                            <p>@principle.Reading</p>
+                        }
+                    </div>
                 }
             </div>
         </div>
