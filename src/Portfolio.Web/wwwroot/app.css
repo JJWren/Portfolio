@@ -318,6 +318,7 @@ main {
     .gp-node a, .gp-node::after, .gp-node::before { transition: none !important; }
     .belt-band, .road-table .swatch, .row { transition: none !important; }
     .row .belt-band, .row .swatch, .road-table tr.row { animation: none !important; }
+    .photo-tile { transition: none !important; }
 }
 
 .hero h1 {
@@ -1069,7 +1070,112 @@ main {
     margin: 0.35rem 0 0;
 }
 
+/* Shared BJJ device (also usable outside this flavor): a two-option
+   fieldset styled as a pill switch (shared.css) */
+.pill-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.pill-switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pill-switch label {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.pill-switch input:checked + label {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.pill-switch input:focus-visible + label {
+    outline: 2px solid var(--c-blue);
+    outline-offset: 2px;
+}
+
+/* Portrait switch: the hero's second photo slot (Unit 10 Phase 4). With one
+   photo the hero renders today's single .owner-photo image instead; this
+   stack only appears once both slots resolve. */
+.photo-slot {
+    position: relative;
+    z-index: 1;
+}
+
+.photo-stack {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    margin-top: 3rem;
+}
+
+.photo-tile {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: opacity 0.25s ease;
+}
+
+.photo-tile.mat {
+    opacity: 0;
+}
+
+.hero:has(#ph-mat:checked) .photo-tile.mat {
+    opacity: 1;
+}
+
+.hero:has(#ph-mat:checked) .photo-tile.desk {
+    opacity: 0;
+}
+
+.photo-switch {
+    margin-top: 0.8rem;
+}
+
+.photo-tile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero .container.has-photo .photo-slot {
+    align-self: start;
+}
+
 @media (max-width: 720px) {
+    .photo-slot {
+        order: -1;
+        justify-self: center;
+        width: min(60vw, 260px);
+    }
+
+    .photo-stack {
+        margin-top: 2rem;
+        width: 100%;
+    }
+
+    .photo-switch {
+        justify-content: center;
+    }
+
     .game-plan {
         grid-template-columns: 1fr;
         gap: 26px;

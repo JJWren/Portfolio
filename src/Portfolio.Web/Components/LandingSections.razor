@@ -32,9 +32,23 @@
                 <a class="btn btn-ghost" href="/contact">Get in touch</a>
             </div>
         </div>
-        @if (_photoUrl is not null)
+        @if (Site.Flavor == SiteFlavor.Bjj && _photoUrl is not null && _photoFlipUrl is not null)
         {
-            <img class="owner-photo" src="@_photoUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoAlt)" />
+            <div class="photo-slot">
+                <div class="photo-stack">
+                    <div class="photo-tile desk"><img src="@_photoUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoAlt)" fetchpriority="high" /></div>
+                    <div class="photo-tile mat"><img src="@_photoFlipUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoFlipAlt)" loading="lazy" /></div>
+                </div>
+                <fieldset class="pill-switch photo-switch">
+                    <legend class="visually-hidden">Show photo</legend>
+                    <input type="radio" name="photo" id="ph-desk" checked /><label for="ph-desk">At the desk</label>
+                    <input type="radio" name="photo" id="ph-mat" /><label for="ph-mat">On the mat</label>
+                </fieldset>
+            </div>
+        }
+        else if (_photoUrl is not null)
+        {
+            <img class="owner-photo" src="@_photoUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoAlt)" fetchpriority="high" />
         }
         @if (Site.Flavor == SiteFlavor.Bjj && Content.GamePlan.Count == BjjRules.GamePlanNodeCount)
         {
@@ -134,8 +148,16 @@
     public EffectiveSiteContent Content { get; set; } = default!;
 
     private string? _photoUrl;
+    private string? _photoFlipUrl;
 
     // Resolved once per render circuit, not per render: the file probe hits
-    // the filesystem.
-    protected override void OnInitialized() => _photoUrl = Photo.GetVersionedUrl();
+    // the filesystem. Both slots are resolved even though the flip URL is
+    // only ever used under the Bjj flavor, so OnInitialized stays one place
+    // that touches the filesystem rather than splitting the probe across
+    // flavors.
+    protected override void OnInitialized()
+    {
+        _photoUrl = Photo.GetVersionedUrl();
+        _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
+    }
 }
