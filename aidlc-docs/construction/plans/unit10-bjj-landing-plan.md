@@ -147,8 +147,8 @@ Tests:
 - [x] `README.md`: a Features bullet for the opt-in BJJ landing flavor, the Configuration paragraph, env-table rows for every new key.
 - [x] `CONTEXT.md`: glossary entries Belt, Degree, Era, Flavor (and the road, the game plan) in the existing "avoid" format.
 - [x] `construction/build-and-test/unit-test-instructions.md`: final counts and the new fixtures.
-- [ ] `aidlc-state.md` Unit 10 complete; `audit.md` close-out entry; memory notes updated.
-- [ ] Gate: build, test, PR, Copilot rounds, squash-merge.
+- [x] `aidlc-state.md` Unit 10 complete; `audit.md` close-out entry; memory notes updated (2026-09-04).
+- [x] Gate: build, test, PR, Copilot rounds, squash-merge. Done 2026-09-04: build 0 warnings, 697 tests; five-area internal review (correctness and framework clean; security, maintainability and performance notes applied); Copilot rounds 1 to 3 each fixed one note (regex name boundary with a Theory, directory-exists guard, closest() guard), then a quota refusal, then a clean pass with zero comments; PR #96 squash-merged as `0a67607`.
 
 ## Out of scope (recorded follow-ups)
 

@@ -911,3 +911,51 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Phase 5 PR #96: Copilot round 2
+**Timestamp**: 2026-09-04T21:38:20Z
+**User Input**: (none)
+**AI Response**: "Copilot round 2 on PR #96 (reviewed 47f378c): Approval recommended, one new comment: the onclick scan called Directory.GetFiles before any sanity check, so a broken csproj link would throw DirectoryNotFoundException instead of a readable assertion. Fixed with a Directory.Exists assertion naming the csproj item (5dcd3fa), replied on the thread, re-requested Copilot for round 3, which also covers the docs-count commit 5915c03. Build 0 warnings; 697 tests; CI green."
+**Context**: Construction, Unit 10, Phase 5 gate: Copilot rounds
+
+---
+
+## Phase 5 PR #96: Copilot round 3
+**Timestamp**: 2026-09-04T21:42:21Z
+**User Input**: (none)
+**AI Response**: "Copilot round 3 on PR #96 (reviewed 5dcd3fa): Changes recommended, one new comment: event.target is not guaranteed to be an Element with closest, so the delegated handler could throw (crop.js already guards the same way). Fixed with an early return unless the target has a closest function (ef601ec), site.js syntax-checked with node, replied on the thread, re-requested Copilot for round 4. Build 0 warnings; 697 tests; CI green."
+**Context**: Construction, Unit 10, Phase 5 gate: Copilot rounds
+
+---
+
+## Phase 5 PR #96: Copilot quota exhausted
+**Timestamp**: 2026-09-04T21:45:59Z
+**User Input**: (none)
+**AI Response**: "Copilot round 4 (ef601ec) returned: unable to review because the user who requested the review has reached their quota limit. Re-requested after a pause; the timeline shows review_requested at 21:44:59Z with no copilot_work_started so far. The last real pass (round 3, on 5dcd3fa) produced one comment that ef601ec fixes exactly as suggested; no pass has yet covered ef601ec. Per CONTRIBUTING the merge waits for a pass with no new actionable comments; if the quota does not recover, whether to merge on the strength of rounds 1 to 3 plus the internal review is the owner decision."
+**Context**: Construction, Unit 10, Phase 5 gate blocked on Copilot quota
+
+---
+
+## User instruction: pause
+**Timestamp**: 2026-09-04T21:46:14Z
+**User Input**: "pause for a bit. copilot ran out of usage. I am looking for a work-around for an alternative reviewer"
+**AI Response**: "Paused. Stopped the Copilot watcher. State: PR #96 open at ef601ec with CI green; Copilot rounds 1 to 3 addressed, round 4 and the re-request refused for quota; no pass has covered ef601ec. Waiting for the owner to name an alternative reviewer or to decide on the merge."
+**Context**: Construction, Unit 10, Phase 5 gate paused by the owner
+
+---
+
+## User instruction: Copilot usage increased
+**Timestamp**: 2026-09-04T21:53:44Z
+**User Input**: "Usage increased. How do we make it respond to the new limit?"
+**AI Response**: "A refused review is final; a fresh review request makes Copilot pick up the new quota. Re-requested the review on ef601ec and restarted the watcher."
+**Context**: Construction, Unit 10, Phase 5 gate resumed
+
+---
+
+## Phase 5 merged; Unit 10 complete
+**Timestamp**: 2026-09-04T21:58:29Z
+**User Input**: (none)
+**AI Response**: "Copilot pass on ef601ec: Needs a closer look, 15 of 15 files, zero new comments; CI green. Squash-merged PR #96 as 0a67607. Realigned master with the stash-first procedure; feature branch deleted. Plan Phase 5 gate and housekeeping boxes ticked. Unit 10 (BJJ-themed landing page) is complete: PRs #89, #90, #92, #94, #96; 697 tests. Remaining for the owner: deploy-time content entry, the mat portrait upload, the optional theme-toggle titles, the python3 alias toggle. Next: land these last doc edits through a small docs PR, then start the new session from the close-out handoff."
+**Context**: Construction, Unit 10 COMPLETE
+
+---
+
