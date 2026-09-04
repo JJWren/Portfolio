@@ -38,7 +38,7 @@
   - [x] NFR Design — skipped (no new NFR patterns; same stack)
   - [x] Infrastructure Design — skipped (same image, env switch, no new infrastructure)
   - [x] Code Generation Part 1 (plan) — written and approved 2026-09-04 (functional design approved in the same message); orchestration model: one Sonnet subagent per phase, five-area review after each phase, then PR, Copilot gate, squash-merge
-  - [ ] Code Generation Part 2 — IN PROGRESS (Phase 1 started 2026-09-04): Phase 0 owner actions; Phase 1 test: render safety net; Phase 2 feat: flavor, hero game plan, rank bar, principles, admin fields, ADR 0002; Phase 3 feat: the road and now; Phase 4 feat: second photo slot and portrait switch; Phase 5 perf: preload, delegated handlers, docs
+  - [ ] Code Generation Part 2 — IN PROGRESS: Phase 1 merged 2026-09-04 as PR #89 (c1380a2, 445 tests); Phase 2 merged 2026-09-04 as PR #90 (e6a4a75, 567 tests); Phase 3 IN PROGRESS since 2026-09-04 on feat/bjj-road-and-now (branched from 027e862, release 1.23.0; Sonnet subagent briefed with construction/plans/unit10-phase3-brief.md; session handoff: construction/plans/unit10-session-handoff-2026-09-04.md). Phases: Phase 0 owner actions; Phase 1 test: render safety net; Phase 2 feat: flavor, hero game plan, rank bar, principles, admin fields, ADR 0002; Phase 3 feat: the road and now; Phase 4 feat: second photo slot and portrait switch; Phase 5 perf: preload, delegated handlers, docs
   - [ ] Build and Test — refresh construction/build-and-test/unit-test-instructions.md counts in Phase 1 and Phase 5
 
 ## Operations Phase — Post-Launch (2026-07-21 → present)
