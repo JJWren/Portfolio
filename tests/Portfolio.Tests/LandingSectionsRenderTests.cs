@@ -49,6 +49,13 @@ public class LandingSectionsRenderTests : IDisposable
         return match.Value;
     }
 
+    /// <summary>Every `&lt;div class="rung"&gt;...&lt;/div&gt;` block, in
+    /// document order — Road.razor never nests a `&lt;div&gt;` inside a
+    /// rung (only `&lt;span&gt;`s), so the non-greedy match always closes on
+    /// the rung's own tag, never a nested one.</summary>
+    private static List<string> ExtractRungBlocks(string html)
+        => [.. Regex.Matches(html, @"<div class=""rung"">.*?</div>", RegexOptions.Singleline).Select(m => m.Value)];
+
     [Fact]
     public async Task Render_HeroHeading_AppearsInH1()
     {
@@ -263,7 +270,9 @@ public class LandingSectionsRenderTests : IDisposable
                 ],
                 beltCaption: "Test belt",
                 beltDegrees: 3,
-                principles: [new Principle("Ship small.", "reading")]));
+                principles: [new Principle("Ship small.", "reading")],
+                eras: [new Era(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role.")],
+                now: [new NowItem("Training", "Evening classes.")]));
 
         // BR-1: under the Default flavor, the BJJ columns are simply never
         // consulted — present or not, the rendered markup is byte-for-byte
@@ -466,6 +475,9 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.DoesNotContain("game-plan", html);
         Assert.DoesNotContain("rank-bar", html);
         Assert.DoesNotContain("id=\"principles\"", html);
+        Assert.DoesNotContain("Two ladders, one clock", html);
+        Assert.DoesNotContain("class=\"road\"", html);
+        Assert.DoesNotContain("class=\"now\"", html);
     }
 
     [Fact]
@@ -479,6 +491,8 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.DoesNotContain("game-plan", html);
         Assert.DoesNotContain("rank-bar", html);
         Assert.DoesNotContain("id=\"principles\"", html);
+        Assert.DoesNotContain("Two ladders, one clock", html);
+        Assert.DoesNotContain("class=\"now\"", html);
     }
 
     [Fact]
@@ -515,11 +529,170 @@ public class LandingSectionsRenderTests : IDisposable
                     new GamePlanNode("Rest", "Recover", string.Empty),
                 ],
                 beltCaption: unsafeText,
-                principles: [new Principle(unsafeText, unsafeText)]));
+                principles: [new Principle(unsafeText, unsafeText)],
+                eras: [new Era(new DateOnly(2013, 4, 5), Belt.Brown, 4, unsafeText, unsafeText, unsafeText)],
+                now: [new NowItem(unsafeText, unsafeText)]));
 
         Assert.DoesNotContain("<b>", html, StringComparison.Ordinal);
         Assert.Contains("&lt;b&gt;", html, StringComparison.Ordinal);
         Assert.Contains("&amp;", html, StringComparison.Ordinal);
+    }
+
+    // -- BJJ landing flavor: The road (Unit 10 Phase 3) -------------------
+
+    private static readonly Era[] FiveDistinctBeltEras =
+    [
+        new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym A", "City A", "Role A."),
+        new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym B", "City B", "Role B."),
+        new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym C", "City C", "Role C."),
+        new(new DateOnly(2016, 9, 9), Belt.Brown, 4, "Gym D", "City D", "Role D."),
+        new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym E", "City E", "Role E."),
+    ];
+
+    [Fact]
+    public async Task Render_Bjj_RoadHeadingAndFiveRowsWithDataBeltAndEraClassesInEnteredOrder()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(eras: FiveDistinctBeltEras));
+
+        Assert.Contains("<p class=\"eyebrow\">The road</p>", html);
+        Assert.Contains("<h2>Two ladders, one clock</h2>", html);
+        Assert.Equal(5, CountOccurrences(html, "class=\"row era-"));
+        Assert.Contains("class=\"row era-1\" data-belt=\"white\"", html);
+        Assert.Contains("class=\"row era-2\" data-belt=\"blue\"", html);
+        Assert.Contains("class=\"row era-3\" data-belt=\"purple\"", html);
+        Assert.Contains("class=\"row era-4\" data-belt=\"brown\"", html);
+        Assert.Contains("class=\"row era-5\" data-belt=\"black\"", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RoadRowsCarryOneRowbeltBandIsoDatesAndTheRestOfTheFields()
+    {
+        Era[] eras = [new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Sample Gym", "Sample City", "Changing roles.")];
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(eras: eras));
+
+        // The plain header cell (BR-16, refinement 6: no aria-hidden on the
+        // th, so a screen reader sees a consistent column count) plus one
+        // <td class="rowbelt"> per row, its BeltBand aria-hidden inside.
+        Assert.Contains("<th class=\"rowbelt\"></th>", html);
+        Assert.Equal(1, CountOccurrences(html, "<td class=\"rowbelt\">"));
+        Assert.Contains("<time datetime=\"2013-04-05\">2013-04-05</time>", html);
+        Assert.Contains("<td class=\"belt\" data-label=\"Belt\"><i class=\"swatch\" aria-hidden=\"true\"></i>Brown</td>", html);
+        Assert.Contains("<td class=\"gym\" data-label=\"Gym\">Sample Gym</td>", html);
+        Assert.Contains("<td class=\"place\" data-label=\"Location\">Sample City</td>", html);
+        Assert.Contains("<td class=\"work\" data-label=\"Role\">Changing roles.</td>", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_LadderHasOneRungPerBeltInLadderOrderWithCorrectStripeCounts()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(eras: FiveDistinctBeltEras));
+
+        var rungs = ExtractRungBlocks(html);
+        Assert.Equal(5, rungs.Count);
+
+        (string CssClass, string Name, int Stripes)[] expected =
+        [
+            ("white", "White", 2),
+            ("blue", "Blue", 3),
+            ("purple", "Purple", 1),
+            ("brown", "Brown", 4),
+            ("black", "Black", 0),
+        ];
+
+        for (var i = 0; i < expected.Length; i++)
+        {
+            Assert.Contains($"belt-band {expected[i].CssClass}", rungs[i]);
+            Assert.Contains($"<span class=\"name\">{expected[i].Name}</span>", rungs[i]);
+            Assert.Equal(expected[i].Stripes, CountOccurrences(rungs[i], "<i></i>"));
+        }
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RepeatedBelt_ProducesFourRungsButFiveRows()
+    {
+        Era[] eras =
+        [
+            new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym", "City", "Role."),
+            new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym", "City", "Role."),
+            new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym", "City", "First purple era."),
+            new(new DateOnly(2020, 1, 1), Belt.Purple, 4, "Gym", "City", "Second purple era."),
+            new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role."),
+        ];
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(eras: eras));
+
+        Assert.Equal(4, ExtractRungBlocks(html).Count);
+        Assert.Equal(5, CountOccurrences(html, "class=\"row era-"));
+    }
+
+    [Fact]
+    public async Task Render_Bjj_NoEras_OmitsRoadSection()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(eras: []));
+
+        Assert.DoesNotContain("Two ladders, one clock", html);
+        Assert.DoesNotContain("class=\"road\"", html);
+    }
+
+    // -- BJJ landing flavor: Now (Unit 10 Phase 3) -------------------------
+
+    [Fact]
+    public async Task Render_Bjj_NowRendersFourDtDdPairs()
+    {
+        NowItem[] items =
+        [
+            new("Training", "Evening classes."),
+            new("Reading", "A long novel."),
+            new("Cooking", "Weeknight meals."),
+            new("Travel", "Coast roads."),
+        ];
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(now: items));
+
+        Assert.Contains("<p class=\"eyebrow\">Now</p>", html);
+        Assert.Contains("<dl class=\"now\">", html);
+        Assert.Equal(4, CountOccurrences(html, "<dt>"));
+        Assert.Equal(4, CountOccurrences(html, "<dd>"));
+        Assert.Contains("<dt>Training</dt>", html);
+        Assert.Contains("<dd>Evening classes.</dd>", html);
+        Assert.Contains("<dt>Travel</dt>", html);
+        Assert.Contains("<dd>Coast roads.</dd>", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_NoNowItems_OmitsNowSection()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(now: []));
+
+        Assert.DoesNotContain("class=\"now\"", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RoadAndNowBlankHideIndependently()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(
+                eras: [new Era(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role.")],
+                now: []));
+
+        Assert.Contains("Two ladders, one clock", html);
+        Assert.DoesNotContain("class=\"now\"", html);
     }
 
     /// <summary>Counts the `&lt;i&gt;&lt;/i&gt;` degree stripes inside the

@@ -13,7 +13,9 @@ public class SiteContentRulesTests
         IReadOnlyList<string>? gamePlanLines = null,
         string? beltCaption = null,
         int? beltDegrees = null,
-        IReadOnlyList<string>? principleLines = null)
+        IReadOnlyList<string>? principleLines = null,
+        IReadOnlyList<string>? eraLines = null,
+        IReadOnlyList<string>? nowLines = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -32,7 +34,9 @@ public class SiteContentRulesTests
             GamePlanLines: gamePlanLines,
             BeltCaption: beltCaption,
             BeltDegrees: beltDegrees,
-            PrincipleLines: principleLines);
+            PrincipleLines: principleLines,
+            EraLines: eraLines,
+            NowLines: nowLines);
 
     private static SiteContentDraft EmptyDraft()
         => new(
@@ -45,7 +49,9 @@ public class SiteContentRulesTests
             GamePlanText: null,
             BeltCaption: null,
             BeltDegreesText: null,
-            PrinciplesText: null);
+            PrinciplesText: null,
+            ErasText: null,
+            NowText: null);
 
     [Theory]
     [InlineData(null)]
@@ -557,4 +563,321 @@ public class SiteContentRulesTests
     [InlineData("abc")]
     public void ParseDegrees_BlankOrUnparsable_ReturnsNull(string? text)
         => Assert.Null(SiteContentRules.ParseDegrees(text));
+
+    // -- BJJ landing flavor: Resolve precedence for Eras/Now (BR-3) ------
+
+    [Fact]
+    public void Resolve_NullOverridesAndNoEnv_ErasAndNowAreEmpty()
+    {
+        var site = BuildConfig();
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Empty(effective.Eras);
+        Assert.Empty(effective.Rungs);
+        Assert.Empty(effective.Now);
+    }
+
+    [Fact]
+    public void Resolve_NullOverrides_ErasAndNowFallBackToEnv()
+    {
+        var site = BuildConfig(
+            eraLines: ["2013-04-05 | brown | 4 | Gym | City | Role."],
+            nowLines: ["Training | Evening classes."]);
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Single(effective.Eras);
+        Assert.Equal(Belt.Brown, effective.Eras[0].Belt);
+        Assert.Single(effective.Now);
+        Assert.Equal("Training", effective.Now[0].Label);
+    }
+
+    [Fact]
+    public void Resolve_ErasOverride_WinsOverEnv()
+    {
+        var site = BuildConfig(eraLines: ["2013-04-05 | brown | 4 | Env Gym | Env City | Env role."]);
+        var overrides = new SiteContent
+        {
+            Eras = ["2010-01-01 | white | 2 | Override Gym | Override City | Override role."],
+        };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Single(effective.Eras);
+        Assert.Equal(Belt.White, effective.Eras[0].Belt);
+        Assert.Equal("Override Gym", effective.Eras[0].Gym);
+    }
+
+    [Fact]
+    public void Resolve_ErasEmptyOverride_FallsBackToEnv()
+    {
+        var site = BuildConfig(eraLines: ["2013-04-05 | brown | 4 | Gym | City | Role."]);
+        var overrides = new SiteContent { Eras = [] };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Single(effective.Eras);
+        Assert.Equal(Belt.Brown, effective.Eras[0].Belt);
+    }
+
+    [Fact]
+    public void Resolve_NowOverride_WinsOverEnv()
+    {
+        var site = BuildConfig(nowLines: ["Training | Env value."]);
+        var overrides = new SiteContent { Now = ["Reading | Override value."] };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Single(effective.Now);
+        Assert.Equal("Reading", effective.Now[0].Label);
+    }
+
+    [Fact]
+    public void Resolve_NowEmptyOverride_FallsBackToEnv()
+    {
+        var site = BuildConfig(nowLines: ["Training | Env value."]);
+        var overrides = new SiteContent { Now = [] };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Single(effective.Now);
+        Assert.Equal("Training", effective.Now[0].Label);
+    }
+
+    [Fact]
+    public void Resolve_Rungs_DerivedFromEras()
+    {
+        var site = BuildConfig(eraLines:
+        [
+            "2010-01-01 | white | 2 | Gym | City | Role.",
+            "2012-06-15 | blue | 3 | Gym | City | Role.",
+        ]);
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal(2, effective.Rungs.Count);
+        Assert.Equal(Belt.White, effective.Rungs[0].Belt);
+        Assert.Equal(Belt.Blue, effective.Rungs[1].Belt);
+    }
+
+    // -- BJJ landing flavor: Validate for Eras/Now (BR-4, BR-9) -----------
+
+    [Fact]
+    public void Validate_ValidErasAndNow_ReturnsNull()
+    {
+        var draft = EmptyDraft() with
+        {
+            ErasText = "2013-04-05 | brown | 4 | Gym | City | Role.",
+            NowText = "Training | Evening classes.",
+        };
+
+        Assert.Null(SiteContentRules.Validate(draft));
+    }
+
+    [Fact]
+    public void Validate_BadEraLine_ReturnsError()
+    {
+        var draft = EmptyDraft() with { ErasText = "not-a-date | brown | 4 | Gym | City | Role." };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("Eras line 1", error);
+    }
+
+    [Fact]
+    public void Validate_TooManyEras_ReturnsError()
+    {
+        var lines = string.Join(
+            '\n', Enumerable.Range(1, BjjRules.MaxEras + 1).Select(i => $"2020-01-01 | white | 0 | Gym | City | Role {i}"));
+        var draft = EmptyDraft() with { ErasText = lines };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("at most 12", error);
+    }
+
+    [Fact]
+    public void Validate_BadNowLine_ReturnsError()
+    {
+        var draft = EmptyDraft() with { NowText = " | blank label" };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("Now line 1", error);
+    }
+
+    [Fact]
+    public void Validate_TooManyNowItems_ReturnsError()
+    {
+        var lines = string.Join('\n', Enumerable.Range(1, BjjRules.MaxNowItems + 1).Select(i => $"Label {i} | Value {i}"));
+        var draft = EmptyDraft() with { NowText = lines };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("up to 8", error);
+    }
+
+    [Fact]
+    public void Validate_ChecksErasBeforeNow()
+    {
+        var draft = EmptyDraft() with
+        {
+            ErasText = "not-a-date | brown | 4 | Gym | City | Role.",
+            NowText = " | blank label",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("Eras", error);
+    }
+
+    [Fact]
+    public void Validate_ChecksPrinciplesBeforeEras()
+    {
+        var lines = string.Join('\n', Enumerable.Range(1, 7).Select(i => $"Line {i} | reading"));
+        var draft = EmptyDraft() with
+        {
+            PrinciplesText = lines,
+            ErasText = "not-a-date | brown | 4 | Gym | City | Role.",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("Principles", error);
+    }
+
+    [Fact]
+    public void Validate_DegreesAgreeWithBlackEra_ReturnsNull()
+    {
+        var draft = EmptyDraft() with
+        {
+            BeltDegreesText = "3",
+            ErasText = "2018-12-01 | black | 3 | Gym | City | Role.",
+        };
+
+        Assert.Null(SiteContentRules.Validate(draft));
+    }
+
+    [Fact]
+    public void Validate_DegreesDisagreeWithBlackEra_ReturnsFriendlyError()
+    {
+        var draft = EmptyDraft() with
+        {
+            BeltDegreesText = "0",
+            ErasText = "2018-12-01 | black | 1 | Gym | City | Role.",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("disagree", error);
+    }
+
+    [Fact]
+    public void Validate_DegreesSetButNoBlackEra_ReturnsNull()
+    {
+        var draft = EmptyDraft() with
+        {
+            BeltDegreesText = "3",
+            ErasText = "2013-04-05 | brown | 4 | Gym | City | Role.",
+        };
+
+        Assert.Null(SiteContentRules.Validate(draft));
+    }
+
+    [Fact]
+    public void Validate_DegreesVsErasCheck_RunsAfterEraFormatValidation()
+    {
+        // A malformed era line and a degrees/eras disagreement are both
+        // present; the format problem (line 1 has a bad date) must be
+        // reported first — BR-9's cross-check only makes sense once the
+        // eras it inspects are themselves known-valid.
+        var draft = EmptyDraft() with
+        {
+            BeltDegreesText = "0",
+            ErasText = "not-a-date | black | 1 | Gym | City | Role.",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("Eras line 1", error);
+    }
+
+    // -- BJJ landing flavor: Validate BR-9 against the EFFECTIVE values --
+    // The admin editor seeds its textareas from the DB override, so a field
+    // left blank defers to the SITE_* environment value; these pin that the
+    // cross-check follows the field down to its effective source instead of
+    // only ever looking at the draft's own (possibly blank) text.
+
+    [Fact]
+    public void Validate_DegreesInDraft_DisagreesWithEnvEras_NamesSiteEras()
+    {
+        var site = BuildConfig(eraLines: ["2018-12-01 | black | 0 | Gym | City | Role."]);
+        var draft = EmptyDraft() with { BeltDegreesText = "3" }; // ErasText blank: defers to SITE_ERAS.
+
+        var error = SiteContentRules.Validate(draft, site);
+
+        Assert.NotNull(error);
+        Assert.Contains("disagree", error);
+        Assert.Contains("SITE_ERAS", error);
+    }
+
+    [Fact]
+    public void Validate_ErasInDraft_DisagreesWithEnvDegrees_NamesSiteBeltDegrees()
+    {
+        var site = BuildConfig(beltDegrees: 0);
+        var draft = EmptyDraft() with { ErasText = "2018-12-01 | black | 3 | Gym | City | Role." }; // BeltDegreesText blank: defers to SITE_BELT_DEGREES.
+
+        var error = SiteContentRules.Validate(draft, site);
+
+        Assert.NotNull(error);
+        Assert.Contains("disagree", error);
+        Assert.Contains("SITE_BELT_DEGREES", error);
+    }
+
+    [Fact]
+    public void Validate_BothBlankInDraft_DisagreeingEnvValues_ReturnsNull()
+    {
+        // Neither field is touched by this save, so an environment-only
+        // disagreement between SITE_BELT_DEGREES and SITE_ERAS must not
+        // block it — there is nothing here for the admin to fix.
+        var site = BuildConfig(beltDegrees: 0, eraLines: ["2018-12-01 | black | 3 | Gym | City | Role."]);
+        var draft = EmptyDraft();
+
+        Assert.Null(SiteContentRules.Validate(draft, site));
+    }
+
+    [Fact]
+    public void Validate_DegreesInDraft_AgreesWithEnvEras_ReturnsNull()
+    {
+        var site = BuildConfig(eraLines: ["2018-12-01 | black | 3 | Gym | City | Role."]);
+        var draft = EmptyDraft() with { BeltDegreesText = "3" };
+
+        Assert.Null(SiteContentRules.Validate(draft, site));
+    }
+
+    [Fact]
+    public void Validate_NoSiteProvided_BehavesLikeDraftOnly()
+    {
+        // The overload without `site` (every pre-existing call site) must
+        // keep behaving exactly as before: no environment fallback at all.
+        var draft = EmptyDraft() with
+        {
+            BeltDegreesText = "0",
+            ErasText = "2018-12-01 | black | 1 | Gym | City | Role.",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Equal("Belt degrees (0) and the black belt era's stripes (1) disagree.", error);
+    }
 }

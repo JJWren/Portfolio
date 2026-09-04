@@ -17,7 +17,9 @@ public record EffectiveSiteContent(
     IReadOnlyList<GamePlanNode>? GamePlan = null,
     string? BeltCaption = null,
     int BeltDegrees = 0,
-    IReadOnlyList<Principle>? Principles = null)
+    IReadOnlyList<Principle>? Principles = null,
+    IReadOnlyList<Era>? Eras = null,
+    IReadOnlyList<NowItem>? Now = null)
 {
     /// <summary>Never null — empty means "no chart" (BR-2). The nullable
     /// constructor parameter only exists so callers that predate the BJJ
@@ -26,6 +28,21 @@ public record EffectiveSiteContent(
 
     /// <summary>Never null — empty means "no Principles section" (BR-2).</summary>
     public IReadOnlyList<Principle> Principles { get; init; } = Principles ?? [];
+
+    /// <summary>Never null — empty means "no road" (ladder and table, BR-2).</summary>
+    public IReadOnlyList<Era> Eras { get; init; } = Eras ?? [];
+
+    /// <summary>One per distinct belt in <see cref="Eras"/>, first-appearance
+    /// order, each carrying the stripes of that belt's last era (BR-8).
+    /// Derived from <see cref="Eras"/>, not independently resolved or
+    /// stored — but, like <see cref="GamePlan"/>, <see cref="Principles"/>,
+    /// <see cref="Eras"/> and <see cref="Now"/>, computed once at
+    /// construction (init-assigned from the primary constructor's Eras
+    /// parameter) rather than recomputed on every access.</summary>
+    public IReadOnlyList<Rung> Rungs { get; init; } = BjjRules.Rungs(Eras ?? []);
+
+    /// <summary>Never null — empty means "no Now section" (BR-2).</summary>
+    public IReadOnlyList<NowItem> Now { get; init; } = Now ?? [];
 }
 
 /// <summary>Every raw admin-form string for the site-content editor, one
@@ -42,7 +59,9 @@ public sealed record SiteContentDraft(
     string? GamePlanText,
     string? BeltCaption,
     string? BeltDegreesText,
-    string? PrinciplesText);
+    string? PrinciplesText,
+    string? ErasText,
+    string? NowText);
 
 /// <summary>
 /// Rules for the admin site-content overrides. Blank input means "use the
@@ -135,11 +154,21 @@ public static class SiteContentRules
     /// length checks first (CheckLengths, for the pre-existing fields), then
     /// the BJJ-flavor format checks (BR-4 "strict at save") in the editor's
     /// own field order — hero eyebrow, game plan, belt caption, belt
-    /// degrees, principles — so the first error reported is always the
-    /// first invalid field the admin would scroll to. Returns the first
-    /// friendly error, or null when the whole draft may be saved.
+    /// degrees, principles, eras, now — so the first error reported is
+    /// always the first invalid field the admin would scroll to. The BR-9
+    /// degrees-vs-eras cross-check runs last, once both fields it compares
+    /// have individually validated, and against the EFFECTIVE values (draft,
+    /// falling back to <paramref name="site"/>'s environment values) rather
+    /// than the draft's own text alone — the editor seeds its textareas from
+    /// the DB override, so a field left blank because it defers to
+    /// SITE_BELT_DEGREES / SITE_ERAS would otherwise let a real disagreement
+    /// between the two save unblocked. <paramref name="site"/> is optional
+    /// (defaults to null, keeping every pre-existing call site compiling);
+    /// without it the cross-check runs on the draft alone, same as before.
+    /// Returns the first friendly error, or null when the whole draft may be
+    /// saved.
     /// </summary>
-    public static string? Validate(SiteContentDraft draft)
+    public static string? Validate(SiteContentDraft draft, SiteConfig? site = null)
     {
         var lengthError = CheckLengths(
             NormalizeField(draft.HeroHeading),
@@ -170,15 +199,19 @@ public static class SiteContentRules
         }
 
         // Parsed once into a local and branched on blank / not-a-number /
-        // out-of-range, rather than parsing the same text twice.
+        // out-of-range, rather than parsing the same text twice. Hoisted
+        // above the if so the BR-9 cross-check below can reuse the parsed
+        // value instead of re-parsing beltDegreesText a second time.
         var beltDegreesText = NormalizeField(draft.BeltDegreesText);
+        int? beltDegrees = null;
         if (beltDegreesText is not null)
         {
-            if (!int.TryParse(beltDegreesText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var beltDegrees))
+            if (!int.TryParse(beltDegreesText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedDegrees))
             {
                 return "Belt degrees must be a whole number.";
             }
 
+            beltDegrees = parsedDegrees;
             var degreesError = BjjRules.ValidateDegrees(beltDegrees);
             if (degreesError is not null)
             {
@@ -190,6 +223,41 @@ public static class SiteContentRules
         if (principlesError is not null)
         {
             return principlesError;
+        }
+
+        var eraLines = ParseLines(draft.ErasText) ?? [];
+        var erasError = BjjRules.ValidateEras(eraLines);
+        if (erasError is not null)
+        {
+            return erasError;
+        }
+
+        var nowError = BjjRules.ValidateNow(ParseLines(draft.NowText) ?? []);
+        if (nowError is not null)
+        {
+            return nowError;
+        }
+
+        // Only when the draft supplies at least one of the two fields: when
+        // both are blank the save touches neither fact, so it must not be
+        // blocked by an environment-only disagreement between them (see the
+        // summary above).
+        if (beltDegreesText is not null || eraLines.Count > 0)
+        {
+            var effectiveDegrees = beltDegrees ?? site?.BeltDegrees;
+            var effectiveEraLines = eraLines.Count > 0 ? eraLines : (site?.EraLines ?? []);
+
+            // Named only on the side that fell back to the environment — the
+            // other side came from the draft itself, same as always.
+            var degreesSource = beltDegreesText is null ? "SITE_BELT_DEGREES" : null;
+            var erasSource = eraLines.Count > 0 ? null : "SITE_ERAS";
+
+            var degreesVsErasError = BjjRules.ValidateDegreesAgainstEras(
+                effectiveDegrees, BjjRules.ParseEras(effectiveEraLines), degreesSource, erasSource);
+            if (degreesVsErasError is not null)
+            {
+                return degreesVsErasError;
+            }
         }
 
         return null;
@@ -206,8 +274,11 @@ public static class SiteContentRules
     /// Every BJJ field is additionally bounded the same way Validate would
     /// reject it at save, but leniently: HeroEyebrow and BeltCaption are
     /// truncated, GamePlan keeps its exactly-four-or-none rule, and
-    /// Principles is capped at MaxPrinciples (see BjjRules.Parse*) — a bad
-    /// env or stored value can never take the landing page down (BR-4).</summary>
+    /// Principles/Eras/Now are each capped at their MaxXxx constant (see
+    /// BjjRules.Parse*) — a bad env or stored value can never take the
+    /// landing page down (BR-4). Rungs is not resolved here: EffectiveSiteContent
+    /// computes it once at construction, from Eras, via its own init-assigned
+    /// property.</summary>
     public static EffectiveSiteContent Resolve(SiteConfig site, SiteContent? overrides)
     {
         var gamePlanLines = overrides?.GamePlan is { Count: > 0 } gamePlanOverride
@@ -216,6 +287,12 @@ public static class SiteContentRules
         var principleLines = overrides?.Principles is { Count: > 0 } principlesOverride
             ? principlesOverride
             : site.PrincipleLines ?? [];
+        var eraLines = overrides?.Eras is { Count: > 0 } erasOverride
+            ? erasOverride
+            : site.EraLines ?? [];
+        var nowLines = overrides?.Now is { Count: > 0 } nowOverride
+            ? nowOverride
+            : site.NowLines ?? [];
 
         return new(
             overrides?.HeroHeading ?? site.OwnerName,
@@ -229,6 +306,8 @@ public static class SiteContentRules
             BjjRules.ParseGamePlan(gamePlanLines),
             Truncate(overrides?.BeltCaption ?? site.BeltCaption, BeltCaptionMaxLength),
             BjjRules.ClampDegrees(overrides?.BeltDegrees ?? site.BeltDegrees),
-            BjjRules.ParsePrinciples(principleLines));
+            BjjRules.ParsePrinciples(principleLines),
+            BjjRules.ParseEras(eraLines),
+            BjjRules.ParseNow(nowLines));
     }
 }

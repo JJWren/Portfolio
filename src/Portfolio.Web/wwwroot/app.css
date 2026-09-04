@@ -306,10 +306,18 @@ main {
     from { transform: scaleY(0); }
 }
 
+/* !important is deliberate on every declaration below: this accessibility
+   override must beat any later or more specific animation/transition rule
+   in the file (a later selector wins on source order alone, and the
+   era-indexed .row.era-N rules outrank these on specificity too), so the
+   per-selector listing stays honest as the file grows instead of silently
+   losing the cascade. */
 @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .ribbons i, .belt-bar i { animation: none; }
-    .gp-node a, .gp-node::after, .gp-node::before { transition: none; }
+    html { scroll-behavior: auto !important; }
+    .ribbons i, .belt-bar i { animation: none !important; }
+    .gp-node a, .gp-node::after, .gp-node::before { transition: none !important; }
+    .belt-band, .road-table .swatch, .row { transition: none !important; }
+    .row .belt-band, .row .swatch, .road-table tr.row { animation: none !important; }
 }
 
 .hero h1 {
@@ -739,6 +747,328 @@ main {
     color: var(--text-muted);
 }
 
+/* Long Road: belt ladder (white to black, left to right) above a dated
+   table of belts, gyms, locations and roles (BR-8) */
+.road {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+    margin-top: 1.4rem;
+}
+
+.ladder {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.rung {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ladder .name {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.belt-band {
+    position: relative;
+    height: 16px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--rank);
+    overflow: hidden;
+}
+
+.belt-band.white { --rank: var(--rank-white); }
+.belt-band.blue { --rank: var(--rank-blue); }
+.belt-band.purple { --rank: var(--rank-purple); }
+.belt-band.brown { --rank: var(--rank-brown); }
+.belt-band.black { --rank: var(--rank-black); }
+
+.belt-band .bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 22px;
+    width: 64px;
+    display: flex;
+    gap: 5px;
+    padding: 0 7px;
+    background: var(--belt-black);
+}
+
+.belt-band.black .bar { background: var(--c-red); }
+
+.belt-band .bar i {
+    width: 3px;
+    background: var(--belt-white);
+}
+
+/* The table: mono uppercase headers like the admin tables */
+.road-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.road-table .rowbelt {
+    display: none;
+}
+
+.road-table th {
+    padding: 0 1rem 0.6rem 0;
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.road-table td {
+    padding: 0.85rem 1rem 0.85rem 0;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+}
+
+.road-table th:last-child,
+.road-table td:last-child {
+    padding-right: 0;
+}
+
+.road-table .year {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.road-table .belt {
+    white-space: nowrap;
+}
+
+.road-table .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 0.5rem;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: var(--rank);
+    vertical-align: -1px;
+}
+
+.road-table .gym,
+.road-table .place {
+    white-space: nowrap;
+}
+
+.road-table .work {
+    color: var(--text-muted);
+}
+
+.row[data-belt='white'] { --rank: var(--rank-white); }
+.row[data-belt='blue'] { --rank: var(--rank-blue); }
+.row[data-belt='purple'] { --rank: var(--rank-purple); }
+.row[data-belt='brown'] { --rank: var(--rank-brown); }
+.row[data-belt='black'] { --rank: var(--rank-black); }
+
+/* Hover-linked glow: a belt lights its row, a row lights its belt
+   (decoration only; every row is readable at rest) */
+.belt-band,
+.road-table .swatch,
+.row {
+    transition: box-shadow 0.15s ease, outline-color 0.15s ease, background-color 0.15s ease;
+}
+
+.belt-band.glow,
+.belt-band:hover {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 14px var(--accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.row.glow,
+.row:hover {
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.row.glow .swatch,
+.row:hover .swatch {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.row.glow .work,
+.row:hover .work {
+    color: var(--text);
+}
+
+.road:has(.belt-band.white:hover) .row[data-belt='white'] {
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.road:has(.belt-band.white:hover) .row[data-belt='white'] .swatch {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.white:hover) .row[data-belt='white'] .work {
+    color: var(--text);
+}
+
+.road:has(.row[data-belt='white']:hover) .belt-band.white {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 14px var(--accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.blue:hover) .row[data-belt='blue'] {
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.road:has(.belt-band.blue:hover) .row[data-belt='blue'] .swatch {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.blue:hover) .row[data-belt='blue'] .work {
+    color: var(--text);
+}
+
+.road:has(.row[data-belt='blue']:hover) .belt-band.blue {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 14px var(--accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.purple:hover) .row[data-belt='purple'] {
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.road:has(.belt-band.purple:hover) .row[data-belt='purple'] .swatch {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.purple:hover) .row[data-belt='purple'] .work {
+    color: var(--text);
+}
+
+.road:has(.row[data-belt='purple']:hover) .belt-band.purple {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 14px var(--accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.brown:hover) .row[data-belt='brown'] {
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.road:has(.belt-band.brown:hover) .row[data-belt='brown'] .swatch {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.brown:hover) .row[data-belt='brown'] .work {
+    color: var(--text);
+}
+
+.road:has(.row[data-belt='brown']:hover) .belt-band.brown {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 14px var(--accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.black:hover) .row[data-belt='black'] {
+    background: var(--surface-2);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.road:has(.belt-band.black:hover) .row[data-belt='black'] .swatch {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 10px var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.road:has(.belt-band.black:hover) .row[data-belt='black'] .work {
+    color: var(--text);
+}
+
+.road:has(.row[data-belt='black']:hover) .belt-band.black {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 14px var(--accent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.row td:first-child {
+    padding-left: 0.5rem;
+}
+
+.road-table th:first-child {
+    padding-left: 0.5rem;
+}
+
+.now {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin: 1.4rem 0 0;
+}
+
+.now div {
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.now dt {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.now dd {
+    margin: 0.35rem 0 0;
+}
+
 @media (max-width: 720px) {
     .game-plan {
         grid-template-columns: 1fr;
@@ -801,6 +1131,208 @@ main {
         grid-template-columns: 1fr;
         gap: 1.6rem;
     }
+
+    .ladder {
+        gap: 8px;
+    }
+
+    .ladder .name {
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+    }
+
+    .road-table thead {
+        display: none;
+    }
+
+    .road-table,
+    .road-table tbody {
+        display: block;
+    }
+
+    .road-table tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem 1rem;
+        padding: 0.9rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .ladder {
+        display: none;
+    }
+
+    .road-table .rowbelt {
+        display: block;
+        grid-column: 1 / -1;
+        padding: 0 0 0.4rem;
+    }
+
+    .road-table .rowbelt::before {
+        display: none;
+    }
+
+    .road-table .rowbelt .belt-band {
+        display: block;
+        height: 14px;
+    }
+
+    .road-table .rowbelt .belt-band,
+    .road-table .swatch {
+        outline: 2px solid transparent;
+    }
+
+    .road-table .rowbelt .belt-band {
+        outline-offset: 3px;
+    }
+
+    /* Scroll-driven glow: the row passing through the middle of the screen
+       lights up with its belt. Timeline names are index-based (era-1..era-8,
+       refinement 5) instead of per-belt, so two eras sharing a belt never
+       share a timeline; rows past the eighth stay static (no timeline). Eight
+       was chosen, not MaxEras (12): named timelines are enumerated by hand
+       here (one rule pair per index), a realistic ladder runs five or six
+       eras, eight leaves headroom without writing twelve rule pairs, and
+       rows past the eighth still keep the anonymous view() row glow (below)
+       so only the per-row belt-band glow stops for them. */
+    @supports (animation-timeline: view()) {
+        .road-table {
+            timeline-scope: --era-1, --era-2, --era-3, --era-4, --era-5, --era-6, --era-7, --era-8;
+        }
+
+        .row.era-1 {
+            view-timeline-name: --era-1;
+        }
+
+        .row.era-1 .belt-band,
+        .row.era-1 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-1;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-2 {
+            view-timeline-name: --era-2;
+        }
+
+        .row.era-2 .belt-band,
+        .row.era-2 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-2;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-3 {
+            view-timeline-name: --era-3;
+        }
+
+        .row.era-3 .belt-band,
+        .row.era-3 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-3;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-4 {
+            view-timeline-name: --era-4;
+        }
+
+        .row.era-4 .belt-band,
+        .row.era-4 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-4;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-5 {
+            view-timeline-name: --era-5;
+        }
+
+        .row.era-5 .belt-band,
+        .row.era-5 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-5;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-6 {
+            view-timeline-name: --era-6;
+        }
+
+        .row.era-6 .belt-band,
+        .row.era-6 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-6;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-7 {
+            view-timeline-name: --era-7;
+        }
+
+        .row.era-7 .belt-band,
+        .row.era-7 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-7;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .row.era-8 {
+            view-timeline-name: --era-8;
+        }
+
+        .row.era-8 .belt-band,
+        .row.era-8 .swatch {
+            animation: band-glow linear both;
+            animation-timeline: --era-8;
+            animation-range: cover 15% cover 85%;
+        }
+
+        .road-table tr.row {
+            animation: row-glow linear both;
+            animation-timeline: view();
+            animation-range: cover 15% cover 85%;
+        }
+    }
+
+    .road-table td {
+        display: block;
+        padding: 0;
+        border: 0;
+    }
+
+    .road-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.1rem;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+
+    .road-table .gym,
+    .road-table .place {
+        white-space: normal;
+    }
+
+    .road-table .work {
+        grid-column: 1 / -1;
+    }
+
+    .now {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@keyframes row-glow {
+    0%, 100% { background-color: transparent; }
+    30%, 70% { background-color: color-mix(in srgb, var(--accent) 9%, transparent); }
+}
+@keyframes band-glow {
+    0%, 100% { outline-color: transparent; box-shadow: 0 0 0 transparent; }
+    30%, 70% { outline-color: var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
 }
 
 /* ================================================================

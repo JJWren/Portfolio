@@ -94,6 +94,18 @@
                     <textarea rows="6" @bind="_principlesText" @bind:after="MarkDirty"
                               placeholder="@SiteContentRules.LinesText(Site.PrincipleLines)"></textarea>
                 </label>
+
+                <label class="field">
+                    <span>Eras <span class="muted">one per line: date | belt | stripes | gym | location | role, date as YYYY-MM-DD, belt white, blue, purple, brown or black</span></span>
+                    <textarea rows="8" @bind="_erasText" @bind:after="MarkDirty"
+                              placeholder="@SiteContentRules.LinesText(Site.EraLines)"></textarea>
+                </label>
+
+                <label class="field">
+                    <span>Now <span class="muted">one per line: label | value</span></span>
+                    <textarea rows="6" @bind="_nowText" @bind:after="MarkDirty"
+                              placeholder="@SiteContentRules.LinesText(Site.NowLines)"></textarea>
+                </label>
             }
 
             <div class="field">
@@ -170,6 +182,8 @@
     private string _beltCaption = string.Empty;
     private string _beltDegreesText = string.Empty;
     private string _principlesText = string.Empty;
+    private string _erasText = string.Empty;
+    private string _nowText = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -203,6 +217,8 @@
         _beltCaption = overrides?.BeltCaption ?? string.Empty;
         _beltDegreesText = overrides?.BeltDegrees?.ToString() ?? string.Empty;
         _principlesText = SiteContentRules.LinesText(overrides?.Principles);
+        _erasText = SiteContentRules.LinesText(overrides?.Eras);
+        _nowText = SiteContentRules.LinesText(overrides?.Now);
     }
 
     private async Task UploadPhotoAsync(InputFileChangeEventArgs e)
@@ -256,8 +272,10 @@
             GamePlanText: _gamePlanText,
             BeltCaption: _beltCaption,
             BeltDegreesText: _beltDegreesText,
-            PrinciplesText: _principlesText);
-        _error = SiteContentRules.Validate(draft);
+            PrinciplesText: _principlesText,
+            ErasText: _erasText,
+            NowText: _nowText);
+        _error = SiteContentRules.Validate(draft, Site);
         if (_error is not null)
         {
             return;

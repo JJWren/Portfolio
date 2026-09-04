@@ -258,6 +258,46 @@ public class AppCssTests : IDisposable
     }
 
     [Fact]
+    public void ReducedMotionBlock_EveryDeclaration_EndsWithImportant()
+    {
+        // The block sits early in app.css, so without !important a later or
+        // more specific "on" rule (a later selector wins on source order
+        // alone; the era-indexed .row.era-N rules also outrank these on
+        // specificity) would silently win the cascade and the accessibility
+        // override would do nothing. Pinned per-declaration so a future edit
+        // that adds a line here without !important is caught immediately.
+        var reducedMotionRules = AppCssRules.RulesInside("prefers-reduced-motion").ToList();
+
+        Assert.NotEmpty(reducedMotionRules);
+
+        var offenders = reducedMotionRules
+            .SelectMany(rule => rule.Declarations.Split(';'))
+            .Select(declaration => declaration.Trim())
+            .Where(declaration => declaration.Length > 0)
+            .Where(declaration => !declaration.EndsWith("!important", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.True(
+            offenders.Count == 0,
+            "Missing !important in the prefers-reduced-motion block: " + string.Join(", ", offenders));
+    }
+
+    /// <summary>
+    /// The mobile scroll-glow rules (refinement 5) qualify <c>.row</c> with
+    /// an index class per row (<c>.row.era-1 .belt-band</c> ... <c>.row.era-8
+    /// .swatch</c>) so distinct rows never share a named timeline; the
+    /// reduced-motion override deliberately stays unqualified
+    /// (<c>.row .belt-band, .row .swatch</c>) since disabling the glow does
+    /// not depend on which row it is. Stripping a ".era-N" token is a safe,
+    /// narrow relaxation for the coverage check below: the token only ever
+    /// appears immediately after ".row" with no intervening space, so
+    /// removing it collapses the qualified selector back to exactly the
+    /// unqualified one the reduced-motion block declares — never a
+    /// different, unrelated selector.
+    /// </summary>
+    private static string StripEraToken(string selector) => Regex.Replace(selector, @"\.era-\d+", string.Empty);
+
+    [Fact]
     public void LandingBanner_EveryAnimationOrTransition_IsListedInTheReducedMotionBlock()
     {
         // BR-14: every new animation/transition in the landing CSS joins the
@@ -279,8 +319,9 @@ public class AppCssTests : IDisposable
 
             foreach (var selector in SplitSelectorList(rule.Selector))
             {
+                var strippedSelector = StripEraToken(selector);
                 var covered = reducedMotionEntries.Any(entry =>
-                    entry.Selector == selector
+                    (entry.Selector == selector || entry.Selector == strippedSelector)
                     && (!declaresAnimation || Regex.IsMatch(entry.Declarations, @"animation\s*:\s*none", RegexOptions.IgnoreCase))
                     && (!declaresTransition || Regex.IsMatch(entry.Declarations, @"transition\s*:\s*none", RegexOptions.IgnoreCase)));
 
@@ -297,9 +338,11 @@ public class AppCssTests : IDisposable
     }
 
     [Fact]
-    public void LandingBanner_KnownAnimatedAndTransitionedSelectors_AreExactlyFour()
+    public void LandingBanner_KnownAnimatedAndTransitionedSelectors_MatchTheDocumentedSet()
     {
-        // Documents today's set so a future addition to the banner section
+        // Documents today's full set (game plan + rank bar from Phase 2, the
+        // road's hover transition and the eight per-row scroll-glow
+        // timelines from Phase 3) so a future addition to the banner section
         // is deliberately noticed here, not just silently covered (or not)
         // by the generic check above.
         var declaring = LandingBannerRules
@@ -307,9 +350,46 @@ public class AppCssTests : IDisposable
             .SelectMany(r => SplitSelectorList(r.Selector))
             .ToList();
 
-        Assert.Equal(
-            new[] { ".gp-node a", ".gp-node::after", ".gp-node::before", ".belt-bar i" },
-            declaring);
+        var expected = new List<string>
+        {
+            ".gp-node a", ".gp-node::after", ".gp-node::before", ".belt-bar i",
+            ".belt-band", ".road-table .swatch", ".row",
+        };
+        for (var n = 1; n <= 8; n++)
+        {
+            expected.Add($".row.era-{n} .belt-band");
+            expected.Add($".row.era-{n} .swatch");
+        }
+
+        expected.Add(".road-table tr.row");
+
+        Assert.Equal(expected, declaring);
+    }
+
+    [Fact]
+    public void LandingBanner_EveryAnimationTimelineDeclaration_HasAnAnimationTimelineSupportsAncestor()
+    {
+        // BR-14: the scroll-driven glow is @supports-gated with a finished
+        // static fallback for browsers that don't implement scroll timelines
+        // (Firefox stable today).
+        var offenders = LandingBannerRules
+            .Where(r => Regex.IsMatch(r.Declarations, @"\banimation-timeline\s*:", RegexOptions.IgnoreCase))
+            .Where(r => !r.Ancestors.Any(a => a.Contains("@supports (animation-timeline: view())", StringComparison.Ordinal)))
+            .Select(r => r.Selector)
+            .ToList();
+
+        Assert.True(
+            offenders.Count == 0,
+            "Declares animation-timeline outside the @supports gate: " + string.Join(", ", offenders));
+    }
+
+    [Fact]
+    public void LandingBanner_TimelineScope_ListsEraOneThroughEraEight()
+    {
+        var timelineScopeRule = LandingBannerRules.Single(r => r.Selector == ".road-table" && r.Declarations.Contains("timeline-scope"));
+
+        var expected = string.Join(", ", Enumerable.Range(1, 8).Select(n => $"--era-{n}"));
+        Assert.Contains($"timeline-scope: {expected};", timelineScopeRule.Declarations);
     }
 
     public void Dispose()

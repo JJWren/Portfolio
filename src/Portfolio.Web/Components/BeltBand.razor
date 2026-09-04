@@ -1,0 +1,28 @@
+@* One belt-and-stripes graphic (BR-16: decorative, aria-hidden — the ladder's
+   <span class="name"> and the table's own text cells carry the information
+   for assistive tech). Reused by Road.razor for both the ladder's rungs and
+   each table row's band cell; the black belt's red bar is CSS only
+   (.belt-band.black .bar), not markup here. *@
+<span class="belt-band @BjjRules.CssName(Belt)" aria-hidden="true">
+    <span class="bar">
+        @for (var i = 0; i < Count; i++)
+        {
+            <i></i>
+        }
+    </span>
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required Belt Belt { get; set; }
+
+    [Parameter]
+    public int Stripes { get; set; }
+
+    /// <summary>0 to <see cref="BjjRules.MaxDegrees"/>. BjjRules.ParseEras
+    /// and ValidateEras already bound every Era's stripe count before it
+    /// gets here, but the component clamps again — the same defensive
+    /// posture as RankBar — so no caller can make it emit an unbounded run
+    /// of stripe elements.</summary>
+    private int Count => BjjRules.ClampDegrees(Stripes);
+}

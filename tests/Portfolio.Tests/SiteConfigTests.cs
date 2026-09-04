@@ -289,4 +289,38 @@ public class SiteConfigTests
 
         Assert.Equal(9, site.BeltDegrees);
     }
+
+    [Fact]
+    public void FromConfiguration_MinimalConfig_EraAndNowLinesDefaultToEmpty()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane Developer",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Empty(site.EraLines!);
+        Assert.Empty(site.NowLines!);
+    }
+
+    [Fact]
+    public void FromConfiguration_EraAndNowLines_SplitOnLiteralNewlineTrimmedAndBlanksDropped()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_ERAS"] = "2010-01-01 | white | 2 | Gym A | City A | Role A\\n\\n  2012-06-15 | blue | 3 | Gym B | City B | Role B  \\n",
+            ["SITE_NOW"] = "Training | Evening classes.\\n\\nReading | ",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(
+            ["2010-01-01 | white | 2 | Gym A | City A | Role A", "2012-06-15 | blue | 3 | Gym B | City B | Role B"],
+            site.EraLines);
+        Assert.Equal(["Training | Evening classes.", "Reading |"], site.NowLines);
+    }
 }

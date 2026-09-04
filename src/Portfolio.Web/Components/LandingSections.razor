@@ -100,6 +100,35 @@
     </section>
 }
 
+@if (Site.Flavor == SiteFlavor.Bjj && Content.Eras.Count > 0)
+{
+    <section class="section">
+        <div class="container">
+            <p class="eyebrow">The road</p>
+            <h2>Two ladders, one clock</h2>
+            <Road Eras="@Content.Eras" Rungs="@Content.Rungs" />
+        </div>
+    </section>
+}
+
+@if (Site.Flavor == SiteFlavor.Bjj && Content.Now.Count > 0)
+{
+    <section class="section">
+        <div class="container">
+            <p class="eyebrow">Now</p>
+            <dl class="now">
+                @foreach (var item in Content.Now)
+                {
+                    <div>
+                        <dt>@item.Label</dt>
+                        <dd>@item.Value</dd>
+                    </div>
+                }
+            </dl>
+        </div>
+    </section>
+}
+
 @code {
     [Parameter, EditorRequired]
     public EffectiveSiteContent Content { get; set; } = default!;

@@ -1,0 +1,65 @@
+@using System.Globalization
+
+@* The road: a belt ladder above a dated table of belts, gyms, locations and
+   roles (BR-8). The ladder is aria-hidden (the table carries the
+   information for assistive tech, BR-16). Each row additionally carries
+   class "era-{n}" (one-based) so the mobile scroll-glow CSS can name a
+   distinct timeline per row (@supports (animation-timeline: view()) in
+   app.css) instead of per belt — two eras on the same belt must not share a
+   timeline (refinement 5). LandingSections only renders this when Eras is
+   non-empty. *@
+<div class="road">
+    <div class="ladder" aria-hidden="true">
+        @foreach (var rung in Rungs)
+        {
+            <div class="rung">
+                <BeltBand Belt="rung.Belt" Stripes="rung.Stripes" />
+                <span class="name">@rung.Belt</span>
+            </div>
+        }
+    </div>
+    <table class="road-table">
+        <thead>
+            <tr>
+                <th class="rowbelt"></th>
+                <th scope="col">Date</th>
+                <th scope="col">Belt</th>
+                <th scope="col">Gym</th>
+                <th scope="col">Location</th>
+                <th scope="col">Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Eras.Count; i++)
+            {
+                var era = Eras[i];
+                var rowNumber = i + 1;
+                var iso = IsoDate(era);
+                <tr class="row era-@rowNumber" data-belt="@BjjRules.CssName(era.Belt)" @key="rowNumber">
+                    <td class="rowbelt">
+                        <BeltBand Belt="era.Belt" Stripes="era.Stripes" />
+                    </td>
+                    <td class="year" data-label="Date">
+                        <time datetime="@iso">@iso</time>
+                    </td>
+                    <td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>@era.Belt</td>
+                    <td class="gym" data-label="Gym">@era.Gym</td>
+                    <td class="place" data-label="Location">@era.Location</td>
+                    <td class="work" data-label="Role">@era.Role</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<Era> Eras { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<Rung> Rungs { get; set; }
+
+    /// <summary>ISO form, never localized (BR-16): the ladder and table are
+    /// read by every visitor in the same textual order regardless of locale.</summary>
+    private static string IsoDate(Era era) => era.Date.ToString(BjjRules.DateFormat, CultureInfo.InvariantCulture);
+}
