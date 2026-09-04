@@ -135,4 +135,158 @@ public class SiteConfigTests
         Assert.Equal("/app/photo/owner-photo.webp", site.OwnerPhotoFile);
         Assert.Equal("Jane at her desk", site.OwnerPhotoAlt);
     }
+
+    [Fact]
+    public void FromConfiguration_MinimalConfig_BjjFieldsDefaultToNullOrEmpty()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane Developer",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(SiteFlavor.Default, site.Flavor);
+        Assert.Null(site.HeroEyebrow);
+        Assert.Empty(site.GamePlanLines!);
+        Assert.Null(site.BeltCaption);
+        Assert.Null(site.BeltDegrees);
+        Assert.Empty(site.PrincipleLines!);
+    }
+
+    [Theory]
+    [InlineData("bjj", SiteFlavor.Bjj)]
+    [InlineData("BJJ", SiteFlavor.Bjj)]
+    [InlineData(" bjj ", SiteFlavor.Bjj)]
+    [InlineData("", SiteFlavor.Default)]
+    [InlineData(null, SiteFlavor.Default)]
+    [InlineData("foo", SiteFlavor.Default)]
+    public void FromConfiguration_FlavorParsing(string? value, SiteFlavor expected)
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_FLAVOR"] = value,
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(expected, site.Flavor);
+    }
+
+    [Theory]
+    [InlineData("bjj", SiteFlavor.Bjj)]
+    [InlineData(" BJJ ", SiteFlavor.Bjj)]
+    [InlineData("", SiteFlavor.Default)]
+    [InlineData("foo", SiteFlavor.Default)]
+    public void SiteFlavorRules_Parse(string value, SiteFlavor expected)
+        => Assert.Equal(expected, SiteFlavorRules.Parse(value));
+
+    [Fact]
+    public void FromConfiguration_HeroEyebrowAndBeltCaption_BlankBecomesNull()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_HERO_EYEBROW"] = "  ",
+            ["SITE_BELT_CAPTION"] = "",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Null(site.HeroEyebrow);
+        Assert.Null(site.BeltCaption);
+    }
+
+    [Fact]
+    public void FromConfiguration_HeroEyebrowAndBeltCaption_AreConfigurable()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_HERO_EYEBROW"] = "Jane Developer · Software Engineer",
+            ["SITE_BELT_CAPTION"] = "Test belt · Test gym",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal("Jane Developer · Software Engineer", site.HeroEyebrow);
+        Assert.Equal("Test belt · Test gym", site.BeltCaption);
+    }
+
+    [Fact]
+    public void FromConfiguration_GamePlanAndPrinciples_SplitOnLiteralNewlineTrimmedAndBlanksDropped()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_GAME_PLAN"] = "Plan | Plan it \\n\\n  Build | Build it  \\nTest | Test it\\nShip | Ship it",
+            ["SITE_PRINCIPLES"] = "Ship small. | Small is safe\\n\\nWrite it down. | ",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(
+            ["Plan | Plan it", "Build | Build it", "Test | Test it", "Ship | Ship it"],
+            site.GamePlanLines);
+        Assert.Equal(["Ship small. | Small is safe", "Write it down. |"], site.PrincipleLines);
+    }
+
+    [Fact]
+    public void FromConfiguration_GamePlanAndPrinciples_UnsetBecomesEmpty()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Empty(site.GamePlanLines!);
+        Assert.Empty(site.PrincipleLines!);
+    }
+
+    [Theory]
+    [InlineData("2", 2)]
+    [InlineData("0", 0)]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    [InlineData("x", null)]
+    [InlineData("2.5", null)]
+    public void FromConfiguration_BeltDegreesParsing(string? value, int? expected)
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_BELT_DEGREES"] = value,
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(expected, site.BeltDegrees);
+    }
+
+    [Fact]
+    public void FromConfiguration_BeltDegreesOutOfBjjRange_StillParsesUnclamped()
+    {
+        // SiteConfig itself never clamps — BjjRules.ClampDegrees does that at
+        // resolve, so an out-of-range env value is still a parsed int here.
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_BELT_DEGREES"] = "9",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(9, site.BeltDegrees);
+    }
 }

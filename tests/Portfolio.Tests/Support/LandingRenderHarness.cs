@@ -49,7 +49,13 @@ internal static class LandingRenderHarness
     public static SiteConfig BuildConfig(
         string? gitHubUrl = null,
         string? linkedInUrl = null,
-        string? ownerPhotoFile = null)
+        string? ownerPhotoFile = null,
+        SiteFlavor flavor = SiteFlavor.Default,
+        string? heroEyebrow = null,
+        IReadOnlyList<string>? gamePlanLines = null,
+        string? beltCaption = null,
+        int? beltDegrees = null,
+        IReadOnlyList<string>? principleLines = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -63,7 +69,13 @@ internal static class LandingRenderHarness
             Skills: [],
             SponsorUrl: null,
             SponsorText: "Buy me a coffee",
-            OwnerPhotoFile: ownerPhotoFile);
+            OwnerPhotoFile: ownerPhotoFile,
+            Flavor: flavor,
+            HeroEyebrow: heroEyebrow,
+            GamePlanLines: gamePlanLines,
+            BeltCaption: beltCaption,
+            BeltDegrees: beltDegrees,
+            PrincipleLines: principleLines);
 
     /// <summary>Builds an EffectiveSiteContent with fixed, neutral defaults; pass only what a given test cares about varying.</summary>
     public static EffectiveSiteContent BuildContent(
@@ -71,19 +83,30 @@ internal static class LandingRenderHarness
         string tagline = "",
         string? about = null,
         IReadOnlyList<string>? skills = null,
-        string ownerPhotoAlt = "Portrait of Jane Developer")
+        string ownerPhotoAlt = "Portrait of Jane Developer",
+        string? heroEyebrow = null,
+        IReadOnlyList<GamePlanNode>? gamePlan = null,
+        string? beltCaption = null,
+        int beltDegrees = 0,
+        IReadOnlyList<Principle>? principles = null)
         => new(
             HeroHeading: heroHeading,
             Tagline: tagline,
             About: about,
             Skills: skills ?? [],
-            OwnerPhotoAlt: ownerPhotoAlt);
+            OwnerPhotoAlt: ownerPhotoAlt,
+            HeroEyebrow: heroEyebrow,
+            GamePlan: gamePlan,
+            BeltCaption: beltCaption,
+            BeltDegrees: beltDegrees,
+            Principles: principles);
 
     /// <summary>
     /// A SiteConfig with every optional branch populated (GitHub, LinkedIn,
     /// and — since <paramref name="ownerPhotoFile"/> must name a file that
     /// really exists, OwnerPhotoService.GetVersionedUrl only checks
-    /// File.Exists — a photo). Pair with <see cref="MaximalContent"/> so a
+    /// File.Exists — a photo), plus the Bjj flavor so every BJJ-only branch
+    /// (Unit 10) also renders. Pair with <see cref="MaximalContent"/> so a
     /// render exercises every optional piece of markup LandingSections can
     /// emit today.
     ///
@@ -91,16 +114,16 @@ internal static class LandingRenderHarness
     /// classes/ids/tags in a maximal render and assumes it has seen
     /// everything LandingSections can ever put on the page. Every later
     /// phase that adds a new optional SiteConfig/EffectiveSiteContent
-    /// branch to LandingSections — the game plan, rank bar, Principles, the
-    /// road, Now, the photo switch (see unit10-bjj-landing-plan.md) — MUST
-    /// extend this pair to populate the new branch too, or the cross-check
-    /// silently stops covering it.
+    /// branch to LandingSections — the road, Now, the photo switch (see
+    /// unit10-bjj-landing-plan.md) — MUST extend this pair to populate the
+    /// new branch too, or the cross-check silently stops covering it.
     /// </summary>
     public static SiteConfig MaximalConfig(string ownerPhotoFile)
         => BuildConfig(
             gitHubUrl: "https://github.com/janedev",
             linkedInUrl: "https://linkedin.com/in/janedev",
-            ownerPhotoFile: ownerPhotoFile);
+            ownerPhotoFile: ownerPhotoFile,
+            flavor: SiteFlavor.Bjj);
 
     /// <summary>See <see cref="MaximalConfig"/>.</summary>
     public static EffectiveSiteContent MaximalContent()
@@ -108,5 +131,20 @@ internal static class LandingRenderHarness
             tagline: "Building useful things.",
             about: "First paragraph.\nSecond paragraph.",
             skills: ["C#", "Docker"],
-            ownerPhotoAlt: "Jane at her desk");
+            ownerPhotoAlt: "Jane at her desk",
+            heroEyebrow: "Jane Developer · Software Engineer",
+            gamePlan:
+            [
+                new GamePlanNode("Plan", "Plan the work", "Write it down first."),
+                new GamePlanNode("Build", "Build the thing", "Small, reviewable commits."),
+                new GamePlanNode("Test", "Prove it works", "Automate the boring parts."),
+                new GamePlanNode("Ship", "Finish", string.Empty),
+            ],
+            beltCaption: "Test belt · Test gym, Test City",
+            beltDegrees: 3,
+            principles:
+            [
+                new Principle("Ship small.", "Small changes are easy to review and easy to revert."),
+                new Principle("Write it down.", string.Empty),
+            ]);
 }
