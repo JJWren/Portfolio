@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.1](https://github.com/JJWren/Portfolio/compare/v1.25.0...v1.25.1) (2026-09-04)
+
+
+### Performance Improvements
+
+* display-font preload and delegated nav handlers, BJJ landing docs ([#96](https://github.com/JJWren/Portfolio/issues/96)) ([0a67607](https://github.com/JJWren/Portfolio/commit/0a67607cdc757781559bb8195e46826442f5b0fd))
+
 ## [1.25.0](https://github.com/JJWren/Portfolio/compare/v1.24.0...v1.25.0) (2026-09-04)
 
 
