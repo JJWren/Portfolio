@@ -306,12 +306,18 @@ main {
     from { transform: scaleY(0); }
 }
 
+/* !important is deliberate on every declaration below: this accessibility
+   override must beat any later or more specific animation/transition rule
+   in the file (a later selector wins on source order alone, and the
+   era-indexed .row.era-N rules outrank these on specificity too), so the
+   per-selector listing stays honest as the file grows instead of silently
+   losing the cascade. */
 @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .ribbons i, .belt-bar i { animation: none; }
-    .gp-node a, .gp-node::after, .gp-node::before { transition: none; }
-    .belt-band, .road-table .swatch, .row { transition: none; }
-    .row .belt-band, .row .swatch, .road-table tr.row { animation: none; }
+    html { scroll-behavior: auto !important; }
+    .ribbons i, .belt-bar i { animation: none !important; }
+    .gp-node a, .gp-node::after, .gp-node::before { transition: none !important; }
+    .belt-band, .road-table .swatch, .row { transition: none !important; }
+    .row .belt-band, .row .swatch, .road-table tr.row { animation: none !important; }
 }
 
 .hero h1 {
@@ -741,70 +747,6 @@ main {
     color: var(--text-muted);
 }
 
-@media (max-width: 720px) {
-    .game-plan {
-        grid-template-columns: 1fr;
-        gap: 26px;
-    }
-
-    .gp-node {
-        padding-right: 0;
-    }
-
-    .gp-node::after {
-        top: auto;
-        bottom: -16px;
-        left: 24px;
-        right: auto;
-        width: 2px;
-        height: 12px;
-        transform: none;
-    }
-
-    .gp-node::before {
-        top: auto;
-        bottom: -22px;
-        left: 20px;
-        right: auto;
-        border: 5px solid transparent;
-        border-top: 7px solid var(--border);
-        transform: none;
-    }
-
-    .gp-node:has(a:hover)::before,
-    .gp-node:has(a:focus-visible)::before {
-        border-left-color: transparent;
-        border-top-color: var(--node);
-    }
-
-    .hero-plan {
-        margin-top: 0.5rem;
-    }
-
-    .rank-bar .belt {
-        height: 9px;
-    }
-
-    .belt-bar {
-        width: 84px;
-        gap: 5px;
-        padding: 0 8px;
-    }
-
-    .belt-bar i {
-        width: 3px;
-    }
-
-    .belt-tip {
-        width: 30px;
-    }
-
-    .principles {
-        grid-template-columns: 1fr;
-        gap: 1.6rem;
-    }
-}
-
 /* Long Road: belt ladder (white to black, left to right) above a dated
    table of belts, gyms, locations and roles (BR-8) */
 .road {
@@ -1128,6 +1070,68 @@ main {
 }
 
 @media (max-width: 720px) {
+    .game-plan {
+        grid-template-columns: 1fr;
+        gap: 26px;
+    }
+
+    .gp-node {
+        padding-right: 0;
+    }
+
+    .gp-node::after {
+        top: auto;
+        bottom: -16px;
+        left: 24px;
+        right: auto;
+        width: 2px;
+        height: 12px;
+        transform: none;
+    }
+
+    .gp-node::before {
+        top: auto;
+        bottom: -22px;
+        left: 20px;
+        right: auto;
+        border: 5px solid transparent;
+        border-top: 7px solid var(--border);
+        transform: none;
+    }
+
+    .gp-node:has(a:hover)::before,
+    .gp-node:has(a:focus-visible)::before {
+        border-left-color: transparent;
+        border-top-color: var(--node);
+    }
+
+    .hero-plan {
+        margin-top: 0.5rem;
+    }
+
+    .rank-bar .belt {
+        height: 9px;
+    }
+
+    .belt-bar {
+        width: 84px;
+        gap: 5px;
+        padding: 0 8px;
+    }
+
+    .belt-bar i {
+        width: 3px;
+    }
+
+    .belt-tip {
+        width: 30px;
+    }
+
+    .principles {
+        grid-template-columns: 1fr;
+        gap: 1.6rem;
+    }
+
     .ladder {
         gap: 8px;
     }
@@ -1185,7 +1189,12 @@ main {
     /* Scroll-driven glow: the row passing through the middle of the screen
        lights up with its belt. Timeline names are index-based (era-1..era-8,
        refinement 5) instead of per-belt, so two eras sharing a belt never
-       share a timeline; rows past the eighth stay static (no timeline). */
+       share a timeline; rows past the eighth stay static (no timeline). Eight
+       was chosen, not MaxEras (12): named timelines are enumerated by hand
+       here (one rule pair per index), a realistic ladder runs five or six
+       eras, eight leaves headroom without writing twelve rule pairs, and
+       rows past the eighth still keep the anonymous view() row glow (below)
+       so only the per-row belt-band glow stops for them. */
     @supports (animation-timeline: view()) {
         .road-table {
             timeline-scope: --era-1, --era-2, --era-3, --era-4, --era-5, --era-6, --era-7, --era-8;

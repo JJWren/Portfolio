@@ -257,6 +257,31 @@ public class AppCssTests : IDisposable
         Assert.Equal(1, count);
     }
 
+    [Fact]
+    public void ReducedMotionBlock_EveryDeclaration_EndsWithImportant()
+    {
+        // The block sits early in app.css, so without !important a later or
+        // more specific "on" rule (a later selector wins on source order
+        // alone; the era-indexed .row.era-N rules also outrank these on
+        // specificity) would silently win the cascade and the accessibility
+        // override would do nothing. Pinned per-declaration so a future edit
+        // that adds a line here without !important is caught immediately.
+        var reducedMotionRules = AppCssRules.RulesInside("prefers-reduced-motion").ToList();
+
+        Assert.NotEmpty(reducedMotionRules);
+
+        var offenders = reducedMotionRules
+            .SelectMany(rule => rule.Declarations.Split(';'))
+            .Select(declaration => declaration.Trim())
+            .Where(declaration => declaration.Length > 0)
+            .Where(declaration => !declaration.EndsWith("!important", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.True(
+            offenders.Count == 0,
+            "Missing !important in the prefers-reduced-motion block: " + string.Join(", ", offenders));
+    }
+
     /// <summary>
     /// The mobile scroll-glow rules (refinement 5) qualify <c>.row</c> with
     /// an index class per row (<c>.row.era-1 .belt-band</c> ... <c>.row.era-8
