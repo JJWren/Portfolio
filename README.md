@@ -37,8 +37,15 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
   DNT/GPC honored; viewable at `/admin/stats`
 - **Hidden admin area** at `/admin` — invisible and 404 for everyone not in
   `ADMIN_EMAILS`; sortable, filterable, paginated admin tables throughout
-- **In-app site content**: the landing page's hero heading, tagline, about, and
-  skills can be overridden from the admin area — no redeploy needed
+- **BJJ landing flavor** (opt-in): setting `SITE_FLAVOR=bjj` swaps the landing
+  page into a belt-themed layout — a hero game-plan chart, a rank bar, a
+  Principles section, The road (a belt ladder above a dated era table), Now
+  status tiles, and a two-photo hero switch — all editable at `/admin/site`;
+  leave the flag unset and the default landing page renders exactly as before
+- **In-app site content**: the landing page's hero heading, tagline, about,
+  skills, and (under the BJJ flavor) hero eyebrow, game plan, belt caption
+  and degrees, principles, eras, and now tiles can all be overridden from
+  the admin area — no redeploy needed
 - **In-app theming**: every palette color (brand, dark, and light) can be
   overridden from the admin area, with swatches, hex fields, a live
   landing-page preview for either mode, and WCAG contrast warnings
@@ -63,9 +70,11 @@ Set `SEED_DEMO_DATA=true` for sample content on first run.
 Everything personal lives in `.env` — see [`.env.example`](.env.example) for the full
 annotated list. The `SITE_*` values seed the landing page; once running, admins can
 override the hero heading, tagline, about text, and skills at `/admin/site` without
-touching `.env` (blank fields fall back to the `.env` values). The color palette
-can likewise be overridden at `/admin/theme` (blank fields fall back to the
-built-in colors).
+touching `.env` (blank fields fall back to the `.env` values). Under the opt-in BJJ
+landing flavor (`SITE_FLAVOR=bjj`), the same admin page also carries fields for the
+hero eyebrow, game plan, belt caption and degrees, principles, eras, and now tiles.
+The color palette can likewise be overridden at `/admin/theme` (blank fields fall
+back to the built-in colors).
 
 | Variable | Required | Purpose |
 |---|---|---|
@@ -73,6 +82,13 @@ built-in colors).
 | `CONTACT_EMAIL` | ✅ | Contact-form notifications + mailto links |
 | `POSTGRES_PASSWORD` | ✅ | Database password (compose wires the connection string) |
 | `SITE_TITLE`, `SITE_TAGLINE`, `SITE_ABOUT`, `SITE_SKILLS` | | Copy for the home page (`\n` splits paragraphs; skills comma-separated) |
+| `SITE_FLAVOR` | | `bjj` (case-insensitive) opts into the belt-themed landing page below; blank or anything else renders the default landing page |
+| `SITE_HERO_EYEBROW` | | Line shown above the hero heading (often your name and title); BJJ flavor only |
+| `SITE_GAME_PLAN` | | Hero game-plan chart: exactly four `term \| reading \| how` lines joined with `\n`, or the chart stays hidden; BJJ flavor only |
+| `SITE_BELT_CAPTION`, `SITE_BELT_DEGREES` | | Rank-bar caption and its degree stripes (0 to 6); the bar is hidden while the caption is blank; BJJ flavor only |
+| `SITE_PRINCIPLES` | | Principles section: 1 to 6 `maxim \| reading` lines joined with `\n`; BJJ flavor only |
+| `SITE_ERAS` | | The road's belt ladder and table: 1 to 12 `date \| belt \| stripes \| gym \| location \| role` lines joined with `\n` (`date` is `YYYY-MM-DD`; `belt` is white, blue, purple, brown, or black); BJJ flavor only |
+| `SITE_NOW` | | Now section tiles: 1 to 8 `label \| value` lines joined with `\n`; BJJ flavor only |
 | `SITE_META_DESCRIPTION` | | Search/social snippet; blank falls back to `SITE_TAGLINE` |
 | `CONTACT_PHONE`, `LINKEDIN_URL`, `GITHUB_URL` | | Contact & social links; `GITHUB_URL` drives the projects-page CTA |
 | `ADMIN_EMAILS` | | Comma-separated; matching OAuth emails get the hidden admin area |
@@ -80,8 +96,10 @@ built-in colors).
 | `SMTP__HOST/PORT/USER/PASSWORD/FROM` | | Email notifications; blank host = DB-only mode |
 | `PUBLIC_BASE_URL` | | Canonical origin for canonical/og URLs, social cards, the feed, and the sitemap (e.g. `https://you.example`) |
 | `RESUME_FILE` | | Path to a PDF served at `/resume` (with download counting); unset = no résumé link |
-| `OWNER_PHOTO_FILE` | | Path to the owner photo on the landing hero, served at `/owner-photo`; mount its folder read-write so the admin site-content page can replace it; unset = photo-less hero |
+| `OWNER_PHOTO_FILE` | | Path to the owner photo on the landing hero, served at `/owner-photo` (see also `OWNER_PHOTO_FLIP_FILE` below); mount its folder read-write so the admin site-content page can replace it; unset = photo-less hero |
 | `OWNER_PHOTO_ALT` | | Alt text for the owner photo; defaults to `Portrait of {SITE_OWNER_NAME}`, admin-overridable |
+| `OWNER_PHOTO_FLIP_FILE` | | Path to a second, "mat" portrait for the hero's two-photo switch, served at `/owner-photo-flip`; BJJ flavor only, and only once `OWNER_PHOTO_FILE` is also set; unset = the hero shows just the primary photo |
+| `OWNER_PHOTO_FLIP_ALT` | | Alt text for the second photo; defaults to `Portrait of {SITE_OWNER_NAME}`, admin-overridable |
 | `SEED_DEMO_DATA` | | `true` seeds sample posts/projects into empty tables |
 
 ### OAuth callback URLs
