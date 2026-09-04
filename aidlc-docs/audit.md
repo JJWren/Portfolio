@@ -303,3 +303,203 @@
 **Context**: Construction, feature branch feat/spam-hardening-and-analytics, PR pending
 
 **Addendum (live smoke test)**: Ran the app against a throwaway Postgres and exercised every path with curl. Two real bugs caught and fixed: (1) DI constructed DisposableEmailDomains via its IEnumerable<string> test constructor (MS.DI resolves IEnumerable<T> as "all registered T" = empty) → empty blocklist in production; fixed with an explicit factory registration. (2) DateOnly.ToDateTime(TimeOnly.MinValue) yields Kind=Unspecified, which Npgsql rejects against timestamptz → rollup crashed and /admin/stats "today" queries would throw; fixed with the DateTimeKind.Utc overload (6 sites). Verified live after fixes: honeypot + sub-4s submits silently dropped (no row), disposable-domain and body-links quarantined (flagged, no SMTP), rate limiter intact, bot-UA/DNT/HEAD/404 requests not counted, referrer normalized, /go 302 + project-click event, /resume 404 when unset, rollup catch-up aggregated a back-dated day + zero-traffic watermark day correctly with raw rows retained. MX NoMailServer path not verifiable on the workstation LAN (port-53 to external resolvers blocked → fail-open Unknown, by design); logic unit-tested.
+
+---
+
+## Workspace Detection — Portfolio Review + BJJ Landing Design (design canvas request)
+**Timestamp**: 2026-09-03T19:20:00Z
+**User Input**: "/design review and document what is here. Find the pros and cons and gaps. I am thinking that this is the base theme. I would like to make a custom design based around the concept that I am heavily into BJJ (I am a black belt afterall). I would like to explore some creative touches to the landing page. What could I do that is bjj themed and possibly interactive?"
+**AI Response**: Workspace detection: brownfield at master e1825d9 (v1.22.0), clean tree, live at joshuamykitta.dev. aidlc-state.md found (all units complete). aidlc-docs/inception/ absent: no reverse-engineering artifacts, no requirements doc (the July state file recorded Reverse Engineering as "skipped (greenfield)", which no longer holds at v1.22.0). Decision: execute Reverse Engineering + Requirements Analysis now, then Application Design for the landing page as a Claude Design canvas (four BJJ-themed directions plus a baseline and a mobile check). No site source changes in this stage; implementation is a follow-up unit after a direction is chosen. Ran three read-only exploration sweeps (design system and theming; landing page and site structure; engineering, UX and product quality) and two planning passes (creative direction; codebase feasibility). Plan written to C:\Users\joshu\.claude\plans\review-and-document-what-peppy-sunset.md.
+**Context**: Inception, Workspace Detection; plan mode
+
+---
+
+## Reverse Engineering — Start
+**Timestamp**: 2026-09-03T19:25:00Z
+**User Input**: (none; automatic transition per workflow)
+**AI Response**: Starting Reverse Engineering at v1.22.0 with the full eight-artifact set under aidlc-docs/inception/reverse-engineering/ (architecture with interaction diagrams, code-structure, api-documentation, component-inventory, technology-stack, dependencies, code-quality-assessment, reverse-engineering-timestamp) plus aidlc-docs/inception/requirements/requirements.md. Sources: src/Portfolio.Web (Program.cs, Endpoints, Services, Data, Components, wwwroot), tests/Portfolio.Tests, both csproj files, global.json, dotnet-tools.json, docker-compose.yml, .env.example, .github/workflows, README/CONTEXT/CONTRIBUTING/CHANGELOG, docs/adr.
+**Context**: Inception, Reverse Engineering
+
+---
+
+## Requirements Analysis — Clarifying Questions (plan mode)
+**Timestamp**: 2026-09-03T19:30:00Z
+**User Input**: Q "Should the design canvas be static mockups or a working prototype?" → "All four working". Q "How much review documentation should go into the repo?" → "Full eight-file set". Q "Which of these are you willing to put on the site? Values stay as bracketed placeholders on the canvas; this decides which directions are viable." → "Degrees on your black belt,Academy name / where you teach,Promotion years / years training,A photo from the mat or in a gi"
+**AI Response**: All four landing directions will carry working interactions inside the canvas; the full eight-file reverse-engineering set will be written; every direction is viable because every BJJ fact may be published, with values kept as bracketed placeholders until supplied. Plan approved by the user via plan mode (ExitPlanMode).
+**Context**: Inception, Requirements Analysis; approval of the combined docs + canvas plan
+
+---
+
+## Reverse Engineering + Application Design — Artifacts Summary and Approval Prompt
+**Timestamp**: 2026-09-03T21:30:00Z
+**User Input**: "make sure the design system syncs to claude design" (sent mid-execution)
+**AI Response**: Reverse Engineering complete: eight artifacts under aidlc-docs/inception/reverse-engineering/ (architecture with five Mermaid sequence diagrams and text alternatives, code-structure, api-documentation, component-inventory, technology-stack, dependencies, code-quality-assessment with ranked pros/cons/gaps and a Phase 0 content checklist, reverse-engineering-timestamp) plus aidlc-docs/inception/requirements/requirements.md; aidlc-state.md updated (RE executed 2026-09-03, Unit 10 added, test counter corrected). Application Design for the landing page delivered as a Claude Design canvas published at https://claude.ai/code/artifact/4e3d73fd-098f-472f-a3c9-0678be44349c (six artboards: Quiet Belt lead, Baseline, Quiet Belt at 390, Game Plan, Long Road, Mat Room; all interactions working; eight sticky notes) with sources copied to aidlc-docs/inception/application-design/landing-directions/. Verified in a local preview: fonts and tokens load, theme binding renders both modes, portrait switch, belt-ladder radios, flowchart hover trace, scroll-laid tape rail, and the 390px layout all behave; no console errors. Design system synced to Claude Design per the mid-turn request: new project "Portfolio Design System" (https://claude.ai/design/p/0eace0af-92bf-4fa4-b035-9fa3dd8dab6d) with 40 files: app.css verbatim as the stylesheet, tokens, the three self-hosted fonts, logo, README, and 14 preview cards with usage notes (Colors, Typography, Brand, Header, Footer, Buttons, Hero, Section, Cards, Tags, Prose, Fields, ContactForm, Pager, Comment). No files under src/ or tests/ were changed. Approval prompt: "Reverse engineering and the landing-page design canvas are complete. Do you want to request changes, pick a direction to build (Unit 10), or continue to the next stage?"
+**Context**: Inception, Reverse Engineering + Requirements Analysis + Application Design; awaiting the owner's direction choice
+
+---
+
+## Application Design — Direction Chosen and Lead Rebuilt
+**Timestamp**: 2026-09-03T22:45:00Z
+**User Input**: "I like the Quiet Belt having the picture, but I like the Game Plan layout better for the top section. If we could do that with the picture to the right of the H1 and its p description (still above the Guard to Submit) it would be best. The Long Road's "The Road" and "Now" would be nice to have on the Quiet Belt (lead) below Principles section."
+**AI Response**: Rebuilt the lead artboard as the requested merge (Game Plan hero with the portrait beside the H1 and description, chart below both, then the rank bar, About, Principles, The road, Now) and its 390px twin; kept the original Quiet Belt, Game Plan, Long Road and Mat Room on a second canvas page for reference. Folded in the background second-look findings: radio defaults bound through a renderVals key instead of a literal, frame heights trimmed to content, belt black lifted to #0c0c0c so it reads on the #151515 ground, "evenings" corrected to the site's "off hours", the Degrees tweak default set to 0 so no stripe count is asserted, [FIRST ACADEMY] for the white-belt row, node and principle lines re-worded to avoid absolutes and the military maxim, canvas note placeholders aligned with the boards. Verified in the local runtime preview (two pages, checked portrait pill, chart under the hero) and static renders; re-seeded and republished to the same artifact URL (version label "Merged lead per Joshua"). Sources re-copied to aidlc-docs/inception/application-design/landing-directions/; requirements.md section 11 and aidlc-state.md Unit 10 updated.
+**Context**: Inception, Application Design; lead direction settled, Construction plan for Unit 10 not yet written
+
+---
+
+## Application Design — Owner Content Supplied; Belt Row Direction
+**Timestamp**: 2026-09-03T23:30:00Z
+**User Input**: (1) "For: CONTENT NEEDED FROM JOSHUA (every bracket on the canvas): [DEGREE] Black Belt (no stripes) / [PROMOTION_YEAR], December 09, 2025 [PROMOTED_BY] Rodney Souza / [ACADEMY] Championship Martial Arts [CITY] Daphne, AL / [START_YEAR_BJJ] December 2005, [START_YEAR_DEV] January 2021 / [BELT_YEARS] - White: December 1, 2005 (Tamaso's MMA in Fairhope, AL) - Blue: January 30, 2018 (Bagram BJJ in Bagram, Afghanistan) - Purple: August 23, 2019 (Bagram BJJ in Bagram, Afghanistan) - Brown: September 23, 2020 (Iron Grip BJJ in Fairhope, AL) - Black: December 9, 2025 (Championship Mixed Martial Arts in Daphne, AL) / [CLASSES] Currently teach Tuesday and Thursday morning Adult No-Gi classes. / The three principle readings in your own words (the maxims are standard; the engineering readings are drafts) / [PHOTO_DESK] - "C:\Users\joshu\OneDrive\Pictures\josh_profile.JPG" - Me in sunglasses and a tuxedo looking slightly off to the left and giving a subtle, pensive smile / [PHOTO_MAT] - "C:\Users\joshu\OneDrive\Pictures\BJJ\Promotion-black-belt-solo.jpg" - Me (left) being promoted to BJJ black belt by Rodney Souza (right) / [HOME_LAB_FACTS] - Generate some for me, but keep it simple and in my voice / [CURRENT PROJECT] - CalCrony (give a brief description in my voice)" (2) "For the belt selections in "The Road", it should go from left to right, white to black (western progression flow)" (3) "For the Guard to Submit in the static html you gave, they show as links and not the design you had in the original hero design"
+**AI Response**: Placed the supplied facts on the lead, Quiet Belt, Long Road and Mat Room artboards (rank-bar caption, road rows with dates and academies, Now list, Mat Room copy); embedded both portraits (downsampled to 720px JPEGs with EXIF orientation applied) in the portrait switch with the owner's alt text; kept the Degrees tweak at 0 (no stripes). Drafted the CalCrony and home-lab lines from the owner's own GitHub repo descriptions (CalCrony: "Self-hosted event & calendar bot for Discord..."; Home-Lab: "production-grade home infrastructure focused on high availability, security, and containerized service orchestration") and flagged them as drafts. Rebuilt the belt ladder as a left-to-right white-to-black row with the rows below in the same order. The plain-link chart the owner saw was the local static check page (it lacked the Game Plan stylesheet), not the published canvas; the check script was corrected. Re-seeded, checked, verified in the local runtime and static previews, republished to the same artifact URL (version label "Real content, belt row left to right"); sources re-copied to aidlc-docs/inception/application-design/landing-directions/ with the README's content-status section. Still open: [CURRENT ROLE], the dev-side column of The road, principle and chart readings, the tagline, and which academy name is canonical (message used both "Championship Martial Arts" and "Championship Mixed Martial Arts").
+**Context**: Inception, Application Design; lead direction settled with real content; Construction plan for Unit 10 not yet written
+
+---
+
+## Application Design — The Road as a Five-Column Table
+**Timestamp**: 2026-09-04T00:40:00Z
+**User Input**: "Lets have the columns there be Date (YYYY-MM-DD), Belt (color like now and text), Gym, Location, Role with description"
+**AI Response**: Rebuilt The road's rows as a real table with column headers Date (ISO dates: 2005-12-01, 2018-01-30, 2019-08-23, 2020-09-23, 2025-12-09), Belt (rank swatch plus name), Gym (Tamaso's MMA, Bagram BJJ, Bagram BJJ, Iron Grip BJJ, Championship Martial Arts), Location (Fairhope, AL; Bagram, Afghanistan; Bagram, Afghanistan; Fairhope, AL; Daphne, AL) and Role (the owner's era text; the black row keeps [CURRENT ROLE]: full-stack .NET since January 2021). Headers use the admin-table mono uppercase style; the belt ladder still highlights the matching row; under 720px the table stacks into labelled blocks with the Role spanning both columns. Applied to the lead and the Long Road reference artboard; rebuilt, re-seeded, checked, verified in the local static preview at 1440 and 390, republished to the same artifact URL; sources and README synced.
+**Context**: Inception, Application Design
+
+---
+
+## Application Design — Black Bars on the Colored Belts
+**Timestamp**: 2026-09-04T00:55:00Z
+**User Input**: "Another edit in that section, give the other belts a black bar just like the black belt has a red bar"
+**AI Response**: Added a black bar (the fixed --belt-black constant) to the white, blue, purple and brown bands of the belt ladder in the same position as the black belt's red bar; the black belt keeps its red bar. Applied to the lead, its 390px twin and the Long Road reference artboard; rebuilt, re-seeded, checked, verified in the local static preview, republished to the same artifact URL; sources synced.
+**Context**: Inception, Application Design
+
+---
+
+## Application Design — Stripes on the Colored Belts
+**Timestamp**: 2026-09-04T01:05:00Z
+**User Input**: "for stripes on each belt, I got up to 2 on white, 3 on blue, 1 on purple, 4 on brown"
+**AI Response**: Added white stripes to the black bars on the ladder: 2 on white, 3 on blue, 1 on purple, 4 on brown; the black belt keeps its red bar with no stripes (Degrees tweak 0). Applied to the lead, its 390px twin and the Long Road reference artboard; rebuilt, re-seeded, checked, republished to the same artifact URL; sources, canvas note and README synced.
+**Context**: Inception, Application Design
+
+---
+
+## Application Design — Live About Copy Preserved; Current Role
+**Timestamp**: 2026-09-04T01:25:00Z
+**User Input**: (1) A screenshot of the live About section plus: "Also, to make sure it is not lost, I want the about section to keep what is has now from the live portfolio" (2) "Current Role is Software Engineer at Acentra Health"
+**AI Response**: Fetched https://joshuamykitta.dev/ and extracted the live hero heading ("Joshua Mykitta"), tagline ("Secure software engineer with a love for self-hosted things and folding clothes with people in them"), the three About paragraphs and the seven skill chips (C#, ASP.NET Core, Application Security, Cybersecurity, Generative AI, Brazilian Jiu-jitsu, ...and More!), and noted a portrait is live. Replaced the About block and chips on all seven artboards with the live copy verbatim; the Baseline now shows the live tagline and a portrait (the desk photo as stand-in); the lead's eyebrow reads "Software Engineer" and its tagline tail "Secure software engineer; Brazilian jiu-jitsu black belt."; the black-belt row's Role reads "Software Engineer at Acentra Health, building healthcare software that integrates care management, utilization management, and prior authorization requests into a single system." Frame heights raised for the longer About. Design-system Section and Hero cards updated with the live copy. Rebuilt, re-seeded, checked, republished to the same artifact URL; sources, canvas notes and README synced.
+**Context**: Inception, Application Design; no brackets remain on the lead
+
+---
+
+## Application Design — The Road: Hover-Linked Glow, Mobile Belts, Scroll Highlight
+**Timestamp**: 2026-09-04T01:50:00Z
+**User Input**: (1) "Instead of clicking the belts (and having the text that says "Pick a belt to light up that stretch of the road." which can go away entirely), we should just hover the belt and get the same glow we get elsewhere on the belt and the associated row and vice versa (hover the row and the corresponding belt glows)." (2) "On mobile, it would most likely be a click for either though" (3) "On mobile, the corresponding belt should just go above each associated section" (4) "And we highlight it as we scroll over it"
+**AI Response**: Removed the belt radios and the "Pick a belt" hint. Desktop: hovering a belt band gives it the accent ring and soft glow and tints its table row (swatch ringed, role text brightened); hovering a row glows its belt back; pure CSS with :has(), every row fully readable at rest so the effect is decoration only. Under 720px: the ladder is hidden, each stacked row carries its own belt band (with bar and stripes) above it, and the row passing through the middle of the screen glows with its belt via a CSS scroll timeline (view-timeline per row, @supports-gated, static fallback). Applied to the lead, its 390px twin and the Long Road reference; rebuilt, re-seeded, checked, verified in the local preview, republished to the same artifact URL; sources, notes and README synced.
+**Context**: Inception, Application Design
+
+---
+
+## Handoff — Unit 10 Construction (next session)
+**Timestamp**: 2026-09-04T02:30:00Z
+**User Input**: "Looks good. I want to progress to the next step. Let's prepare a handoff for a new session."
+**AI Response**: Owner accepted the lead design as previewed. Wrote aidlc-docs/construction/plans/unit10-bjj-landing-handoff.md: links (canvas, design-system project, live site, sources), the approved design section by section with the exact copy, the final Road data, the implementation constraints from the reverse-engineering pass, seven decisions to lock with the owner before coding, the recommended phase list (Phase 0 env fixes through Phase 5 close-out), re-seeding instructions, and the repo state. Copied the local preview tools into landing-directions/tools/. aidlc-state.md Unit 10 updated to point at the handoff. Stopped the local preview server and removed the temporary .claude/launch.json. No files under src/ or tests/ changed. Next session: Construction, Unit 10, Functional Design (minimal) then Code Generation Part 1 with an approval gate.
+**Context**: Inception closed for Unit 10; handoff to Construction
+
+---
+
+## Correction — Owner Photo Is Live in Production
+**Timestamp**: 2026-09-04T02:30:00Z
+**User Input**: "The hero section of the design system states that the current production state does not have a phot which is not true if you look at the live site."
+**AI Response**: Correct. The claim came from the local .env (no OWNER_PHOTO_FILE) rather than the live page, which serves a portrait. Fixed the design-system Hero card label ("without owner photo" is now described as the layout when none is configured, with a note that the live site has one) and re-uploaded it to the Claude Design project; corrected the OWNER_PHOTO_FILE row of the Phase 0 checklist in code-quality-assessment.md (nothing to do there) and the gap sentence, which now says "no photo from the mat". Earlier audit entries that mention an empty photo slot are superseded by this note.
+**Context**: Inception, Reverse Engineering (correction)
+
+---
+
+## Correction — Review Findings Drawn From the Local .env
+**Timestamp**: 2026-09-04T02:45:00Z
+**User Input**: (follow-up to the owner-photo correction above) "Design System looks good. How come it doesn't mention all the new BJJ stuff like the belts, etc?"
+**AI Response**: Re-verified the content findings against the live site (curl on /, /contact, /resume, /robots.txt, /projects, /blog): canonical and og:url resolve to https://joshuamykitta.dev; the meta description is set; /resume serves Joshua-Mykitta-Resume.pdf and is linked from the Contact aside; tagline, About, skills and portrait are real via admin overrides; projects are all real; one seeded post ("A quick markdown tour") is still published. Corrected code-quality-assessment.md (bottom line, content Cons, gaps 1/2/5/6, Phase 0 checklist), the handoff's Phase 0 line, and reverse-engineering-timestamp.md. Remaining true content gaps: the demo post, the résumé's discoverability, and the lack of any landing-page treatment for the black belt (the subject of Unit 10). On the design-system question: the project documented only what ships in app.css, with the belt constants as a footnote; added a "Landing (proposed)" group (rank bar, belt ladder, road table, game-plan chart, portrait switch, principles, now tiles) with proposed.css and usage notes so the Design agent knows the Unit 10 components.
+**Context**: Inception, Reverse Engineering (correction) and design-system sync
+
+---
+
+## Unit 10 — Implementation Decisions Locked
+**Timestamp**: 2026-09-04T03:20:00Z
+**User Input**: "Decisions to lock: 1. SITE_FLAVOR=bjj switch (not hardcoded) 2. Yes agreed 3. Yes 4. chart nodes keep pointing at #principles I think => describe this better to me 5. yes agreed 6. yes 7. Championship Mixed Martial Arts"
+**AI Response**: Recorded in the handoff as "Decisions locked with the owner (2026-09-04)": SITE_FLAVOR=bjj env switch; new copy in SiteContent columns edited at /admin/site with env fallbacks; a second OwnerPhotoService slot for the mat portrait; chart nodes link to #principles for v1 (explained: every node is a real keyboard-focusable link that scrolls to the Principles section, the plan in words; per-node sections can follow if the owner writes their copy; a link-free graphic was the other option); hero h1 "Position before submission." with the name in the eyebrow and unchanged title/JSON-LD; the two portrait JPEGs may be committed; the academy is "Championship Mixed Martial Arts". Renamed the academy on every artboard, in the design-system cards, the docs and the memory notes; rebuilt, re-seeded, checked and republished the canvas; aidlc-state.md and requirements.md section 9 updated.
+**Context**: Construction, Unit 10 (pre-planning decisions)
+
+---
+
+## Construction — Unit 10 Kickoff
+**Timestamp**: 2026-09-04T13:02:15Z
+**User Input**: "Start Unit 10 (BJJ-themed landing page) construction for the Portfolio repo.
+
+Read aidlc-docs/construction/plans/unit10-bjj-landing-handoff.md first; it is the complete brief: the approved design section by section, the final content, the seven locked decisions (SITE_FLAVOR=bjj switch, new copy in SiteContent columns edited at /admin/site with env fallbacks, a second OwnerPhotoService slot for the mat portrait, chart nodes linking to #principles, hero h1 \"Position before submission.\" with the name in the eyebrow, portrait JPEGs may be committed, academy is \"Championship Mixed Martial Arts\"), the constraints, and the recommended phases.
+
+Follow the AI-DLC workflow in CLAUDE.md: log my inputs in aidlc-docs/audit.md, keep aidlc-docs/aidlc-state.md current, do a short Functional Design pass for the new data fields, then present the Code Generation plan (unit10-bjj-landing-plan.md with checkboxes) for my approval before writing any code. One PR per phase, conventional-commit titles, dotnet build -warnaserror and dotnet test green, Copilot review gate per CONTRIBUTING.md.
+
+Exact CSS and markup for every new piece is in aidlc-docs/inception/application-design/landing-directions/parts/; copy values from there, not from memory. The approved canvas is https://claude.ai/code/artifact/4e3d73fd-098f-472f-a3c9-0678be44349c and the design-system project is https://claude.ai/design/p/0eace0af-92bf-4fa4-b035-9fa3dd8dab6d.
+
+Non-negotiables: public pages stay static SSR (no InteractiveServer on /), LandingSections must render correctly inside the inert admin theme preview (nothing position: fixed), belt colors are fixed :root constants (ADR 0002), every new animation joins the reduced-motion block and scroll-driven effects are @supports-gated, no CDN or third-party scripts, no emoji, and every owner fact exactly as recorded in the handoff."
+**AI Response**: Entering Construction, Unit 10. Read the handoff, memory notes, aidlc-state.md and the audit tail; next: load the design sources under landing-directions/parts/ and the affected code (SiteConfig, SiteContent, LandingSections, OwnerPhotoService, /admin/site editor, tests), write a minimal Functional Design for the new SiteContent fields, then present the Code Generation plan (construction/plans/unit10-bjj-landing-plan.md) for approval. No code written before approval.
+**Context**: Construction, Unit 10, kickoff (Functional Design + Code Generation Part 1 pending)
+
+---
+
+## Construction — Unit 10 Functional Design
+**Timestamp**: 2026-09-04T13:18:19Z
+**User Input**: (no new input; continuation of the kickoff request logged above)
+**AI Response**: Wrote construction/unit10-bjj-landing/functional-design/domain-entities.md (SiteFlavor, eight SiteContent columns with env fallbacks and limits, EffectiveSiteContent additions and typed records, the second OwnerPhotoService slot, line formats) and business-rules.md (BR-1 to BR-19: flavor gate, blank-hides, precedence, lenient resolve and strict save, counts, rank bar, eras and rungs, degrees consistency, lengths, static SSR, preview safety, motion, fixed constants, accessibility, portrait switch, owner facts, SEO unchanged). Refinements beyond the handoff (text[] line formats, env names incl. SITE_ERAS instead of SITE_TIMELINE, strict counts, index-based scroll timelines, no aria-hidden on table cells, portrait switch moved to Phase 4, rank bar always black in v1) are listed at the top of the plan for approval. Verified beforehand that the test project already reaches the ASP.NET Core shared framework (HtmlRenderer needs no new package).
+**Context**: Construction, Unit 10, Functional Design (minimal depth)
+
+---
+
+## Construction — Unit 10 Code Generation Plan (Part 1) Presented
+**Timestamp**: 2026-09-04T13:18:19Z
+**User Input**: (none yet; approval prompt logged before asking)
+**AI Response**: Wrote construction/plans/unit10-bjj-landing-plan.md: non-negotiables, eight design refinements to confirm, five PR phases with branches and conventional titles (Phase 0 owner actions; Phase 1 test: render safety net with HtmlRenderer; Phase 2 feat: flavor switch, hero game plan, rank bar, principles, admin copy fields, ADR 0002; Phase 3 feat: the road and now; Phase 4 feat: second owner photo slot and portrait switch; Phase 5 perf: font preload, delegated handlers, README, glossary), checkbox steps per phase with files, tests and gates, out-of-scope follow-ups, risks, and the content sheet carrying the owner values verbatim. Updated aidlc-state.md (Unit 10 in construction, stage checklist). Presented the 2-option completion message: A) Request Changes, B) Continue to Next Stage (B approves the functional design and the plan; Phase 1 starts).
+**Context**: Construction, Unit 10, Code Generation Part 1; waiting for the owner
+
+---
+
+## Construction — Unit 10 Plan Question (Phase 0 demo post)
+**Timestamp**: 2026-09-04T13:26:26Z
+**User Input**: "Why do I need to unpublish the \"A quick markdown tour\" blog post?"
+**AI Response**: Explained that nothing in Unit 10 depends on it: the item is content hygiene carried over from the Phase 0 checklist in inception/reverse-engineering/code-quality-assessment.md. Re-verified live: /blog/markdown-tour returns 200, the post is listed on /blog, in /feed.xml and in /sitemap.xml; it is the DemoSeeder sample (slug markdown-tour, summary "Tables, code blocks, and everything else posts support.", tag "demo"), so it reads as placeholder content next to the real posts. Options given: keep it, rewrite it into a real post at the same URL, or unpublish (reversible; deleting would also remove its comments). Offered to drop or mark the item optional in the plan at approval time. Plan approval still pending (A or B).
+**Context**: Construction, Unit 10, Code Generation Part 1 (question during approval)
+
+---
+
+## Construction — Unit 10 Plan Approved; Orchestration Model Set
+**Timestamp**: 2026-09-04T13:36:27Z
+**User Input**: "I'll keep it for now.
+
+I approve of the functional design and the plan.
+
+From here on you will be the orchestrator of agents delegating phases and tasks to subagents. For each phase, spawn a new sub-agent that directs that task so it maintains its own context and session. That subagent should be Sonnet 5 High. The subagents just need to accomplish the plan and tasks that have been created.
+
+When a phase is complete, initiate a code review of it. Spawn a sub agent for each of these code review areas: correctness and bugs (prioritize production-breaking issues, logic bugs, and edge cases over formatting issues), security scanning (hardcoded secrets, injection flaws, OWASP Top 10 risks, etc), framework awareness (validate language specific patterns, etc), maintainability (code readability, structural modularity, adherence to repository standards, etc), performance. They will be in charge of their respective areas.
+
+Begin phase 1 per my guidance."
+**AI Response**: Recorded the decision to keep the demo post (Phase 0 item closed, no action) and the approval of the functional design and the code generation plan (Code Generation Part 1 complete). Adopted the orchestration model: one fresh Sonnet subagent per phase executes that phase's plan tasks on its own branch (build and tests green, committed, not pushed); when it reports done, five review subagents run in parallel (correctness and bugs, security, framework awareness, maintainability, performance); findings are remediated, then the PR is opened and the Copilot review gate and squash-merge follow per CONTRIBUTING.md. Noted to the owner that the Agent tool exposes the model choice (Sonnet) but not a reasoning-effort setting. Spawned the Phase 1 subagent (test: render safety net) with a self-contained brief pointing at the plan, the functional design and the constraints.
+**Context**: Construction, Unit 10, Code Generation Part 2 started; Phase 1 in progress
+
+---
+
+## Construction — Unit 10 Phase 1 Implemented (subagent report)
+**Timestamp**: 2026-09-04T13:52:25Z
+**User Input**: (none; background task notification)
+**AI Response**: The Phase 1 subagent (Sonnet) finished on branch test/landing-render-tests, commit f5e56d8 (parent c29e6bc), not pushed. Created tests/Portfolio.Tests/LandingSectionsRenderTests.cs (14 facts: h1, tagline present/absent, About paragraphs, skills chips, About section absent when empty, GitHub/LinkedIn buttons only when configured, Get in touch always, owner photo with has-photo/alt/versioned src using a real temp file, no photo when unconfigured, no fixed positioning and no script tags) and tests/Portfolio.Tests/AppCssTests.cs (2 facts: the brace-depth scanner finds #blazor-error-ui as the only fixed-position rule; no fixed-position selector names a class or id rendered by LandingSections). Linked app.css into the test project as copied content; deleted UnitTest1.cs; corrected unit-test-instructions.md (36 fixture files, 265 test methods, 435 cases; note that the fixture table is still incomplete pending Phase 5); ticked the Phase 1 plan boxes except the gate. Reported: dotnet build -warnaserror 0 warnings; dotnet test 435/435 passed (420 before). HtmlRenderer resolved through the transitive framework reference, no csproj change beyond the content link. Orchestrator verified branch, commit and diff stat (6 files, +671/-11). Next: five review subagents (correctness, security, framework, maintainability, performance) on the branch diff.
+**Context**: Construction, Unit 10, Phase 1 review pending
+
+---
+
+## Construction — Unit 10 Phase 1 Five-Area Review (subagent reports)
+**Timestamp**: 2026-09-04T14:09:02Z
+**User Input**: (none; background task notifications)
+**AI Response**: Five Sonnet review subagents examined commit f5e56d8 on test/landing-render-tests. Correctness: NEEDS CHANGES, one confirmed major (the fixed-position scanner extracts only class and id tokens, so a rule such as .theme-preview-frame img { position: fixed } or a bare type selector yields no assertion and passes silently; proven with synthetic CSS) plus a nit (quoted strings with braces would desync the brace counter); everything else cleared (comment stripping, nested at-rules, selector lists, HtmlRenderer and dispatcher usage, DI surface, temp-dir isolation, CRLF vs LF). Security: PASS WITH NITS (no fixture with HTML metacharacters so an encoding regression would go unnoticed; the plan carried a local absolute path to the original mat photo). Framework awareness: PASS WITH NITS (Content vs None item type for the linked stylesheet; combinator selectors over-flag, the safe direction); verified the transitive framework reference, the byte-identical stylesheet copy and all 435 tests on Windows and in the pinned Linux SDK image. Maintainability: PASS WITH NITS (major: the render ceremony is duplicated and the CSS fixture hand-builds its own maximal content, which later phases could silently leave incomplete; minor: the scanner should expose a reusable leaf-rule parser for the Phase 2 and 3 invariants); docs and counts verified accurate. Performance: PASS (new tests cost about 160 ms, below run-to-run noise; the linked copy is incremental and safe with --no-build). Orchestrator actions: removed the local path from the plan content sheet; SendMessage is unavailable in this session, so a fresh Sonnet remediation subagent was spawned with the consolidated list (subject-compound token matching incl. type selectors and *, loud failure on token-less subjects, synthetic-CSS facts for the scanner, reusable ParseLeafRules with ancestors and once-per-run parsing, string-literal stripping, shared render harness with one maximal-content builder, encoding fixture fact, None item plus comment and trailing newline). It commits on the branch and does not push.
+**Context**: Construction, Unit 10, Phase 1 remediation in progress
+
+---
+
+## Construction — Unit 10 Phase 1 Remediated and Verified
+**Timestamp**: 2026-09-04T14:26:05Z
+**User Input**: (none; background task notification)
+**AI Response**: The remediation subagent added commit 54a708a (test: harden the landing render safety net after review): new tests/Portfolio.Tests/Support/CssScanner.cs (ParseLeafRules with ancestor at-rules, RulesInside, SubjectSelectorTokens; comments and quoted strings stripped before brace scanning) and Support/LandingRenderHarness.cs (RenderAsync, BuildConfig, BuildContent, MaximalConfig, MaximalContent with a comment that later phases must extend the maximal pair). AppCssTests now matches subject-compound tokens including type selectors and the universal selector, fails loudly on token-less subjects, parses app.css once per run, and carries synthetic-CSS facts; LandingSectionsRenderTests gained the HTML-metacharacter encoding fact; the csproj item is None with a comment and a trailing newline. Orchestrator re-ran dotnet build -warnaserror (0 warnings) and dotnet test (445 passed; 420 on master); refreshed unit-test-instructions.md (445 tests, Support helpers named); committed the Unit 10 docs (functional design, approved plan without the local photo path, state, audit) on the branch. Next: push, open the PR with the plan title, wait for the automatic Copilot review (it posted about two minutes after creation on PRs 83 and 86), remediate, re-request until clean, squash-merge.
+**Context**: Construction, Unit 10, Phase 1 gate (PR)

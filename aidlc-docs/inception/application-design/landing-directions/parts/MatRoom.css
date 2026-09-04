@@ -1,0 +1,25 @@
+/* Mat Room: puzzle-mat ground, mat-tape lines, tape-end ribbons */
+.mat-ground { position: relative; --mat-line: color-mix(in srgb, var(--text) 5%, transparent); background-image: repeating-linear-gradient(0deg, var(--mat-line) 0 1px, transparent 1px 96px), repeating-linear-gradient(90deg, var(--mat-line) 0 1px, transparent 1px 96px); }
+.tape-outer { position: absolute; top: 3.5rem; bottom: 3rem; left: calc((100% - min(1080px, 92vw)) / 2 - 26px); width: 3px; background: var(--c-gold); transform-origin: top; }
+@supports (animation-timeline: scroll()) {
+  .tape-outer { animation: lay-tape linear both; animation-timeline: scroll(root block); animation-range: 0% 70%; }
+}
+@keyframes lay-tape { from { transform: scaleY(0.12); } to { transform: scaleY(1); } }
+.tape-ends i { border-radius: 0; }
+.tape-frame { position: relative; max-width: 760px; padding: 2.4rem 2.6rem 2.6rem; border: 3px solid var(--c-red); }
+.tape-frame h1 { margin-top: 0; }
+.spec-plate { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 1.4rem 0 0; border: 1px solid var(--border); background: var(--surface); }
+.spec-plate div { padding: 1rem 1.1rem; border-right: 1px solid var(--border); }
+.spec-plate div:last-child { border-right: 0; }
+.spec-plate dt { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.spec-plate dd { margin: 0.3rem 0 0; font-family: var(--font-mono); font-size: 0.95rem; }
+.cta-band h2 { margin-bottom: 0.4rem; }
+.cta-band .muted { margin: 0 0 1.4rem; }
+
+@media (max-width: 720px) {
+  .tape-outer { left: 2%; }
+  .tape-frame { padding: 1.6rem 1.4rem 1.8rem; }
+  .spec-plate { grid-template-columns: 1fr 1fr; }
+  .spec-plate div:nth-child(2) { border-right: 0; }
+  .spec-plate div:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+}

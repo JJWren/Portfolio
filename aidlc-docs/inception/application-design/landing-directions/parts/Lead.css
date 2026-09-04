@@ -1,0 +1,6 @@
+/* Lead: Game Plan hero with the Quiet Belt portrait beside the copy and the chart below both */
+.hero-plan { grid-column: 1 / -1; margin-top: 1.5rem; }
+.hero .container.has-photo .photo-slot { align-self: start; }
+@media (max-width: 720px) {
+  .hero-plan { margin-top: 0.5rem; }
+}

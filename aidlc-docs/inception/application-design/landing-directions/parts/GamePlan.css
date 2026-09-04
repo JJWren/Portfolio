@@ -1,0 +1,33 @@
+/* Game Plan: the four brand colors become the four nodes */
+.hero .eyebrow { margin-bottom: 0.4rem; }
+.gp-red { --node: var(--c-red); }
+.gp-gold { --node: var(--c-gold); }
+.gp-green { --node: var(--c-green); }
+.gp-blue { --node: var(--c-blue); }
+.game-plan { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; list-style: none; margin: 2.75rem 0 0; padding: 0; }
+.gp-node { position: relative; padding-right: 34px; }
+.gp-node:last-child { padding-right: 0; }
+.gp-node a { display: block; height: 100%; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--border); border-top: 3px solid var(--node); border-radius: var(--radius); background: var(--surface); color: var(--text); text-decoration: none; transition: transform 0.2s ease, border-color 0.2s ease; }
+.gp-node .term { display: block; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.gp-node .read { display: block; margin-top: 0.3rem; font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; line-height: 1.2; }
+.gp-node .how { display: block; margin-top: 0.4rem; font-size: 0.85rem; color: var(--text-muted); }
+.gp-node::after { content: ''; position: absolute; top: 50%; right: 8px; width: 20px; height: 2px; background: var(--border); transform: translateY(-50%); transition: background 0.2s ease; }
+.gp-node::before { content: ''; position: absolute; top: 50%; right: 4px; border: 5px solid transparent; border-left: 7px solid var(--border); transform: translateY(-50%); transition: border-left-color 0.2s ease; }
+.gp-node:last-child::after, .gp-node:last-child::before { display: none; }
+.gp-node a:hover, .gp-node a:focus-visible { border-color: var(--node); transform: translateY(-3px); }
+.gp-node:has(a:hover)::after, .gp-node:has(a:focus-visible)::after { background: var(--node); }
+.gp-node:has(a:hover)::before, .gp-node:has(a:focus-visible)::before { border-left-color: var(--node); }
+.gp-node:has(a:hover) + .gp-node a, .gp-node:has(a:focus-visible) + .gp-node a { transform: translateY(-3px); border-color: var(--node); }
+.eyebrow-red::before { background: var(--c-red); }
+.eyebrow-gold::before { background: var(--c-gold); }
+.eyebrow-green::before { background: var(--c-green); }
+.eyebrow-blue::before { background: var(--c-blue); }
+.section .placeholder { max-width: 62ch; margin: 0; }
+
+@media (max-width: 720px) {
+  .game-plan { grid-template-columns: 1fr; gap: 26px; }
+  .gp-node { padding-right: 0; }
+  .gp-node::after { top: auto; bottom: -16px; left: 24px; right: auto; width: 2px; height: 12px; transform: none; }
+  .gp-node::before { top: auto; bottom: -22px; left: 20px; right: auto; border: 5px solid transparent; border-top: 7px solid var(--border); transform: none; }
+  .gp-node:has(a:hover)::before, .gp-node:has(a:focus-visible)::before { border-left-color: transparent; border-top-color: var(--node); }
+}

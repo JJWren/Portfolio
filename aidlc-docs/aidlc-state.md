@@ -6,7 +6,8 @@
 
 ## Inception Phase
 - [x] Workspace Detection — greenfield; existing repo is static HTML/CSS/JS, content reference only
-- [x] Reverse Engineering — skipped (greenfield rewrite; old code intentionally discarded)
+- [x] Reverse Engineering — executed 2026-09-03 at v1.22.0 (brownfield pass; artifacts in inception/reverse-engineering/). The July note "skipped (greenfield rewrite)" is superseded.
+- [x] Requirements Analysis (2026-09-03) — portfolio review + BJJ landing directions; see inception/requirements/requirements.md
 - [x] Requirements Analysis — standard depth; decisions captured via two clarification rounds (see audit.md)
 - [x] User Stories — skipped (single stakeholder/owner; requirements fully enumerated in approved plan)
 - [x] Workflow Planning — approved plan with 8 construction units
@@ -31,6 +32,14 @@
 - [x] Unit 7: Contact form (COMPLETE — see construction/plans/unit7-contact-plan.md)
 - [x] Unit 8: Extras + polish + CI (COMPLETE — repo live at github.com/JJWren/Portfolio; see construction/plans/unit8-extras-plan.md)
 - [x] Build and Test — instruction docs written; CI run 1 SUCCESS (build + 41 tests + GHCR publish); clean-slate compose verified. User-only items listed in build-and-test-summary.md.
+- [ ] Unit 10: BJJ-themed landing page — IN CONSTRUCTION (started 2026-09-04). Brief: construction/plans/unit10-bjj-landing-handoff.md (seven decisions locked 2026-09-04). Design sources: inception/application-design/landing-directions/. Plan: construction/plans/unit10-bjj-landing-plan.md.
+  - [x] Functional Design (minimal) — 2026-09-04: construction/unit10-bjj-landing/functional-design/domain-entities.md and business-rules.md (BR-1 to BR-19)
+  - [x] NFR Requirements — skipped (constraints fixed in inception/requirements/requirements.md section 5 and the handoff)
+  - [x] NFR Design — skipped (no new NFR patterns; same stack)
+  - [x] Infrastructure Design — skipped (same image, env switch, no new infrastructure)
+  - [x] Code Generation Part 1 (plan) — written and approved 2026-09-04 (functional design approved in the same message); orchestration model: one Sonnet subagent per phase, five-area review after each phase, then PR, Copilot gate, squash-merge
+  - [ ] Code Generation Part 2 — IN PROGRESS (Phase 1 started 2026-09-04): Phase 0 owner actions; Phase 1 test: render safety net; Phase 2 feat: flavor, hero game plan, rank bar, principles, admin fields, ADR 0002; Phase 3 feat: the road and now; Phase 4 feat: second photo slot and portrait switch; Phase 5 perf: preload, delegated handlers, docs
+  - [ ] Build and Test — refresh construction/build-and-test/unit-test-instructions.md counts in Phase 1 and Phase 5
 
 ## Operations Phase — Post-Launch (2026-07-21 → present)
 - [x] Deployed: live at https://joshuamykitta.dev (HTTP container behind reverse proxy, TLS at proxy; image ghcr.io/jjwren/portfolio)
@@ -52,7 +61,7 @@
   - v1.10.0 sortable admin columns; project cards deep-link to the editor for admins
   - v1.11.0 admin-editable landing-page content overrides (/admin/site)
   - v1.12.0 inline icons for external links and sign-in providers
-- Test suite: 41 → 184 tests, 23 fixtures (see construction/build-and-test/unit-test-instructions.md)
+- Test suite: 41 → 184 → 250 test methods across 35 files at v1.22.0 (about 390 cases with theory rows; see inception/reverse-engineering/reverse-engineering-timestamp.md; unit-test-instructions.md still shows the older count)
 - Full history in CHANGELOG.md (release-please); decision log in audit.md
 
 ## Key Decisions
