@@ -74,7 +74,7 @@ The hero shows the two-photo switch only when both slots resolve to an existing 
 
 ## 5. Line formats
 
-- **Storage and admin textareas**: one item per line, real newlines. Fields inside a line are separated by `|`; surrounding whitespace is trimmed. No field may contain `|`.
+- **Storage and admin textareas**: one item per line, real newlines. Fields inside a line are separated by `|`; surrounding whitespace is trimmed. Only the last field of a line may contain `|`: the parser re-joins any extra separators into it (the tail-field rule, as implemented in `BjjRules.TailField` since Phase 2), so free text keeps its pipes while every earlier field must stay pipe-free.
 - **Env values**: the same lines joined with the literal two characters `\n` (the `SITE_ABOUT` convention), because `.env` files cannot hold real newlines.
 - `date` is `YYYY-MM-DD`. `belt` is one of `white`, `blue`, `purple`, `brown`, `black` (case-insensitive). `stripes` is `0` to `6`; blank counts as `0`.
 

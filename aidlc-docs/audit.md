@@ -623,3 +623,83 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Phase 3 build agent launched
+**Timestamp**: 2026-09-04T18:03:57Z
+**User Input**: (none)
+**AI Response**: "Committed the orchestrator docs as 149f70e on feat/bjj-road-and-now and launched the Phase 3 Sonnet general-purpose subagent with the full text of unit10-phase3-brief.md plus a preamble noting the branch already exists. Five-area review follows when it reports."
+**Context**: Construction, Unit 10, Code Generation Part 2, Phase 3 in progress
+
+---
+
+## Phase 3 build agent report
+**Timestamp**: 2026-09-04T18:41:31Z
+**User Input**: (none)
+**AI Response**: "Phase 3 subagent finished: commits 491f5a1 (data + migration AddRoadAndNow), 56d8b5b (editor), d06adb9 (UI: BeltBand, Road, LandingSections, app.css), 756c62e (tests, plan boxes). Build 0 warnings; tests 660 passed (was 567). Visual check done at 1440 dark/light and 390 dark with hover pass; Firefox-style fallback not checked (covered by the supports-ancestor CSS test). Six deviations reported (BR-9 check uses draft values only; reduced-motion test predicate strips era-N tokens; separate 720px media block; BeltBand clamps stripes; hero eyebrow rule already present; CSS reformatted to multi-line). Environment note: a blanket taskkill of dotnet.exe ended one unrelated dotnet process (PID 35316). Next: five-area review."
+**Context**: Construction, Unit 10, Phase 3 code generation complete, review pending
+
+---
+
+## Phase 3 five-area review launched
+**Timestamp**: 2026-09-04T18:44:51Z
+**User Input**: (none)
+**AI Response**: "Verified the branch (149f70e docs + 491f5a1, 56d8b5b, d06adb9, 756c62e; 22 files, 3089 insertions; migration 20260904182920_AddRoadAndNow present). Launched five report-only Sonnet reviewers in parallel: correctness and bugs, security (incl. BR-18 grep), framework awareness, maintainability, performance. Remediation agent follows once findings are consolidated."
+**Context**: Construction, Unit 10, Phase 3 review
+
+---
+
+## Phase 3 review 1 of 5: security
+**Timestamp**: 2026-09-04T18:52:43Z
+**User Input**: (none)
+**AI Response**: "Security reviewer verdict FAIL. Three CONFIRMED BR-18 findings, all in test fixtures: (1) Critical: the household row from the content sheet copied verbatim into LandingSectionsRenderTests (fixture and assertion); (2) High: the brown-belt row real gym, city and promotion date in one LandingSectionsRenderTests fixture; (3) High: the five real promotion dates (with matching belts and stripes) reused across BjjRulesTests, LandingSectionsRenderTests, SiteContentRulesTests and SiteConfigTests. Fix: invented dates and neutral values as already used by LandingRenderHarness.BuildContent and .env.example. Passed: output encoding, parameterized persistence, migration Up/Down, input caps, no secrets, no client-side surface, aria usage, save-path trust boundary. Note (pre-existing, not Phase 3): Validate splits the raw textarea once before caps apply."
+**Context**: Construction, Unit 10, Phase 3 review
+
+---
+
+## Phase 3 review 2 of 5: framework awareness
+**Timestamp**: 2026-09-04T18:55:34Z
+**User Input**: (none)
+**AI Response**: "Framework reviewer verdict FAIL. Finding 1 (High, CONFIRMED): the same BR-18 owner-fact fixtures as the security review (household row, brown-belt row, the five real promotion dates with matching belts and stripes across four test files); fix with fictional values as MaximalContent already does. Finding 2 (Low): BeltBand.razor inlines Math.Clamp instead of reusing BjjRules.ClampDegrees like RankBar. Passed: static SSR (no rendermode, no JS), parameter conventions, @key, SiteContentDraft construction sites, invariant DateOnly handling, IReadOnlyList exposure, EF text[] mapping, migration Designer equals snapshot, CSS faithful to LongRoad.css with index-based timelines, single reduced-motion block covering the new selectors (StripEraToken fallback judged sound), no new hex colors, no new packages or suppressions."
+**Context**: Construction, Unit 10, Phase 3 review
+
+---
+
+## Phase 3 review 3 of 5: correctness and bugs
+**Timestamp**: 2026-09-04T18:59:05Z
+**User Input**: (none)
+**AI Response**: "Correctness reviewer verdict PASS WITH NOTES; 660/660 tests green on its own run. Finding 1 (High, CONFIRMED by reproduction against the compiled code): SiteContentRules.Validate runs the BR-9 cross-check on the draft BeltDegreesText and ErasText only; SeedForm seeds textareas from the DB override, so a field that defers to SITE_BELT_DEGREES or SITE_ERAS is blank in the draft and the check no-ops, letting the rank bar (3 stripes) and the road black-belt row (0) disagree after save. The brief itself asked for a draft-only check, so the gap is the brief as much as the code. Fix: validate the effective post-save values (draft field when present, else the SiteConfig env fallback) whenever the draft supplies at least one of the two fields, and test the deferred cases. All parsing, validation, resolve precedence, save path, migration, Razor markup, CSS timeline and reduced-motion checks passed; the six build-agent deviations were judged acceptable."
+**Context**: Construction, Unit 10, Phase 3 review
+
+---
+
+## Phase 3 review 4 of 5: maintainability
+**Timestamp**: 2026-09-04T18:59:30Z
+**User Input**: (none)
+**AI Response**: "Maintainability reviewer verdict FAIL. Finding 1 (High, CONFIRMED): BR-18 owner facts in test fixtures (same as security and framework; also the Now labels Teaches, Building, Home lab, Household and the value Adult no-gi recur). Finding 2 (Medium, CONFIRMED): app.css now has two 720px media blocks inside the Landing (BJJ flavor) banner; the pre-Phase-3 file has exactly one per banner section, so the build agent justification was wrong; merge the Phase 3 rules into the existing block. Finding 3 (Low): BjjRules section divider omits Now/BR-10. Finding 4 (Low): the eight-timeline cap has no rationale comment. Finding 5 (Low): commit subject casing, no action under squash-merge. Notes for Phase 5: README and CONTEXT.md lack the BJJ flavor terms; domain-entities.md section 5 says no field may contain a pipe, which undersells TailField. Passed: house-style parser/validator shapes, Belt/CssName placement, single reduced-motion block, markup and CSS verified by normalized diff against the design sources, editor field style, test naming, plan hygiene, commit scoping, CssScanner reuse."
+**Context**: Construction, Unit 10, Phase 3 review
+
+---
+
+## Phase 3 review 5 of 5: performance
+**Timestamp**: 2026-09-04T19:01:34Z
+**User Input**: (none)
+**AI Response**: "Performance reviewer verdict PASS WITH NOTES. Finding 1 (High, CONFIRMED by cascade math): the reduced-motion overrides do not win; the era-indexed glow selectors (0,3,0) outrank the override (0,2,0), and equal-specificity overrides lose on source order because the single reduced-motion block sits early in app.css; the same defect already affects Phase 2 selectors (.gp-node a, .gp-node::before/::after, .belt-bar i). Finding 2 (Medium): EffectiveSiteContent.Rungs is a computed getter, recomputed per render instead of once per cache lifetime like its siblings. Finding 3 (Low): Road.razor formats the era date twice per row. Measurements: app.css +16.3 KB raw, +1.9 KB gzip, immutable-cached; up to 28 scroll-animated elements on mobile worst case, identical to the design source; parsing runs once per SiteContentService cache lifetime; migration is metadata-only; no new queries. Passed: no regex, no duplicated rules or tokens, hover block byte-identical to LongRoad.css, single reduced-motion block, supports gate enforced by test, cached CSS parse in tests, @key on rows."
+**Context**: Construction, Unit 10, Phase 3 review complete; remediation next
+
+---
+
+## Phase 3 remediation agent launched
+**Timestamp**: 2026-09-04T19:03:30Z
+**User Input**: (none)
+**AI Response**: "Consolidated the five reviews into one remediation brief (F1 BR-18 fixture sweep with a fixed neutral value set and a verification grep; F2 BR-9 check on effective values via Validate(draft, SiteConfig) with source-naming messages and tests; F3 !important on every declaration of the single reduced-motion block plus a test; F4 merge the second 720px block into the existing one; F5 resolve Rungs once; F6 format the date once per row; F7 BeltBand reuses ClampDegrees; F8 section divider; F9 eight-timeline rationale comment) and launched a fresh Sonnet remediation agent on feat/bjj-road-and-now. Orchestrator doc fixes made directly: domain-entities.md tail-field rule; business-rules.md BR-14 rationale and !important note."
+**Context**: Construction, Unit 10, Phase 3 remediation in progress
+
+---
+
+## Phase 3 remediation report and orchestrator verification
+**Timestamp**: 2026-09-04T19:33:13Z
+**User Input**: (none)
+**AI Response**: "Remediation agent finished: 5bcd762 (BR-18 neutral fixtures, verification grep empty), 685bb46 (Validate(draft, site) with effective-value BR-9 check and source-naming messages, five new tests), 5765728 (!important on every reduced-motion declaration with a new test; the two 720px blocks merged into one placed after the baseline rules to keep cascade order), ffa17f9 (date formatted once per row, BeltBand reuses ClampDegrees, divider and timeline-cap comments). Orchestrator re-ran dotnet build -warnaserror (0 warnings) and dotnet test (666 passed, was 660). Follow-up: the literal date substitution left brown at 2013-04-05 inside multi-belt fixtures; the orchestrator restores chronological order directly before pushing."
+**Context**: Construction, Unit 10, Phase 3 remediation complete
+
+---
+
