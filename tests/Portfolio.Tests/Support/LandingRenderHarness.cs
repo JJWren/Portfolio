@@ -77,7 +77,9 @@ internal static class LandingRenderHarness
         IReadOnlyList<string>? gamePlanLines = null,
         string? beltCaption = null,
         int? beltDegrees = null,
-        IReadOnlyList<string>? principleLines = null)
+        IReadOnlyList<string>? principleLines = null,
+        IReadOnlyList<string>? eraLines = null,
+        IReadOnlyList<string>? nowLines = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -97,7 +99,9 @@ internal static class LandingRenderHarness
             GamePlanLines: gamePlanLines,
             BeltCaption: beltCaption,
             BeltDegrees: beltDegrees,
-            PrincipleLines: principleLines);
+            PrincipleLines: principleLines,
+            EraLines: eraLines,
+            NowLines: nowLines);
 
     /// <summary>Builds an EffectiveSiteContent with fixed, neutral defaults; pass only what a given test cares about varying.</summary>
     public static EffectiveSiteContent BuildContent(
@@ -110,7 +114,9 @@ internal static class LandingRenderHarness
         IReadOnlyList<GamePlanNode>? gamePlan = null,
         string? beltCaption = null,
         int beltDegrees = 0,
-        IReadOnlyList<Principle>? principles = null)
+        IReadOnlyList<Principle>? principles = null,
+        IReadOnlyList<Era>? eras = null,
+        IReadOnlyList<NowItem>? now = null)
         => new(
             HeroHeading: heroHeading,
             Tagline: tagline,
@@ -121,7 +127,9 @@ internal static class LandingRenderHarness
             GamePlan: gamePlan,
             BeltCaption: beltCaption,
             BeltDegrees: beltDegrees,
-            Principles: principles);
+            Principles: principles,
+            Eras: eras,
+            Now: now);
 
     /// <summary>
     /// A SiteConfig with every optional branch populated (GitHub, LinkedIn,
@@ -168,5 +176,22 @@ internal static class LandingRenderHarness
             [
                 new Principle("Ship small.", "Small changes are easy to review and easy to revert."),
                 new Principle("Write it down.", string.Empty),
+            ],
+            // Five eras spanning all five belts (so every .row[data-belt]
+            // color map and every .belt-band color renders at least once)
+            // plus a repeated belt (Purple) so the ladder/rung-collapsing
+            // markup (fewer rungs than rows) also renders.
+            eras:
+            [
+                new Era(new DateOnly(2010, 1, 1), Belt.White, 2, "Test Gym", "Test City", "Student."),
+                new Era(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Test Gym", "Test City", "Assistant instructor."),
+                new Era(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Test Gym", "Test City", "Competing."),
+                new Era(new DateOnly(2016, 9, 9), Belt.Purple, 4, "Test Gym Two", "Test City Two", "Coaching."),
+                new Era(new DateOnly(2018, 12, 1), Belt.Black, 3, "Test Gym Two", "Test City Two", "Head instructor."),
+            ],
+            now:
+            [
+                new NowItem("Teaches", "Adult classes."),
+                new NowItem("Building", "A side project."),
             ]);
 }
