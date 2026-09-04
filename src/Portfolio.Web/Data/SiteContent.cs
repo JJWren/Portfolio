@@ -45,5 +45,12 @@ public class SiteContent
     /// <summary>Principles: `maxim | reading`, one to six lines (BR-7).</summary>
     public List<string>? Principles { get; set; }
 
+    /// <summary>The road: `date | belt | stripes | gym | location | role`,
+    /// one to twelve lines, in the order entered (BR-8).</summary>
+    public List<string>? Eras { get; set; }
+
+    /// <summary>Now tiles: `label | value`, one to eight lines (BR-10).</summary>
+    public List<string>? Now { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

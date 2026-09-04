@@ -18,7 +18,9 @@ internal sealed record SiteContentValues(
     List<string>? GamePlan,
     string? BeltCaption,
     int? BeltDegrees,
-    List<string>? Principles);
+    List<string>? Principles,
+    List<string>? Eras,
+    List<string>? Now);
 
 public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteConfig site)
 {
@@ -80,7 +82,9 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             GamePlan: SiteContentRules.ParseLines(draft.GamePlanText),
             BeltCaption: SiteContentRules.NormalizeField(draft.BeltCaption),
             BeltDegrees: SiteContentRules.ParseDegrees(draft.BeltDegreesText),
-            Principles: SiteContentRules.ParseLines(draft.PrinciplesText));
+            Principles: SiteContentRules.ParseLines(draft.PrinciplesText),
+            Eras: SiteContentRules.ParseLines(draft.ErasText),
+            Now: SiteContentRules.ParseLines(draft.NowText));
 
         try
         {
@@ -121,6 +125,8 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         row.BeltCaption = values.BeltCaption;
         row.BeltDegrees = values.BeltDegrees;
         row.Principles = values.Principles;
+        row.Eras = values.Eras;
+        row.Now = values.Now;
         row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }

@@ -29,7 +29,9 @@ public record SiteConfig(
     IReadOnlyList<string>? GamePlanLines = null,
     string? BeltCaption = null,
     int? BeltDegrees = null,
-    IReadOnlyList<string>? PrincipleLines = null)
+    IReadOnlyList<string>? PrincipleLines = null,
+    IReadOnlyList<string>? EraLines = null,
+    IReadOnlyList<string>? NowLines = null)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -83,7 +85,9 @@ public record SiteConfig(
             GamePlanLines: SplitEnvLines(config["SITE_GAME_PLAN"]),
             BeltCaption: NullIfEmpty(config["SITE_BELT_CAPTION"]),
             BeltDegrees: ParseDegrees(config["SITE_BELT_DEGREES"]),
-            PrincipleLines: SplitEnvLines(config["SITE_PRINCIPLES"]));
+            PrincipleLines: SplitEnvLines(config["SITE_PRINCIPLES"]),
+            EraLines: SplitEnvLines(config["SITE_ERAS"]),
+            NowLines: SplitEnvLines(config["SITE_NOW"]));
     }
 
     private static string? NullIfEmpty(string? value)
