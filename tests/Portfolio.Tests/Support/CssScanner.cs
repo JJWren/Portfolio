@@ -143,6 +143,42 @@ internal static class CssScanner
     }
 
     /// <summary>
+    /// The raw CSS text between a "SectionName" banner comment (this repo's
+    /// <c>/* ====... \n   SectionName\n   ====... */</c> convention, see
+    /// app.css) and the next banner comment, or the end of the file when
+    /// there is no next one. Lets a test scope a check ("every rule inside
+    /// this named section...") to one part of a large hand-authored file
+    /// without a full CSS-nesting model — banner comments aren't a real CSS
+    /// construct, so <see cref="ParseLeafRules"/>'s <see cref="CssRule.Ancestors"/>
+    /// can't see them; this is a plain text-boundary search instead.
+    /// </summary>
+    public static string ExtractBannerSection(string css, string sectionName)
+    {
+        // \r?\n: app.css is CRLF on this repo's checkout, but the marker
+        // must not silently stop matching on an LF checkout. (?:^|\r?\n):
+        // the section name line may also open the file (no Multiline option,
+        // so ^ is the start of the string only).
+        var marker = new Regex($@"(?:^|\r?\n)   {Regex.Escape(sectionName)}\r?\n");
+        var markerMatch = marker.Match(css);
+        if (!markerMatch.Success)
+        {
+            throw new InvalidOperationException($"Banner section '{sectionName}' not found in the given CSS.");
+        }
+
+        var bannerCommentEnd = css.IndexOf("*/", markerMatch.Index, StringComparison.Ordinal);
+        if (bannerCommentEnd < 0)
+        {
+            throw new InvalidOperationException($"Banner section '{sectionName}' has no closing comment.");
+        }
+
+        var contentStart = bannerCommentEnd + 2;
+        var nextBanner = css.IndexOf("/* ====", contentStart, StringComparison.Ordinal);
+        var contentEnd = nextBanner >= 0 ? nextBanner : css.Length;
+
+        return css[contentStart..contentEnd];
+    }
+
+    /// <summary>
     /// Removes <c>/* ... */</c> comments entirely and blanks quoted string
     /// literals to spaces of the same length (quotes included) so a comment
     /// or a declaration like <c>content: "{"</c> can never desync the brace

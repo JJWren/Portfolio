@@ -55,6 +55,19 @@
     --font-mono: 'JetBrains Mono', Consolas, 'Cascadia Mono', monospace;
 
     --radius: 6px;
+
+    /* Belt & rank colors — fixed, sport-defined constants, not theme tokens
+       (docs/adr/0002-belt-colors-are-fixed-constants.md). Identical in both
+       themes: a black belt must render as black regardless of the visitor's
+       light/dark preference or the owner's brand-color choices. */
+    --belt-black: #0c0c0c;
+    --belt-white: #e8e4dd;
+    --rank-white: #e6dfd0;
+    --rank-blue: #2b4c8c;
+    --rank-purple: #5a3d8a;
+    --rank-brown: #6b4423;
+    --rank-black: #0c0c0c;
+
     color-scheme: dark;
 }
 
@@ -152,6 +165,20 @@ pre {
 
 main {
     min-height: 65vh;
+}
+
+/* Screen-reader-only text (fieldset legends, etc.) — the standard clip
+   pattern, never `display: none`, which VoiceOver/NVDA also skip. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* ================================================================
@@ -281,7 +308,8 @@ main {
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .ribbons i { animation: none; }
+    .ribbons i, .belt-bar i { animation: none; }
+    .gp-node a, .gp-node::after, .gp-node::before { transition: none; }
 }
 
 .hero h1 {
@@ -506,6 +534,272 @@ main {
     .site-nav a,
     .signout {
         font-size: 0.9rem;
+    }
+}
+
+/* ================================================================
+   Landing (BJJ flavor)
+   ================================================================ */
+.hero .eyebrow {
+    margin-bottom: 0.4rem;
+}
+
+.gp-red { --node: var(--c-red); }
+.gp-gold { --node: var(--c-gold); }
+.gp-green { --node: var(--c-green); }
+.gp-blue { --node: var(--c-blue); }
+
+.game-plan {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    list-style: none;
+    margin: 2.75rem 0 0;
+    padding: 0;
+}
+
+.gp-node {
+    position: relative;
+    padding-right: 34px;
+}
+
+.gp-node:last-child {
+    padding-right: 0;
+}
+
+.gp-node a {
+    display: block;
+    height: 100%;
+    padding: 1rem 1.1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--node);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.gp-node .term {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.gp-node .read {
+    display: block;
+    margin-top: 0.3rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.15rem;
+    line-height: 1.2;
+}
+
+.gp-node .how {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.gp-node::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 20px;
+    height: 2px;
+    background: var(--border);
+    transform: translateY(-50%);
+    transition: background 0.2s ease;
+}
+
+.gp-node::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    border: 5px solid transparent;
+    border-left: 7px solid var(--border);
+    transform: translateY(-50%);
+    transition: border-left-color 0.2s ease;
+}
+
+.gp-node:last-child::after,
+.gp-node:last-child::before {
+    display: none;
+}
+
+.gp-node a:hover,
+.gp-node a:focus-visible {
+    border-color: var(--node);
+    transform: translateY(-3px);
+}
+
+.gp-node:has(a:hover)::after,
+.gp-node:has(a:focus-visible)::after {
+    background: var(--node);
+}
+
+.gp-node:has(a:hover)::before,
+.gp-node:has(a:focus-visible)::before {
+    border-left-color: var(--node);
+}
+
+.gp-node:has(a:hover) + .gp-node a,
+.gp-node:has(a:focus-visible) + .gp-node a {
+    transform: translateY(-3px);
+    border-color: var(--node);
+}
+
+.hero-plan {
+    grid-column: 1 / -1;
+    margin-top: 1.5rem;
+}
+
+.rank-bar {
+    margin: 0;
+    padding: 0 0 3rem;
+}
+
+.rank-bar .belt {
+    display: flex;
+    height: 12px;
+}
+
+.belt-body {
+    flex: 1;
+    background: var(--belt-black);
+    border: 1px solid var(--border);
+    border-right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+.belt-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    width: 112px;
+    padding: 0 10px;
+}
+
+.belt-bar i {
+    width: 4px;
+    background: var(--belt-white);
+    transform-origin: left;
+    animation: stripe-on 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+}
+
+.belt-bar i:nth-child(1) { animation-delay: 0.45s; }
+.belt-bar i:nth-child(2) { animation-delay: 0.6s; }
+.belt-bar i:nth-child(3) { animation-delay: 0.75s; }
+.belt-bar i:nth-child(4) { animation-delay: 0.9s; }
+.belt-bar i:nth-child(5) { animation-delay: 1.05s; }
+.belt-bar i:nth-child(6) { animation-delay: 1.2s; }
+
+.belt-tip {
+    width: 44px;
+    background: var(--belt-black);
+    border: 1px solid var(--border);
+    border-left: 0;
+    border-radius: 0 3px 3px 0;
+}
+
+@keyframes stripe-on {
+    from { transform: scaleX(0); }
+}
+
+.rank-bar figcaption {
+    margin-top: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.principles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem;
+    margin-top: 1.4rem;
+}
+
+.principle h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.35rem;
+}
+
+.principle p {
+    margin: 0;
+    max-width: 30ch;
+    color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+    .game-plan {
+        grid-template-columns: 1fr;
+        gap: 26px;
+    }
+
+    .gp-node {
+        padding-right: 0;
+    }
+
+    .gp-node::after {
+        top: auto;
+        bottom: -16px;
+        left: 24px;
+        right: auto;
+        width: 2px;
+        height: 12px;
+        transform: none;
+    }
+
+    .gp-node::before {
+        top: auto;
+        bottom: -22px;
+        left: 20px;
+        right: auto;
+        border: 5px solid transparent;
+        border-top: 7px solid var(--border);
+        transform: none;
+    }
+
+    .gp-node:has(a:hover)::before,
+    .gp-node:has(a:focus-visible)::before {
+        border-left-color: transparent;
+        border-top-color: var(--node);
+    }
+
+    .hero-plan {
+        margin-top: 0.5rem;
+    }
+
+    .rank-bar .belt {
+        height: 9px;
+    }
+
+    .belt-bar {
+        width: 84px;
+        gap: 5px;
+        padding: 0 8px;
+    }
+
+    .belt-bar i {
+        width: 3px;
+    }
+
+    .belt-tip {
+        width: 30px;
+    }
+
+    .principles {
+        grid-template-columns: 1fr;
+        gap: 1.6rem;
     }
 }
 

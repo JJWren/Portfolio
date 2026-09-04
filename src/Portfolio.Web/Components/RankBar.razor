@@ -1,0 +1,31 @@
+@* The rank bar: always drawn as a black belt in v1 (BR-6 — a "current
+   belt" field to draw a non-black belt is a recorded follow-up). The belt
+   graphic is aria-hidden; the figcaption carries the information for
+   assistive tech. LandingSections only renders this component when the
+   caption is non-empty. *@
+<figure class="rank-bar">
+    <div class="belt" aria-hidden="true">
+        <span class="belt-body"></span>
+        <span class="belt-bar" style="background: var(--c-red)">
+            @for (var i = 0; i < Stripes; i++)
+            {
+                <i></i>
+            }
+        </span>
+        <span class="belt-tip"></span>
+    </div>
+    <figcaption>@Caption</figcaption>
+</figure>
+
+@code {
+    /// <summary>Degree stripes, 0 to 6 (BR-6). Resolve already clamps, but the
+    /// component clamps again so no caller can make it emit an unbounded run
+    /// of stripe elements.</summary>
+    [Parameter]
+    public int Degrees { get; set; }
+
+    private int Stripes => BjjRules.ClampDegrees(Degrees);
+
+    [Parameter, EditorRequired]
+    public required string Caption { get; set; }
+}

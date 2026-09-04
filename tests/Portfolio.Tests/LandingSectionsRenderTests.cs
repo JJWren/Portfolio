@@ -1,4 +1,6 @@
+using System.Text.RegularExpressions;
 using Portfolio.Tests.Support;
+using Portfolio.Web.Services;
 
 namespace Portfolio.Tests;
 
@@ -36,14 +38,25 @@ public class LandingSectionsRenderTests : IDisposable
         return count;
     }
 
+    /// <summary>Extracts the first `&lt;li class="{liClass}"&gt;...&lt;/li&gt;`
+    /// block from rendered HTML, so a test can assert on what is nested
+    /// inside one specific game-plan node rather than on the page as a
+    /// whole (see the color-to-term pairing assertions below).</summary>
+    private static string ExtractLiBlock(string html, string liClass)
+    {
+        var match = Regex.Match(html, $@"<li class=""{Regex.Escape(liClass)}"">.*?</li>", RegexOptions.Singleline);
+        Assert.True(match.Success, $"Expected a <li class=\"{liClass}\"> block in the rendered HTML.");
+        return match.Value;
+    }
+
     [Fact]
     public async Task Render_HeroHeading_AppearsInH1()
     {
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(),
-            LandingRenderHarness.BuildContent(heroHeading: "Position before submission."));
+            LandingRenderHarness.BuildContent(heroHeading: "Sample heading"));
 
-        Assert.Contains("<h1>Position before submission.</h1>", html);
+        Assert.Contains("<h1>Sample heading</h1>", html);
     }
 
     [Fact]
@@ -226,6 +239,300 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("&lt;b&gt;", html, StringComparison.Ordinal);
         Assert.Contains("&amp;", html, StringComparison.Ordinal);
         Assert.Contains("alt=\"&lt;b&gt;&amp;&quot;&lt;/b&gt;\"", html, StringComparison.Ordinal);
+    }
+
+    // -- BJJ landing flavor (Unit 10) ------------------------------------
+
+    [Fact]
+    public async Task Render_DefaultFlavor_IdenticalWhetherOrNotBjjDataIsPresent()
+    {
+        var withoutBjjData = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(),
+            LandingRenderHarness.BuildContent());
+
+        var withBjjData = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Default),
+            LandingRenderHarness.BuildContent(
+                heroEyebrow: "Jane · Engineer",
+                gamePlan:
+                [
+                    new GamePlanNode("Warm-up", "Loosen up", "How"),
+                    new GamePlanNode("Drill", "Repeat the motion", "How"),
+                    new GamePlanNode("Roll", "Test it live", "How"),
+                    new GamePlanNode("Rest", "Recover", "How"),
+                ],
+                beltCaption: "Test belt",
+                beltDegrees: 3,
+                principles: [new Principle("Ship small.", "reading")]));
+
+        // BR-1: under the Default flavor, the BJJ columns are simply never
+        // consulted — present or not, the rendered markup is byte-for-byte
+        // identical to v1.22.0.
+        Assert.Equal(withoutBjjData, withBjjData);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_HeroEyebrowRendersBeforeH1()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(
+                // Plain ASCII: HtmlRenderer entity-encodes non-ASCII
+                // punctuation like the middle dot (· becomes &#xB7;), which
+                // is correct, safe HTML but not literal-string-matchable.
+                heroEyebrow: "Jane Developer - Software Engineer",
+                heroHeading: "Sample heading"));
+
+        Assert.Contains("<p class=\"eyebrow\">Jane Developer - Software Engineer</p>", html);
+        var eyebrowIndex = html.IndexOf("class=\"eyebrow\"", StringComparison.Ordinal);
+        var h1Index = html.IndexOf("<h1>Sample heading</h1>", StringComparison.Ordinal);
+        Assert.True(eyebrowIndex >= 0);
+        Assert.True(h1Index >= 0);
+        Assert.True(eyebrowIndex < h1Index);
+    }
+
+    [Fact]
+    public async Task Render_Default_OmitsHeroEyebrowEvenWhenSet()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Default, heroEyebrow: "Should not render"),
+            LandingRenderHarness.BuildContent(heroEyebrow: "Should not render"));
+
+        Assert.DoesNotContain("Should not render", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_GamePlanRendersFourPositionallyColoredLinksToPrinciples()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(gamePlan:
+            [
+                new GamePlanNode("Warm-up", "Loosen up", "Stretch first."),
+                new GamePlanNode("Drill", "Repeat the motion", "Slow reps first."),
+                new GamePlanNode("Roll", "Test it live", "Go at full speed."),
+                new GamePlanNode("Rest", "Recover", string.Empty),
+            ]));
+
+        Assert.Contains("class=\"gp-node gp-red\"", html);
+        Assert.Contains("class=\"gp-node gp-gold\"", html);
+        Assert.Contains("class=\"gp-node gp-green\"", html);
+        Assert.Contains("class=\"gp-node gp-blue\"", html);
+        Assert.Equal(4, CountOccurrences(html, "href=\"#principles\""));
+        Assert.Contains("<span class=\"term\">Warm-up</span>", html);
+        Assert.Contains("<span class=\"read\">Loosen up</span>", html);
+        Assert.Contains("<span class=\"how\">Stretch first.</span>", html);
+        Assert.Contains("<span class=\"term\">Rest</span>", html);
+        Assert.Contains("<span class=\"read\">Recover</span>", html);
+        // Rest's How is blank: three nodes carry a .how span, not four.
+        Assert.Equal(3, CountOccurrences(html, "class=\"how\""));
+
+        // Pin the color-to-term pairing, not just that all four gp-* classes
+        // and all four terms appear somewhere in the page: the first node
+        // (red) must itself contain "Warm-up" and the last (blue) must
+        // itself contain "Rest", each inside its own #principles link. This
+        // fails if GamePlan.razor's positional class order were ever
+        // swapped relative to the node order.
+        var redNode = ExtractLiBlock(html, "gp-node gp-red");
+        Assert.Contains("<span class=\"term\">Warm-up</span>", redNode);
+        Assert.Contains("href=\"#principles\"", redNode);
+
+        var blueNode = ExtractLiBlock(html, "gp-node gp-blue");
+        Assert.Contains("<span class=\"term\">Rest</span>", blueNode);
+        Assert.Contains("href=\"#principles\"", blueNode);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_GamePlanWithFewerThanFourNodes_IsHidden()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(gamePlan:
+            [
+                new GamePlanNode("Warm-up", "Loosen up", string.Empty),
+                new GamePlanNode("Drill", "Repeat the motion", string.Empty),
+            ]));
+
+        Assert.DoesNotContain("game-plan", html);
+    }
+
+    [Fact]
+    public async Task RenderGamePlan_ThreeNodes_RendersNothing()
+    {
+        // GamePlan.razor's own defensive guard (BR-5), exercised directly —
+        // bypassing both LandingSections' Content.GamePlan.Count gate and
+        // BjjRules.ParseGamePlan's exactly-four-or-empty rule, neither of
+        // which this render goes through — so a caller that skips those
+        // still can never make the component index out of range.
+        var html = await LandingRenderHarness.RenderGamePlanAsync(
+        [
+            new GamePlanNode("Warm-up", "Loosen up", string.Empty),
+            new GamePlanNode("Drill", "Repeat the motion", string.Empty),
+            new GamePlanNode("Roll", "Test it live", string.Empty),
+        ]);
+
+        Assert.DoesNotContain("<ol class=\"game-plan\"", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RankBarRendersDegreeStripesAndCaption()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(
+                // Plain ASCII: see the comment on Render_Bjj_HeroEyebrowRendersBeforeH1.
+                beltCaption: "Black belt - Test gym, Test City",
+                beltDegrees: 3));
+
+        Assert.Contains("<figure class=\"rank-bar\">", html);
+        Assert.Contains("<div class=\"belt\" aria-hidden=\"true\">", html);
+        Assert.Contains("<span class=\"belt-body\"></span>", html);
+        Assert.Contains("<span class=\"belt-tip\"></span>", html);
+        Assert.Contains("<figcaption>Black belt - Test gym, Test City</figcaption>", html);
+        Assert.Equal(3, CountBeltStripes(html));
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RankBarZeroDegrees_RendersNoStripes()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: "Black belt", beltDegrees: 0));
+
+        Assert.Equal(0, CountBeltStripes(html));
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RankBarDegreesAboveMax_ClampsToMaxStripes()
+    {
+        // BuildContent bypasses Resolve's clamp, so this pins the component's
+        // own clamp: no caller can make the belt emit an unbounded stripe run.
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: "Black belt", beltDegrees: 99));
+
+        Assert.Equal(BjjRules.MaxDegrees, CountBeltStripes(html));
+    }
+
+    [Fact]
+    public async Task Render_Bjj_NoBeltCaption_OmitsRankBar()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: null));
+
+        Assert.DoesNotContain("rank-bar", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_PrinciplesSectionRendersIdAndOnePerPairWithBlankReadingOmitted()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(principles:
+            [
+                new Principle("Ship small.", "Small changes are safe."),
+                new Principle("Write it down.", string.Empty),
+            ]));
+
+        Assert.Contains("<section class=\"section\" id=\"principles\">", html);
+        Assert.Contains("<div class=\"principles\">", html);
+        Assert.Contains("<h3>Ship small.</h3>", html);
+        Assert.Contains("<p>Small changes are safe.</p>", html);
+        Assert.Contains("<h3>Write it down.</h3>", html);
+        Assert.Equal(2, CountOccurrences(html, "class=\"principle\""));
+        // Only the first principle has a non-blank reading, so exactly one <p>.
+        Assert.Equal(1, CountOccurrences(html, "<p>"));
+    }
+
+    [Fact]
+    public async Task Render_Bjj_NoPrinciples_OmitsPrinciplesSection()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(principles: []));
+
+        Assert.DoesNotContain("id=\"principles\"", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_EmptyBjjData_OmitsAllBjjSections()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent());
+
+        Assert.DoesNotContain("class=\"eyebrow\"", html);
+        Assert.DoesNotContain("game-plan", html);
+        Assert.DoesNotContain("rank-bar", html);
+        Assert.DoesNotContain("id=\"principles\"", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_OnlyHeroEyebrowSet_RendersOnlyEyebrowSection()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(heroEyebrow: "Solo eyebrow"));
+
+        Assert.Contains("<p class=\"eyebrow\">Solo eyebrow</p>", html);
+        Assert.DoesNotContain("game-plan", html);
+        Assert.DoesNotContain("rank-bar", html);
+        Assert.DoesNotContain("id=\"principles\"", html);
+    }
+
+    [Fact]
+    public async Task Render_FullBjjContent_ContainsNoFixedPositioningAndNoScriptTags()
+    {
+        var photoPath = CreatePhotoFile();
+        var site = LandingRenderHarness.MaximalConfig(photoPath);
+        var content = LandingRenderHarness.MaximalContent();
+
+        var html = await LandingRenderHarness.RenderAsync(site, content);
+
+        // BR-13: LandingSections must render correctly inside the inert admin
+        // theme preview, so nothing the BJJ flavor adds may be fixed-position
+        // or scripted either.
+        Assert.DoesNotContain("position: fixed", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("position:fixed", html, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("<script", html, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Render_BjjContentWithHtmlMetacharacters_EncodesEverything()
+    {
+        const string unsafeText = "<b>&\"</b>";
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(
+                heroEyebrow: unsafeText,
+                gamePlan:
+                [
+                    new GamePlanNode(unsafeText, unsafeText, unsafeText),
+                    new GamePlanNode("Drill", "Repeat the motion", string.Empty),
+                    new GamePlanNode("Roll", "Test it live", string.Empty),
+                    new GamePlanNode("Rest", "Recover", string.Empty),
+                ],
+                beltCaption: unsafeText,
+                principles: [new Principle(unsafeText, unsafeText)]));
+
+        Assert.DoesNotContain("<b>", html, StringComparison.Ordinal);
+        Assert.Contains("&lt;b&gt;", html, StringComparison.Ordinal);
+        Assert.Contains("&amp;", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>Counts the `&lt;i&gt;&lt;/i&gt;` degree stripes inside the
+    /// rendered `.belt-bar` span specifically — the hero's always-present
+    /// `.ribbons` block also renders four bare `&lt;i&gt;&lt;/i&gt;` tags, so
+    /// a global count would over-count.</summary>
+    private static int CountBeltStripes(string html)
+    {
+        var openTagStart = html.IndexOf("<span class=\"belt-bar\"", StringComparison.Ordinal);
+        Assert.True(openTagStart >= 0, "Expected a .belt-bar span in the rendered HTML.");
+        var contentStart = html.IndexOf('>', openTagStart) + 1;
+        var closeTag = html.IndexOf("</span>", contentStart, StringComparison.Ordinal);
+        return CountOccurrences(html[contentStart..closeTag], "<i></i>");
     }
 
     public void Dispose()

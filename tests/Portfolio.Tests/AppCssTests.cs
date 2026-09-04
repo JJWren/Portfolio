@@ -181,6 +181,137 @@ public class AppCssTests : IDisposable
         Assert.Contains(":hover", ex.Message, StringComparison.Ordinal);
     }
 
+    // -- BJJ landing flavor (Unit 10) ------------------------------------
+
+    private const string LandingBannerName = "Landing (BJJ flavor)";
+
+    private static readonly Lazy<string> LandingBannerCssLazy =
+        new(() => CssScanner.ExtractBannerSection(ReadAppCss(), LandingBannerName));
+
+    private static string LandingBannerCss => LandingBannerCssLazy.Value;
+
+    private static readonly Lazy<IReadOnlyList<CssRule>> LandingBannerRulesLazy =
+        new(() => CssScanner.ParseLeafRules(LandingBannerCss));
+
+    private static IReadOnlyList<CssRule> LandingBannerRules => LandingBannerRulesLazy.Value;
+
+    /// <summary>Splits a (possibly comma-separated) selector list into its
+    /// individual, whitespace-normalized selectors.</summary>
+    private static IReadOnlyList<string> SplitSelectorList(string selector)
+        => selector.Split(',').Select(static s => Regex.Replace(s.Trim(), @"\s+", " ")).ToList();
+
+    [Fact]
+    public void ExtractBannerSection_BannerAtStartOfFile_IsFound()
+    {
+        // The banner marker must match at the start of the text as well as
+        // after a newline, so a section moved to the top of app.css keeps
+        // being scoped instead of throwing.
+        const string css = "   Landing (BJJ flavor)\n   ==== */\n.a { color: red; }\n/* ====\n   Other\n   ==== */\n.b { color: blue; }\n";
+
+        var section = CssScanner.ExtractBannerSection(css, "Landing (BJJ flavor)");
+
+        Assert.Contains(".a {", section);
+        Assert.DoesNotContain(".b {", section);
+    }
+
+    [Fact]
+    public void RootConstants_BeltAndRankColors_MatchTheAdrValues()
+    {
+        // ADR 0002: the seven fixed constants, not the light-theme block.
+        var root = AppCssRules.Single(r => r.Selector == ":root");
+
+        Assert.Contains("--belt-black: #0c0c0c;", root.Declarations);
+        Assert.Contains("--belt-white: #e8e4dd;", root.Declarations);
+        Assert.Contains("--rank-white: #e6dfd0;", root.Declarations);
+        Assert.Contains("--rank-blue: #2b4c8c;", root.Declarations);
+        Assert.Contains("--rank-purple: #5a3d8a;", root.Declarations);
+        Assert.Contains("--rank-brown: #6b4423;", root.Declarations);
+        Assert.Contains("--rank-black: #0c0c0c;", root.Declarations);
+    }
+
+    [Fact]
+    public void RootConstants_AreNotRedefinedInTheLightThemeBlock()
+    {
+        // The whole point of ADR 0002 is that they're identical in both
+        // themes; a light-theme override would silently break that.
+        // CssScanner blanks the quoted attribute value to spaces (see its
+        // class summary), so ':root[data-theme=\'light\']' comes back as
+        // ':root[data-theme=       ]'; anchor on that shape rather than the
+        // literal quoted text, and exclude the two longer theme-toggle
+        // icon-visibility selectors that share the same prefix.
+        var lightTheme = AppCssRules.Single(r => Regex.IsMatch(r.Selector, @"^:root\[data-theme=\s*\]$"));
+
+        Assert.DoesNotContain("--belt-black", lightTheme.Declarations);
+        Assert.DoesNotContain("--rank-black", lightTheme.Declarations);
+    }
+
+    [Fact]
+    public void LandingBanner_DeclaresNoFixedPositioning()
+        => Assert.Empty(FixedPositionRules(LandingBannerRules));
+
+    [Fact]
+    public void ReducedMotionBlock_AppearsExactlyOnceInAppCss()
+    {
+        var count = Regex.Matches(ReadAppCss(), @"@media\s*\(\s*prefers-reduced-motion", RegexOptions.IgnoreCase).Count;
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public void LandingBanner_EveryAnimationOrTransition_IsListedInTheReducedMotionBlock()
+    {
+        // BR-14: every new animation/transition in the landing CSS joins the
+        // single reduced-motion block, disabled there with "none".
+        var reducedMotionEntries = AppCssRules
+            .RulesInside("prefers-reduced-motion")
+            .SelectMany(rule => SplitSelectorList(rule.Selector).Select(selector => (Selector: selector, rule.Declarations)))
+            .ToList();
+
+        var offenders = new List<string>();
+        foreach (var rule in LandingBannerRules)
+        {
+            var declaresAnimation = Regex.IsMatch(rule.Declarations, @"\banimation\s*:", RegexOptions.IgnoreCase);
+            var declaresTransition = Regex.IsMatch(rule.Declarations, @"\btransition\s*:", RegexOptions.IgnoreCase);
+            if (!declaresAnimation && !declaresTransition)
+            {
+                continue;
+            }
+
+            foreach (var selector in SplitSelectorList(rule.Selector))
+            {
+                var covered = reducedMotionEntries.Any(entry =>
+                    entry.Selector == selector
+                    && (!declaresAnimation || Regex.IsMatch(entry.Declarations, @"animation\s*:\s*none", RegexOptions.IgnoreCase))
+                    && (!declaresTransition || Regex.IsMatch(entry.Declarations, @"transition\s*:\s*none", RegexOptions.IgnoreCase)));
+
+                if (!covered)
+                {
+                    offenders.Add($"{selector} (from rule '{rule.Selector}')");
+                }
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "Missing from the prefers-reduced-motion block: " + string.Join(", ", offenders));
+    }
+
+    [Fact]
+    public void LandingBanner_KnownAnimatedAndTransitionedSelectors_AreExactlyFour()
+    {
+        // Documents today's set so a future addition to the banner section
+        // is deliberately noticed here, not just silently covered (or not)
+        // by the generic check above.
+        var declaring = LandingBannerRules
+            .Where(r => Regex.IsMatch(r.Declarations, @"\b(animation|transition)\s*:", RegexOptions.IgnoreCase))
+            .SelectMany(r => SplitSelectorList(r.Selector))
+            .ToList();
+
+        Assert.Equal(
+            new[] { ".gp-node a", ".gp-node::after", ".gp-node::before", ".belt-bar i" },
+            declaring);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDir))
