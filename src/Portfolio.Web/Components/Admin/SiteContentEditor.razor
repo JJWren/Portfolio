@@ -60,6 +60,42 @@
                           placeholder="@SiteContentRules.SkillsText(Site.Skills)"></textarea>
             </label>
 
+            @if (Site.Flavor == SiteFlavor.Bjj)
+            {
+                <p class="eyebrow">Mat</p>
+
+                <label class="field">
+                    <span>Hero eyebrow <span class="muted">line above the hero heading</span></span>
+                    <input type="text" maxlength="@SiteContentRules.HeroEyebrowMaxLength"
+                           @bind="_heroEyebrow" @bind:after="MarkDirty" placeholder="@Site.HeroEyebrow" />
+                </label>
+
+                <label class="field">
+                    <span>Game plan <span class="muted">one node per line: term | reading | how, exactly four lines</span></span>
+                    <textarea rows="6" @bind="_gamePlanText" @bind:after="MarkDirty"
+                              placeholder="@SiteContentRules.LinesText(Site.GamePlanLines)"></textarea>
+                </label>
+
+                <label class="field">
+                    <span>Belt caption <span class="muted">shown under the rank bar</span></span>
+                    <input type="text" maxlength="@SiteContentRules.BeltCaptionMaxLength"
+                           @bind="_beltCaption" @bind:after="MarkDirty" placeholder="@Site.BeltCaption" />
+                </label>
+
+                <label class="field">
+                    <span>Belt degrees <span class="muted">stripes on the rank bar, 0 to 6</span></span>
+                    <input type="number" min="0" max="@BjjRules.MaxDegrees"
+                           @bind="_beltDegreesText" @bind:after="MarkDirty"
+                           placeholder="@(Site.BeltDegrees?.ToString())" />
+                </label>
+
+                <label class="field">
+                    <span>Principles <span class="muted">one per line: maxim | reading</span></span>
+                    <textarea rows="6" @bind="_principlesText" @bind:after="MarkDirty"
+                              placeholder="@SiteContentRules.LinesText(Site.PrincipleLines)"></textarea>
+                </label>
+            }
+
             <div class="field">
                 <span>Owner photo <span class="muted">shown on the landing hero</span></span>
                 @if (!Photo.IsConfigured)
@@ -128,6 +164,13 @@
     private string? _photoUrl;
     private bool _photoBusy;
 
+    // BJJ landing flavor (Unit 10); only shown/edited under Site.Flavor == SiteFlavor.Bjj.
+    private string _heroEyebrow = string.Empty;
+    private string _gamePlanText = string.Empty;
+    private string _beltCaption = string.Empty;
+    private string _beltDegreesText = string.Empty;
+    private string _principlesText = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         _photoUrl = Photo.GetVersionedUrl();
@@ -155,6 +198,11 @@
         _about = overrides?.About ?? string.Empty;
         _skillsText = SiteContentRules.SkillsText(overrides?.Skills);
         _ownerPhotoAlt = overrides?.OwnerPhotoAlt ?? string.Empty;
+        _heroEyebrow = overrides?.HeroEyebrow ?? string.Empty;
+        _gamePlanText = SiteContentRules.LinesText(overrides?.GamePlan);
+        _beltCaption = overrides?.BeltCaption ?? string.Empty;
+        _beltDegreesText = overrides?.BeltDegrees?.ToString() ?? string.Empty;
+        _principlesText = SiteContentRules.LinesText(overrides?.Principles);
     }
 
     private async Task UploadPhotoAsync(InputFileChangeEventArgs e)
@@ -198,11 +246,18 @@
         }
 
         _saved = false;
-        _error = SiteContentRules.CheckLengths(
-            SiteContentRules.NormalizeField(_heroHeading),
-            SiteContentRules.NormalizeField(_tagline),
-            SiteContentRules.NormalizeField(_about),
-            SiteContentRules.NormalizeField(_ownerPhotoAlt));
+        var draft = new SiteContentDraft(
+            HeroHeading: _heroHeading,
+            Tagline: _tagline,
+            About: _about,
+            SkillsText: _skillsText,
+            OwnerPhotoAlt: _ownerPhotoAlt,
+            HeroEyebrow: _heroEyebrow,
+            GamePlanText: _gamePlanText,
+            BeltCaption: _beltCaption,
+            BeltDegreesText: _beltDegreesText,
+            PrinciplesText: _principlesText);
+        _error = SiteContentRules.Validate(draft);
         if (_error is not null)
         {
             return;
@@ -211,7 +266,7 @@
         _busy = true;
         try
         {
-            await ContentStore.SaveAsync(_heroHeading, _tagline, _about, _skillsText, _ownerPhotoAlt);
+            await ContentStore.SaveAsync(draft);
             // Re-seed so the form shows what was actually stored (trimmed, normalized).
             SeedForm(await ContentStore.GetOverridesAsync());
             _saved = true;
