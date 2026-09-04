@@ -895,3 +895,11 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Close-out handoff written and staged on the Phase 5 PR
+**Timestamp**: 2026-09-04T21:30:10Z
+**User Input**: (none)
+**AI Response**: "Wrote construction/plans/unit10-closeout-handoff-2026-09-04.md (what shipped per phase with PR numbers and squash commits, where to pick up: owner actions, the deferred theme-toggle titles, recorded follow-ups, state housekeeping; the execution model; mechanics; public surface after Phase 5; memory notes). Marked Unit 10 complete in aidlc-state.md contingent on the #96 merge and ticked its Build and Test box. Both committed on perf/landing-closeout so they land on master with PR #96."
+**Context**: Construction, Unit 10, Phase 5 gate; close-out
+
+---
+
