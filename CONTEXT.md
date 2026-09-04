@@ -9,11 +9,65 @@ analytics, and blog comments.
 ### Site identity
 
 **Owner Photo**:
-The site owner's portrait on the landing hero — a single owner-supplied file,
-swappable either by replacing the file directly or from the admin site-content
-page (both paths end at the same file). When no photo is supplied the hero
-simply renders without one; nothing takes its place.
+The site owner's portrait on the landing hero — up to two owner-supplied
+files, each swappable either by replacing its file directly or from the
+admin site-content page (both paths end at the same file). The primary
+(desk) photo renders alone by default; add the second, optional Flip photo
+(the mat portrait) and, under the Bjj flavor, the hero instead shows both
+in a switch the visitor can toggle, served at `/owner-photo` and
+`/owner-photo-flip`. With no file supplied for a slot, that slot simply
+renders nothing; nothing takes its place.
 _Avoid_: profile picture, avatar (those belong to user Profiles)
+
+### Landing page (BJJ flavor)
+
+**Flavor**:
+The `SITE_FLAVOR` switch between the site's two landing-page layouts —
+Default (today's plain landing page) and Bjj (the belt-themed layout
+below). Startup configuration only, never admin-editable: it decides which
+markup and CSS ship, not which words appear.
+_Avoid_: theme, skin, mode
+
+**Game Plan**:
+The four-node chart in the Bjj hero — Guard, Pass, Mount, Submit — each one
+a link down to the principles section. Positionally colored regardless of
+its own wording, so the admin theme's brand colors keep recoloring it.
+_Avoid_: roadmap, funnel
+
+**Rank Bar**:
+The belt-and-stripes graphic on the hero/About seam, captioned with the
+owner's rank. Always drawn as a black belt in v1, carrying the configured
+count of degree stripes.
+_Avoid_: progress bar
+
+**Belt**:
+One of the five ranks the site knows — white, blue, purple, brown, black —
+with colors fixed by ADR 0002, never by the admin theme. A value outside
+this closed set is rejected at save and dropped at render.
+_Avoid_: rank color, level
+
+**Degree**:
+One stripe earned on the black belt, 0 to 6. Kept equal to the stripe count
+of the last black-belt era — one fact recorded in two places, checked
+against itself at save.
+_Avoid_: dan, level
+
+**Era**:
+One row of the road: the date a belt was earned, the gym and location, and
+what the owner was doing at the time. Eras render in the order entered;
+nothing re-sorts them.
+_Avoid_: milestone, timeline entry
+
+**The Road**:
+The Bjj landing section pairing a belt ladder — one rung per belt reached —
+with a dated table of every era. The ladder is decorative; the table alone
+carries the information for assistive tech.
+_Avoid_: history, career timeline
+
+**Now**:
+The label/value tiles closing the Bjj landing page: a short, current list
+of what the owner is doing today.
+_Avoid_: status, currently
 
 ### Comments
 
