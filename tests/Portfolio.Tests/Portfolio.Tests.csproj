@@ -23,4 +23,11 @@
     <ProjectReference Include="..\..\src\Portfolio.Web\Portfolio.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Copied next to the test assembly so AppCssTests can scan it for BR-13
+         (no position: fixed on anything LandingSections renders) without a
+         CSS parser package. -->
+    <Content Include="..\..\src\Portfolio.Web\wwwroot\app.css" Link="app.css" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
