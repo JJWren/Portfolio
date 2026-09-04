@@ -51,17 +51,31 @@ public static class BjjRules
         => line.Split('|').Select(static f => f.Trim()).ToArray();
 
     /// <summary>
+    /// Bounds a raw line to <see cref="MaxLineLength"/> before it is split
+    /// into fields — the same length ValidateGamePlan/ValidatePrinciples
+    /// reject at save, but truncated here instead of dropped (BR-4: lenient
+    /// at resolve). Truncating rather than dropping the whole line is the
+    /// deliberate choice: dropping a game-plan line would leave an off-count
+    /// chart (ParseGamePlan requires exactly four) and silently hide the
+    /// whole node instead of just clipping its tail.
+    /// </summary>
+    private static string BoundLineLength(string line)
+        => line.Length > MaxLineLength ? line[..MaxLineLength] : line;
+
+    /// <summary>
     /// `term | reading | how` per line; `how` may be blank. BR-5: the chart
     /// is exactly four nodes or none, so any other resulting count — a
     /// three-line env value, a dropped fifth line — resolves to empty rather
-    /// than an off-count chart.
+    /// than an off-count chart. Overlong lines are truncated, not dropped
+    /// (see <see cref="BoundLineLength"/>), so they still count toward the
+    /// four.
     /// </summary>
     public static IReadOnlyList<GamePlanNode> ParseGamePlan(IReadOnlyList<string> lines)
     {
         var nodes = new List<GamePlanNode>();
         foreach (var line in lines)
         {
-            var fields = SplitFields(line);
+            var fields = SplitFields(BoundLineLength(line));
             if (fields.Length < 2 || fields[0].Length == 0 || fields[1].Length == 0)
             {
                 continue; // Malformed line: dropped, not thrown (BR-4).
@@ -75,21 +89,30 @@ public static class BjjRules
 
     /// <summary>
     /// `maxim | reading` per line; `reading` may be blank. Malformed lines
-    /// are dropped; any surviving count is returned as-is — Validate enforces
-    /// the 1-to-6 range at save (BR-7), resolve only ever drops bad lines.
+    /// are dropped and overlong lines are truncated (see
+    /// <see cref="BoundLineLength"/>); the surviving count is capped at
+    /// <see cref="MaxPrinciples"/> so a stored or env value that predates a
+    /// lower limit — or simply has too many lines — can never render more
+    /// than the section's widest layout supports. Validate still enforces
+    /// the 1-to-6 range with a friendly message at save (BR-7); this cap is
+    /// resolve's leniency backstop, not a replacement for that check.
     /// </summary>
     public static IReadOnlyList<Principle> ParsePrinciples(IReadOnlyList<string> lines)
     {
         var principles = new List<Principle>();
         foreach (var line in lines)
         {
-            var fields = SplitFields(line);
+            var fields = SplitFields(BoundLineLength(line));
             if (fields.Length < 1 || fields[0].Length == 0)
             {
                 continue;
             }
 
             principles.Add(new Principle(fields[0], fields.Length > 1 ? fields[1] : string.Empty));
+            if (principles.Count == MaxPrinciples)
+            {
+                break;
+            }
         }
 
         return principles;

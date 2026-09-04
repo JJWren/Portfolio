@@ -38,7 +38,7 @@
         }
         @if (Site.Flavor == SiteFlavor.Bjj && Content.GamePlan.Count == BjjRules.GamePlanNodeCount)
         {
-            <GamePlan Nodes="Content.GamePlan" />
+            <GamePlan Nodes="@Content.GamePlan" />
         }
     </div>
 </section>
@@ -46,7 +46,7 @@
 @if (Site.Flavor == SiteFlavor.Bjj && Content.BeltCaption is { Length: > 0 } beltCaption)
 {
     <div class="container">
-        <RankBar Degrees="Content.BeltDegrees" Caption="@beltCaption" />
+        <RankBar Degrees="@Content.BeltDegrees" Caption="@beltCaption" />
     </div>
 }
 

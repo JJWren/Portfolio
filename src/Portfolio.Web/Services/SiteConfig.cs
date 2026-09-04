@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Portfolio.Web.Services;
 
 /// <summary>
@@ -95,5 +97,7 @@ public record SiteConfig(
     // Unparsable text is ignored (never throws at startup); range-checking
     // against MaxDegrees happens later, at resolve (BjjRules.ClampDegrees).
     private static int? ParseDegrees(string? value)
-        => int.TryParse(value, out var degrees) ? degrees : null;
+        => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var degrees)
+            ? degrees
+            : null;
 }

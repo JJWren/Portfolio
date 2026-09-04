@@ -3,6 +3,23 @@ using Portfolio.Web.Data;
 
 namespace Portfolio.Web.Services;
 
+/// <summary>Every <see cref="SiteContent"/> column, normalized once from a
+/// <see cref="SiteContentDraft"/> in <see cref="SiteContentService.SaveAsync"/>
+/// and carried unchanged through the upsert (and its retry). One record
+/// instead of ten same-typed positional parameters, so the upsert path
+/// cannot transpose two strings or two nullable ints by accident.</summary>
+internal sealed record SiteContentValues(
+    string? HeroHeading,
+    string? Tagline,
+    string? About,
+    List<string>? Skills,
+    string? OwnerPhotoAlt,
+    string? HeroEyebrow,
+    List<string>? GamePlan,
+    string? BeltCaption,
+    int? BeltDegrees,
+    List<string>? Principles);
+
 public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteConfig site)
 {
     // Single-container deploy, so an in-process cache is safe; SaveAsync clears
@@ -53,31 +70,28 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
     /// <summary>Normalizes every field (blank → null → .env fallback) and upserts the single row.</summary>
     public async Task SaveAsync(SiteContentDraft draft)
     {
-        var normalizedHeroHeading = SiteContentRules.NormalizeField(draft.HeroHeading);
-        var normalizedTagline = SiteContentRules.NormalizeField(draft.Tagline);
-        var normalizedAbout = SiteContentRules.NormalizeField(draft.About);
-        var skills = SiteContentRules.ParseSkills(draft.SkillsText);
-        var normalizedOwnerPhotoAlt = SiteContentRules.NormalizeField(draft.OwnerPhotoAlt);
-        var normalizedHeroEyebrow = SiteContentRules.NormalizeField(draft.HeroEyebrow);
-        var gamePlan = SiteContentRules.ParseLines(draft.GamePlanText);
-        var normalizedBeltCaption = SiteContentRules.NormalizeField(draft.BeltCaption);
-        var beltDegrees = SiteContentRules.ParseDegrees(draft.BeltDegreesText);
-        var principles = SiteContentRules.ParseLines(draft.PrinciplesText);
+        var values = new SiteContentValues(
+            HeroHeading: SiteContentRules.NormalizeField(draft.HeroHeading),
+            Tagline: SiteContentRules.NormalizeField(draft.Tagline),
+            About: SiteContentRules.NormalizeField(draft.About),
+            Skills: SiteContentRules.ParseSkills(draft.SkillsText),
+            OwnerPhotoAlt: SiteContentRules.NormalizeField(draft.OwnerPhotoAlt),
+            HeroEyebrow: SiteContentRules.NormalizeField(draft.HeroEyebrow),
+            GamePlan: SiteContentRules.ParseLines(draft.GamePlanText),
+            BeltCaption: SiteContentRules.NormalizeField(draft.BeltCaption),
+            BeltDegrees: SiteContentRules.ParseDegrees(draft.BeltDegreesText),
+            Principles: SiteContentRules.ParseLines(draft.PrinciplesText));
 
         try
         {
-            await UpsertAsync(
-                normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt,
-                normalizedHeroEyebrow, gamePlan, normalizedBeltCaption, beltDegrees, principles);
+            await UpsertAsync(values);
         }
         catch (DbUpdateException ex) when (
             ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation })
         {
             // Loser of a concurrent first save: the row exists now, so one
             // retry lands on the update path (last write wins).
-            await UpsertAsync(
-                normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt,
-                normalizedHeroEyebrow, gamePlan, normalizedBeltCaption, beltDegrees, principles);
+            await UpsertAsync(values);
         }
 
         // Bump the version before clearing so an in-flight reader can tell its
@@ -86,9 +100,7 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         _cache = null;
     }
 
-    private async Task UpsertAsync(
-        string? heroHeading, string? tagline, string? about, List<string>? skills, string? ownerPhotoAlt,
-        string? heroEyebrow, List<string>? gamePlan, string? beltCaption, int? beltDegrees, List<string>? principles)
+    private async Task UpsertAsync(SiteContentValues values)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var row = await db.SiteContents
@@ -99,16 +111,16 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             db.SiteContents.Add(row);
         }
 
-        row.HeroHeading = heroHeading;
-        row.Tagline = tagline;
-        row.About = about;
-        row.Skills = skills;
-        row.OwnerPhotoAlt = ownerPhotoAlt;
-        row.HeroEyebrow = heroEyebrow;
-        row.GamePlan = gamePlan;
-        row.BeltCaption = beltCaption;
-        row.BeltDegrees = beltDegrees;
-        row.Principles = principles;
+        row.HeroHeading = values.HeroHeading;
+        row.Tagline = values.Tagline;
+        row.About = values.About;
+        row.Skills = values.Skills;
+        row.OwnerPhotoAlt = values.OwnerPhotoAlt;
+        row.HeroEyebrow = values.HeroEyebrow;
+        row.GamePlan = values.GamePlan;
+        row.BeltCaption = values.BeltCaption;
+        row.BeltDegrees = values.BeltDegrees;
+        row.Principles = values.Principles;
         row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }

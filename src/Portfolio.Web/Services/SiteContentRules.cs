@@ -1,3 +1,4 @@
+using System.Globalization;
 using Portfolio.Web.Data;
 
 namespace Portfolio.Web.Services;
@@ -77,18 +78,13 @@ public static class SiteContentRules
 
     /// <summary>One entry per line, trimmed, blanks dropped; no content means
     /// null. Shared by every multi-line admin textarea (skills, game plan,
-    /// principles); ParseSkills is this under its original name.</summary>
+    /// principles); ParseSkills is this under its original name. Delegates
+    /// to <see cref="BjjRules.SplitLines"/> so the admin-textarea splitter
+    /// and the env-value splitter share one implementation.</summary>
     public static List<string>? ParseLines(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return null;
-        }
-
-        var lines = text
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToList();
-        return lines.Count > 0 ? lines : null;
+        var lines = BjjRules.SplitLines(text);
+        return lines.Count > 0 ? lines.ToList() : null;
     }
 
     /// <summary>Round-trips stored skills back into the one-per-line textarea.</summary>
@@ -104,7 +100,9 @@ public static class SiteContentRules
     /// (non-blank) text with a friendly message before a save ever reaches
     /// this — SaveAsync trusts that gate and never throws here.</summary>
     public static int? ParseDegrees(string? text)
-        => int.TryParse(NormalizeField(text), out var value) ? value : null;
+        => int.TryParse(NormalizeField(text), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : null;
 
     /// <summary>Returns a friendly error for the first field over its stored size, or null when everything fits.</summary>
     public static string? CheckLengths(string? heroHeading, string? tagline, string? about, string? ownerPhotoAlt = null)
@@ -134,9 +132,12 @@ public static class SiteContentRules
 
     /// <summary>
     /// Full-draft validation for the site-content editor: the existing
-    /// length checks, then the BJJ-flavor format checks (BR-4 "strict at
-    /// save"). Returns the first friendly error, or null when the whole
-    /// draft may be saved.
+    /// length checks first (CheckLengths, for the pre-existing fields), then
+    /// the BJJ-flavor format checks (BR-4 "strict at save") in the editor's
+    /// own field order — hero eyebrow, game plan, belt caption, belt
+    /// degrees, principles — so the first error reported is always the
+    /// first invalid field the admin would scroll to. Returns the first
+    /// friendly error, or null when the whole draft may be saved.
     /// </summary>
     public static string? Validate(SiteContentDraft draft)
     {
@@ -156,16 +157,33 @@ public static class SiteContentRules
             return $"Hero eyebrow is limited to {HeroEyebrowMaxLength} characters (yours is {heroEyebrow.Length}).";
         }
 
+        var gamePlanError = BjjRules.ValidateGamePlan(ParseLines(draft.GamePlanText) ?? []);
+        if (gamePlanError is not null)
+        {
+            return gamePlanError;
+        }
+
         var beltCaption = NormalizeField(draft.BeltCaption);
         if (beltCaption is not null && beltCaption.Length > BeltCaptionMaxLength)
         {
             return $"Belt caption is limited to {BeltCaptionMaxLength} characters (yours is {beltCaption.Length}).";
         }
 
-        var gamePlanError = BjjRules.ValidateGamePlan(ParseLines(draft.GamePlanText) ?? []);
-        if (gamePlanError is not null)
+        // Parsed once into a local and branched on blank / not-a-number /
+        // out-of-range, rather than parsing the same text twice.
+        var beltDegreesText = NormalizeField(draft.BeltDegreesText);
+        if (beltDegreesText is not null)
         {
-            return gamePlanError;
+            if (!int.TryParse(beltDegreesText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var beltDegrees))
+            {
+                return "Belt degrees must be a whole number.";
+            }
+
+            var degreesError = BjjRules.ValidateDegrees(beltDegrees);
+            if (degreesError is not null)
+            {
+                return degreesError;
+            }
         }
 
         var principlesError = BjjRules.ValidatePrinciples(ParseLines(draft.PrinciplesText) ?? []);
@@ -174,22 +192,22 @@ public static class SiteContentRules
             return principlesError;
         }
 
-        var beltDegreesText = NormalizeField(draft.BeltDegreesText);
-        if (beltDegreesText is not null && !int.TryParse(beltDegreesText, out _))
-        {
-            return "Belt degrees must be a whole number.";
-        }
-
-        var degreesError = BjjRules.ValidateDegrees(ParseDegrees(draft.BeltDegreesText));
-        if (degreesError is not null)
-        {
-            return degreesError;
-        }
-
         return null;
     }
 
-    /// <summary>Overrides win per field; null (or an empty skills/text[] list) falls back to .env (BR-3).</summary>
+    /// <summary>Bounds a resolved value to at most <paramref name="maxLength"/>
+    /// characters, leniently truncating rather than rejecting — Resolve must
+    /// never throw on an oversized env or stored value the way Validate
+    /// would refuse it at save time (BR-4).</summary>
+    private static string? Truncate(string? value, int maxLength)
+        => value is null || value.Length <= maxLength ? value : value[..maxLength];
+
+    /// <summary>Overrides win per field; null (or an empty skills/text[] list) falls back to .env (BR-3).
+    /// Every BJJ field is additionally bounded the same way Validate would
+    /// reject it at save, but leniently: HeroEyebrow and BeltCaption are
+    /// truncated, GamePlan keeps its exactly-four-or-none rule, and
+    /// Principles is capped at MaxPrinciples (see BjjRules.Parse*) — a bad
+    /// env or stored value can never take the landing page down (BR-4).</summary>
     public static EffectiveSiteContent Resolve(SiteConfig site, SiteContent? overrides)
     {
         var gamePlanLines = overrides?.GamePlan is { Count: > 0 } gamePlanOverride
@@ -207,9 +225,9 @@ public static class SiteContentRules
             // (mutable) entity list.
             overrides?.Skills is { Count: > 0 } skills ? skills.ToArray() : site.Skills,
             overrides?.OwnerPhotoAlt ?? site.OwnerPhotoAlt ?? $"Portrait of {site.OwnerName}",
-            overrides?.HeroEyebrow ?? site.HeroEyebrow,
+            Truncate(overrides?.HeroEyebrow ?? site.HeroEyebrow, HeroEyebrowMaxLength),
             BjjRules.ParseGamePlan(gamePlanLines),
-            overrides?.BeltCaption ?? site.BeltCaption,
+            Truncate(overrides?.BeltCaption ?? site.BeltCaption, BeltCaptionMaxLength),
             BjjRules.ClampDegrees(overrides?.BeltDegrees ?? site.BeltDegrees),
             BjjRules.ParsePrinciples(principleLines));
     }
