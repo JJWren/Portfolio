@@ -12,10 +12,12 @@ public class OwnerPhotoServiceTests : IDisposable
 
     private string PhotoPath => Path.Combine(_tempDir, "photo", "owner-photo.webp");
 
-    private OwnerPhotoService CreateService(bool configured = true)
-        => new(BuildConfig(configured ? PhotoPath : null));
+    private string FlipPhotoPath => Path.Combine(_tempDir, "photo", "owner-photo-flip.webp");
 
-    private static SiteConfig BuildConfig(string? ownerPhotoFile)
+    private OwnerPhotoService CreateService(bool configured = true, bool flipConfigured = false)
+        => new(BuildConfig(configured ? PhotoPath : null, flipConfigured ? FlipPhotoPath : null));
+
+    private static SiteConfig BuildConfig(string? ownerPhotoFile, string? ownerPhotoFlipFile = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -29,7 +31,8 @@ public class OwnerPhotoServiceTests : IDisposable
             Skills: [],
             SponsorUrl: null,
             SponsorText: "Buy me a coffee",
-            OwnerPhotoFile: ownerPhotoFile);
+            OwnerPhotoFile: ownerPhotoFile,
+            OwnerPhotoFlipFile: ownerPhotoFlipFile);
 
     private static MemoryStream PngImage(int width, int height)
     {
@@ -76,7 +79,8 @@ public class OwnerPhotoServiceTests : IDisposable
         // Under the cap: dimensions and aspect are preserved (the CSS frame crops).
         Assert.Equal(1200, saved.Width);
         Assert.Equal(800, saved.Height);
-        Assert.False(File.Exists($"{PhotoPath}.tmp"));
+        // The temp name carries a GUID, so probe the directory rather than one literal name.
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(PhotoPath)!, "*.tmp"));
     }
 
     [Fact]
@@ -124,6 +128,126 @@ public class OwnerPhotoServiceTests : IDisposable
         Assert.False(File.Exists(PhotoPath));
         Assert.Null(service.GetVersionedUrl());
     }
+
+    // -- Second owner-photo slot (Unit 10 Phase 4) ------------------------
+
+    [Fact]
+    public void IsConfigured_FlipUnset_ReturnsFalse()
+        => Assert.False(CreateService().IsConfigured(OwnerPhotoSlot.Flip));
+
+    [Fact]
+    public void IsConfigured_FlipSet_ReturnsTrue()
+        => Assert.True(CreateService(flipConfigured: true).IsConfigured(OwnerPhotoSlot.Flip));
+
+    [Fact]
+    public void IsConfigured_PrimaryDefaultsToTheOriginalSlot()
+        => Assert.True(CreateService().IsConfigured());
+
+    [Fact]
+    public void GetVersionedUrl_FlipUnconfigured_ReturnsNull()
+        => Assert.Null(CreateService().GetVersionedUrl(OwnerPhotoSlot.Flip));
+
+    [Fact]
+    public void GetVersionedUrl_FlipConfiguredButMissingFile_ReturnsNull()
+        => Assert.Null(CreateService(flipConfigured: true).GetVersionedUrl(OwnerPhotoSlot.Flip));
+
+    [Fact]
+    public async Task SaveAsync_Flip_UnconfiguredThrowsNamingTheFlipVariable()
+    {
+        var service = CreateService(); // Primary configured, flip is not.
+
+        await using var source = PngImage(100, 100);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.SaveAsync(source, OwnerPhotoSlot.Flip));
+
+        Assert.Contains("OWNER_PHOTO_FLIP_FILE", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Primary_UnconfiguredThrowsNamingThePrimaryVariable()
+    {
+        var service = CreateService(configured: false);
+
+        await using var source = PngImage(100, 100);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.SaveAsync(source));
+
+        Assert.Contains("OWNER_PHOTO_FILE", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetVersionedUrl_Flip_UsesTheFlipRouteAndWriteTimeTicks()
+    {
+        var service = CreateService(flipConfigured: true);
+        await using (var source = PngImage(100, 100))
+        {
+            await service.SaveAsync(source, OwnerPhotoSlot.Flip);
+        }
+
+        var url = service.GetVersionedUrl(OwnerPhotoSlot.Flip);
+
+        Assert.NotNull(url);
+        Assert.Equal($"/owner-photo-flip?v={File.GetLastWriteTimeUtc(FlipPhotoPath).Ticks}", url);
+    }
+
+    [Fact]
+    public async Task SaveAsync_Flip_WritesOnlyToTheFlipPath()
+    {
+        var service = CreateService(flipConfigured: true);
+
+        await using var source = PngImage(1200, 800);
+        await service.SaveAsync(source, OwnerPhotoSlot.Flip);
+
+        using var saved = Image.Load(FlipPhotoPath);
+        Assert.IsType<WebpFormat>(saved.Metadata.DecodedImageFormat);
+        Assert.False(File.Exists(PhotoPath));
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(FlipPhotoPath)!, "*.tmp"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_Flip_LeavesThePrimaryPhotoBytesAndWriteTimeUntouched()
+    {
+        var service = CreateService(flipConfigured: true);
+        await using (var primarySource = PngImage(100, 100))
+        {
+            await service.SaveAsync(primarySource);
+        }
+
+        var primaryBytesBefore = await File.ReadAllBytesAsync(PhotoPath);
+        var primaryWriteTimeBefore = File.GetLastWriteTimeUtc(PhotoPath);
+
+        await using (var flipSource = PngImage(200, 200))
+        {
+            await service.SaveAsync(flipSource, OwnerPhotoSlot.Flip);
+        }
+
+        Assert.Equal(primaryBytesBefore, await File.ReadAllBytesAsync(PhotoPath));
+        Assert.Equal(primaryWriteTimeBefore, File.GetLastWriteTimeUtc(PhotoPath));
+    }
+
+    [Fact]
+    public async Task Delete_Flip_RemovesOnlyTheFlipPhoto()
+    {
+        var service = CreateService(flipConfigured: true);
+        await using (var primarySource = PngImage(100, 100))
+        {
+            await service.SaveAsync(primarySource);
+        }
+        await using (var flipSource = PngImage(100, 100))
+        {
+            await service.SaveAsync(flipSource, OwnerPhotoSlot.Flip);
+        }
+
+        service.Delete(OwnerPhotoSlot.Flip);
+
+        Assert.False(File.Exists(FlipPhotoPath));
+        Assert.Null(service.GetVersionedUrl(OwnerPhotoSlot.Flip));
+        Assert.True(File.Exists(PhotoPath));
+        Assert.NotNull(service.GetVersionedUrl());
+    }
+
+    [Fact]
+    public void Delete_FlipUnconfigured_DoesNotThrow()
+        => CreateService().Delete(OwnerPhotoSlot.Flip);
 
     [Theory]
     [InlineData(new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }, "image/jpeg")]

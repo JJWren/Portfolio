@@ -159,6 +159,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             // matching Skills).
             content.Property(c => c.HeroEyebrow).HasMaxLength(SiteContentRules.HeroEyebrowMaxLength);
             content.Property(c => c.BeltCaption).HasMaxLength(SiteContentRules.BeltCaptionMaxLength);
+            // Same 200-char limit as OwnerPhotoAlt (Unit 10 Phase 4): one
+            // constant for both alt-text columns rather than a duplicate.
+            content.Property(c => c.OwnerPhotoFlipAlt).HasMaxLength(SiteContentRules.OwnerPhotoAltMaxLength);
         });
 
         builder.Entity<PageView>(view =>

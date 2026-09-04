@@ -45,39 +45,11 @@ public static class SeoEndpoints
 
         // Config-gated like /resume: no OWNER_PHOTO_FILE, no photo anywhere.
         // Immutable caching is safe because renders always link it as
-        // /owner-photo?v={write-time ticks}.
-        app.MapGet("/owner-photo", async (HttpContext ctx, SiteConfig site) =>
-        {
-            var path = site.OwnerPhotoFile;
-            if (path is null || !File.Exists(path))
-            {
-                return Results.NotFound();
-            }
-
-            var header = new byte[12];
-            int read;
-            await using (var probe = File.OpenRead(path))
-            {
-                read = await probe.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false);
-            }
-
-            // Sniffed, not trusted from the extension — the owner can copy any
-            // file over the mount; refuse to serve bytes we can't identify.
-            var contentType = OwnerPhotoService.SniffContentType(header.AsSpan(0, read));
-            if (contentType is null)
-            {
-                return Results.NotFound();
-            }
-
-            // Only versioned links (?v={write-ticks}) are safe to cache forever;
-            // bare /owner-photo (e.g. the JSON-LD image URL) must revalidate so
-            // a swapped photo propagates. Results.File emits Last-Modified/ETag
-            // for the conditional requests.
-            ctx.Response.Headers.CacheControl = ctx.Request.Query.ContainsKey("v")
-                ? "public, max-age=31536000, immutable"
-                : "public, no-cache";
-            return Results.File(path, contentType);
-        });
+        // /owner-photo?v={write-time ticks}. /owner-photo-flip (Unit 10 Phase
+        // 4, OWNER_PHOTO_FLIP_FILE) is the mat portrait shown by the hero's
+        // photo switch; it shares this same handler, bound to its own path.
+        app.MapGet("/owner-photo", (HttpContext ctx, SiteConfig site) => ServePhotoAsync(ctx, site.OwnerPhotoFile));
+        app.MapGet("/owner-photo-flip", (HttpContext ctx, SiteConfig site) => ServePhotoAsync(ctx, site.OwnerPhotoFlipFile));
 
         app.MapGet("/sitemap.xml", async (HttpContext ctx, BlogService blog, IConfiguration config) =>
         {
@@ -123,6 +95,44 @@ public static class SeoEndpoints
                 "application/manifest+json",
                 Encoding.UTF8);
         });
+    }
+
+    /// <summary>
+    /// Shared by /owner-photo and /owner-photo-flip: 404 when the given
+    /// slot's path is unconfigured, missing, or not a servable image;
+    /// otherwise sniffs the content type and serves the file with the same
+    /// caching semantics for both routes.
+    /// </summary>
+    private static async Task<IResult> ServePhotoAsync(HttpContext ctx, string? path)
+    {
+        if (path is null || !File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        var header = new byte[12];
+        int read;
+        await using (var probe = File.OpenRead(path))
+        {
+            read = await probe.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false);
+        }
+
+        // Sniffed, not trusted from the extension — the owner can copy any
+        // file over the mount; refuse to serve bytes we can't identify.
+        var contentType = OwnerPhotoService.SniffContentType(header.AsSpan(0, read));
+        if (contentType is null)
+        {
+            return Results.NotFound();
+        }
+
+        // Only versioned links (?v={write-ticks}) are safe to cache forever;
+        // a bare request (e.g. the JSON-LD image URL) must revalidate so a
+        // swapped photo propagates. Results.File emits Last-Modified/ETag for
+        // the conditional requests.
+        ctx.Response.Headers.CacheControl = ctx.Request.Query.ContainsKey("v")
+            ? "public, max-age=31536000, immutable"
+            : "public, no-cache";
+        return Results.File(path, contentType);
     }
 
     /// <summary>PUBLIC_BASE_URL when configured (canonical), otherwise the request origin.</summary>

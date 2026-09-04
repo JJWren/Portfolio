@@ -15,7 +15,8 @@ public class SiteContentRulesTests
         int? beltDegrees = null,
         IReadOnlyList<string>? principleLines = null,
         IReadOnlyList<string>? eraLines = null,
-        IReadOnlyList<string>? nowLines = null)
+        IReadOnlyList<string>? nowLines = null,
+        string? ownerPhotoFlipAlt = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -36,7 +37,8 @@ public class SiteContentRulesTests
             BeltDegrees: beltDegrees,
             PrincipleLines: principleLines,
             EraLines: eraLines,
-            NowLines: nowLines);
+            NowLines: nowLines,
+            OwnerPhotoFlipAlt: ownerPhotoFlipAlt);
 
     private static SiteContentDraft EmptyDraft()
         => new(
@@ -51,7 +53,8 @@ public class SiteContentRulesTests
             BeltDegreesText: null,
             PrinciplesText: null,
             ErasText: null,
-            NowText: null);
+            NowText: null,
+            OwnerPhotoFlipAlt: null);
 
     [Theory]
     [InlineData(null)]
@@ -117,6 +120,16 @@ public class SiteContentRulesTests
     }
 
     [Fact]
+    public void CheckLengths_OverlongFlipPhotoAlt_NamesTheField()
+    {
+        var error = SiteContentRules.CheckLengths(
+            null, null, null, ownerPhotoFlipAlt: new string('x', SiteContentRules.OwnerPhotoAltMaxLength + 1));
+
+        Assert.NotNull(error);
+        Assert.Contains("Mat photo alt text", error);
+    }
+
+    [Fact]
     public void Resolve_NullOverrides_FallsBackToConfig()
     {
         var site = BuildConfig();
@@ -150,6 +163,39 @@ public class SiteContentRulesTests
         var effective = SiteContentRules.Resolve(site, overrides);
 
         Assert.Equal("Jane on stage", effective.OwnerPhotoAlt);
+    }
+
+    // -- Second owner-photo slot (Unit 10 Phase 4) -------------------------
+
+    [Fact]
+    public void Resolve_OwnerPhotoFlipAlt_NullOverridesAndNoEnv_DerivesFromOwner()
+    {
+        var site = BuildConfig();
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal("Portrait of Jane Developer", effective.OwnerPhotoFlipAlt);
+    }
+
+    [Fact]
+    public void Resolve_OwnerPhotoFlipAlt_EnvValueBeatsTheDerivedDefault()
+    {
+        var site = BuildConfig(ownerPhotoFlipAlt: "Jane on the mat");
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal("Jane on the mat", effective.OwnerPhotoFlipAlt);
+    }
+
+    [Fact]
+    public void Resolve_OwnerPhotoFlipAlt_OverrideBeatsEnv()
+    {
+        var site = BuildConfig(ownerPhotoFlipAlt: "Jane on the mat");
+        var overrides = new SiteContent { OwnerPhotoFlipAlt = "Jane mid-roll" };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Equal("Jane mid-roll", effective.OwnerPhotoFlipAlt);
     }
 
     [Fact]

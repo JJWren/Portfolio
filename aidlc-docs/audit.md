@@ -703,3 +703,99 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Phase 3 merged
+**Timestamp**: 2026-09-04T19:39:00Z
+**User Input**: (none)
+**AI Response**: "Copilot round 1 on PR #92: Needs a closer look, 27 of 28 files reviewed, zero comments generated; CI green (build-test, CodeQL, pr-title, GitGuardian). Gate satisfied per CONTRIBUTING; squash-merged as 7dddfdf at 19:38Z. Local master realigned, feature branch deleted. Plan Phase 3 gate box ticked; state updated; Phase 4 next."
+**Context**: Construction, Unit 10, Phase 3 complete
+
+---
+
+## Phase 4 started
+**Timestamp**: 2026-09-04T19:43:47Z
+**User Input**: (none)
+**AI Response**: "Wrote the Phase 4 subagent brief (construction/plans/unit10-phase4-brief.md: OwnerPhotoSlot enum, per-slot service members, /owner-photo-flip endpoint sharing the handler, OwnerPhotoFlipAlt column and migration AddOwnerPhotoFlipAlt, editor mat-photo group, hero photo switch under Bjj only when both slots resolve, fetchpriority on the primary image, CSS from Main.css, shared.css and Lead.css into the existing 720px and reduced-motion blocks, tests). Created feat/owner-photo-flip from master 7dddfdf and committed the orchestrator docs; launching the Sonnet build agent."
+**Context**: Construction, Unit 10, Code Generation Part 2, Phase 4 start
+
+---
+
+## User instruction: disable the python3 alias via a subagent
+**Timestamp**: 2026-09-04T19:49:29Z
+**User Input**: "spawn a Sonnet 5 subagent to handle disabling that python3.exe app execution alias in Windows Settings."
+**AI Response**: "Spawned a Sonnet general-purpose subagent with a brief to investigate the alias (reparse data, owning package, how the toggle state is persisted), disable it with the least invasive user-scoped reversible change (remove the per-user alias file and any persisted toggle value; no uninstall, no PATH edits, nothing under Programs\Python, nothing needing admin), verify python3 no longer resolves to the alias and the plugin shim still exits 0, and report revert steps."
+**Context**: Tooling incident follow-up during Unit 10 Phase 4
+
+---
+
+## python3 alias disabled by the subagent
+**Timestamp**: 2026-09-04T19:58:01Z
+**User Input**: (none)
+**AI Response**: "Subagent report: every Python alias in WindowsApps belongs to the Microsoft Store package Python Install Manager (PythonSoftwareFoundation.PythonManager); python3.exe is an AppExecLink to that package stub, which dispatches to the default interpreter (3.14). It removed only the per-user stub file (Remove-Item on the WindowsApps python3.exe). Verified: command -v python3 now finds nothing; the plugin shim exits 0; python (3.12) and py -3.12 unchanged; the other six aliases untouched. Caveat: the Settings toggle state lives in the undocumented State Repository, so a future package update could recreate the alias; the owner should flip the toggle off once in Settings for durability. Revert: toggle python3.exe back on under Settings, Apps, Advanced app settings, App execution aliases, Python Install Manager."
+**Context**: Tooling incident follow-up during Unit 10 Phase 4
+
+---
+
+## Phase 4 build agent report
+**Timestamp**: 2026-09-04T20:21:30Z
+**User Input**: (none)
+**AI Response**: "Phase 4 subagent finished: 6b6d006 (OwnerPhotoSlot, per-slot service, /owner-photo-flip), e7a3bb2 (OwnerPhotoFlipAlt column, migration 20260904200011_AddOwnerPhotoFlipAlt, rules), 61a956d (editor mat-photo group), db14fc3 (hero switch markup and CSS), 8923930 and 140752b (tests, plan boxes). Build 0 warnings; 689 tests (was 666). Visual check done locally incl. keyboard operation; reduced motion and admin preview not verifiable locally. Deviations: desk image inside the switch omits the owner-photo class (its margin-top would stack with .photo-stack); two synthetic AppCssTests cases repointed from .owner-photo to .hero-text; OwnerPhotoAltMaxLength reused. Next: five-area review."
+**Context**: Construction, Unit 10, Phase 4 code generation complete, review pending
+
+---
+
+## Phase 4 five-area review launched
+**Timestamp**: 2026-09-04T20:24:03Z
+**User Input**: (none)
+**AI Response**: "Verified the Phase 4 branch (1523835 docs + 6b6d006, e7a3bb2, 61a956d, db14fc3, 8923930, 140752b; 21 files; build 0 warnings; 689 tests). Launched five report-only Sonnet reviewers in parallel: correctness and bugs, security (incl. BR-18 grep for the photo alt texts and file names), framework awareness, maintainability, performance."
+**Context**: Construction, Unit 10, Phase 4 review
+
+---
+
+## Phase 4 review 1 of 5: security
+**Timestamp**: 2026-09-04T20:29:48Z
+**User Input**: (none)
+**AI Response**: "Security reviewer verdict PASS, no findings. BR-18 grep over the diff, tests, src and .env.example: zero hits for the photo file names, alt-text fragments, owner name, gyms, cities and promotion dates; no image assets committed. Passed: config-only path selection per slot, per-target temp files, unchanged upload hardening mirrored for the flip slot behind the same Authorize(Admin) boundary, shared endpoint handler with identical sniffing, 404s and cache headers, alt texts encoded (tested), parameterized persistence with HasMaxLength(200), no client-side surface, JSON-LD untouched. Informational: the handler has a pre-existing benign TOCTOU window between File.Exists and the reads, inherited from Phase 0 code."
+**Context**: Construction, Unit 10, Phase 4 review
+
+---
+
+## Phase 4 review 2 of 5: performance
+**Timestamp**: 2026-09-04T20:32:05Z
+**User Input**: (none)
+**AI Response**: "Performance reviewer verdict PASS WITH NOTES. Finding 1 (Low, PLAUSIBLE): the mat image sits in the initial viewport at opacity 0, so loading=lazy does not defer it and it competes with the fetchpriority=high desk image; fix by adding fetchpriority=low to the mat image. Measurements: app.css +2017 bytes raw, about +400 bytes gzip, immutable-cached; photo stat calls per request 4 to 6 worst case (the primary-slot double resolve between Home.razor and LandingSections predates this phase); migration one nullable varchar(200) column; test temp files cleaned in Dispose. Passed: JSON-LD untouched, shared streaming handler with identical cache headers, opacity-only crossfade scoped to .hero and covered by the reduced-motion test, aspect-ratio reserves the box (no layout shift), content cache unchanged, config read once per process, upload path reuses the same limits."
+**Context**: Construction, Unit 10, Phase 4 review
+
+---
+
+## Phase 4 review 3 of 5: framework awareness
+**Timestamp**: 2026-09-04T20:33:47Z
+**User Input**: (none)
+**AI Response**: "Framework reviewer verdict PASS, no findings. Verified: exhaustive switch expressions on OwnerPhotoSlot, every call site updated for IsConfigured() and the new optional slot parameters with no positional-shift risk, SiteContentDraft construction sites use named arguments, shared endpoint handler identical in sniffing, 404 and cache semantics, the static checked attribute renders literally and is tested, editor mat-photo group mirrors the primary group, HasMaxLength reuses the constant, migration Designer differs from the previous one only by the new property block, temp-dir cleanup covers both slots, MaximalConfig callers updated, repointed synthetic CSS cases sound, CSS values exact against the design sources inside the single 720px and reduced-motion blocks, the owner-photo class omission on the desk tile judged correct (margin stacking and clipping)."
+**Context**: Construction, Unit 10, Phase 4 review
+
+---
+
+## Phase 4 review 4 of 5: maintainability
+**Timestamp**: 2026-09-04T20:34:15Z
+**User Input**: (none)
+**AI Response**: "Maintainability reviewer verdict PASS WITH NOTES. Finding 1 (Medium, CONFIRMED): the desk tile image inside the switch omits class owner-photo for a good reason (margin stacking and clipping) but nothing in LandingSections.razor or app.css says so; add an in-file comment. Notes for Phase 5: CONTEXT.md Owner Photo entry still says a single file; README env table needs OWNER_PHOTO_FLIP_FILE and OWNER_PHOTO_FLIP_ALT rows; OwnerPhotoSlot and /owner-photo-flip undocumented outside code and the plan. Passed: DRY slot helpers with rewritten XML docs, endpoint extraction with comments preserved, trailing record members, .env.example style and BR-18 clean, single-column migration, resolve/validate placement, proportionate editor duplication with consistent naming, CSS verbatim and inside the single 720px and reduced-motion blocks, test names and cleanup, harness change propagated, plan hygiene, six clean commits."
+**Context**: Construction, Unit 10, Phase 4 review
+
+---
+
+## Phase 4 review 5 of 5: correctness and bugs
+**Timestamp**: 2026-09-04T20:36:04Z
+**User Input**: (none)
+**AI Response**: "Correctness reviewer verdict PASS WITH NOTES; 689/689 on its own run. Finding 1 (Low, CONFIRMED): the flip-save test asserts a temp file name the code never creates (the temp name carries a GUID), so the assertion is vacuous; the pre-existing primary test has the same flaw. Finding 2 (Low): a flip-only configuration renders no hero photo; judged unsupported by design (the mat photo is secondary, BR-19 anchors has-photo and JSON-LD to the primary) but worth a hint in the editor. Everything else passed. Consolidated remediation (small, applied by the orchestrator directly): in-file comment for the omitted owner-photo class; fetchpriority=low on the mat image with the render test updated; glob-based no-temp-files assertions in both save tests; editor hint that the mat photo shows only alongside the owner photo."
+**Context**: Construction, Unit 10, Phase 4 review complete; remediation
+
+---
+
+## Phase 4 remediation applied and PR opened
+**Timestamp**: 2026-09-04T20:37:41Z
+**User Input**: (none)
+**AI Response**: "Applied the four review fixes directly: fetchpriority=low on the mat image (render test updated), in-file comments in LandingSections.razor and app.css for the omitted owner-photo class, glob-based no-temp-files assertions in both OwnerPhotoService save tests, and the editor hint that the mat photo shows only alongside the owner photo. Build 0 warnings; 689 tests. Committed the fix and the orchestrator docs, pushed feat/owner-photo-flip and opened the PR with the plan title: feat: second owner photo slot with the hero portrait switch."
+**Context**: Construction, Unit 10, Phase 4 gate: PR and Copilot rounds
+
+---
+

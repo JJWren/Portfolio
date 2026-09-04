@@ -52,5 +52,10 @@ public class SiteContent
     /// <summary>Now tiles: `label | value`, one to eight lines (BR-10).</summary>
     public List<string>? Now { get; set; }
 
+    /// <summary>Alt text for the second (mat) portrait (Unit 10 Phase 4);
+    /// "Portrait of {owner}" when unset. See OwnerPhotoService's
+    /// OwnerPhotoSlot.Flip.</summary>
+    public string? OwnerPhotoFlipAlt { get; set; }
+
     public DateTime UpdatedAt { get; set; }
 }

@@ -20,7 +20,8 @@ internal sealed record SiteContentValues(
     int? BeltDegrees,
     List<string>? Principles,
     List<string>? Eras,
-    List<string>? Now);
+    List<string>? Now,
+    string? OwnerPhotoFlipAlt);
 
 public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteConfig site)
 {
@@ -84,7 +85,8 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             BeltDegrees: SiteContentRules.ParseDegrees(draft.BeltDegreesText),
             Principles: SiteContentRules.ParseLines(draft.PrinciplesText),
             Eras: SiteContentRules.ParseLines(draft.ErasText),
-            Now: SiteContentRules.ParseLines(draft.NowText));
+            Now: SiteContentRules.ParseLines(draft.NowText),
+            OwnerPhotoFlipAlt: SiteContentRules.NormalizeField(draft.OwnerPhotoFlipAlt));
 
         try
         {
@@ -127,6 +129,7 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         row.Principles = values.Principles;
         row.Eras = values.Eras;
         row.Now = values.Now;
+        row.OwnerPhotoFlipAlt = values.OwnerPhotoFlipAlt;
         row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }

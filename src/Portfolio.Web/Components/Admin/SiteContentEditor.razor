@@ -110,7 +110,7 @@
 
             <div class="field">
                 <span>Owner photo <span class="muted">shown on the landing hero</span></span>
-                @if (!Photo.IsConfigured)
+                @if (!Photo.IsConfigured())
                 {
                     <p class="muted">
                         Set OWNER_PHOTO_FILE in .env (and mount its folder read-write)
@@ -143,13 +143,58 @@
                 }
             </div>
 
-            @if (Photo.IsConfigured)
+            @if (Photo.IsConfigured())
             {
                 <label class="field">
                     <span>Photo alt text <span class="muted">describes the photo for screen readers</span></span>
                     <input type="text" maxlength="@SiteContentRules.OwnerPhotoAltMaxLength"
                            @bind="_ownerPhotoAlt" @bind:after="MarkDirty"
                            placeholder="@(Site.OwnerPhotoAlt ?? $"Portrait of {Site.OwnerName}")" />
+                </label>
+            }
+
+            <div class="field">
+                <span>Mat photo <span class="muted">the hero's second portrait; shown with a switch only when the owner photo above is set too</span></span>
+                @if (!Photo.IsConfigured(OwnerPhotoSlot.Flip))
+                {
+                    <p class="muted">
+                        Set OWNER_PHOTO_FLIP_FILE in .env (and mount its folder read-write)
+                        to enable the mat photo.
+                    </p>
+                }
+                else
+                {
+                    @if (_photoFlipUrl is not null)
+                    {
+                        <img class="owner-photo-preview" src="@_photoFlipUrl" alt="Current mat photo" />
+                    }
+                    else
+                    {
+                        <p class="muted">
+                            No photo yet — upload one here, or copy an image file onto
+                            the OWNER_PHOTO_FLIP_FILE path.
+                        </p>
+                    }
+                    <div class="editor-actions">
+                        <label class="btn btn-ghost photo-upload">
+                            @(_photoFlipBusy ? "Uploading…" : "Upload photo")
+                            <InputFile OnChange="UploadPhotoFlipAsync" accept="image/png,image/jpeg,image/webp,image/gif" disabled="@_photoFlipBusy" />
+                        </label>
+                        @if (_photoFlipUrl is not null)
+                        {
+                            <button class="btn btn-ghost" @onclick="RemovePhotoFlip" disabled="@_photoFlipBusy">Remove</button>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (Photo.IsConfigured(OwnerPhotoSlot.Flip))
+            {
+                <label class="field">
+                    <span>Mat photo alt text <span class="muted">describes the photo for screen readers</span></span>
+                    <input type="text" maxlength="@SiteContentRules.OwnerPhotoAltMaxLength"
+                           @bind="_ownerPhotoFlipAlt" @bind:after="MarkDirty"
+                           placeholder="@(Site.OwnerPhotoFlipAlt ?? $"Portrait of {Site.OwnerName}")" />
                 </label>
             }
 
@@ -185,9 +230,17 @@
     private string _erasText = string.Empty;
     private string _nowText = string.Empty;
 
+    // Second owner-photo slot (Unit 10 Phase 4); shown whenever
+    // OWNER_PHOTO_FLIP_FILE is set, independent of Site.Flavor (like the
+    // primary Owner photo group above).
+    private string _ownerPhotoFlipAlt = string.Empty;
+    private string? _photoFlipUrl;
+    private bool _photoFlipBusy;
+
     protected override async Task OnInitializedAsync()
     {
         _photoUrl = Photo.GetVersionedUrl();
+        _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
         try
         {
             SeedForm(await ContentStore.GetOverridesAsync());
@@ -219,6 +272,7 @@
         _principlesText = SiteContentRules.LinesText(overrides?.Principles);
         _erasText = SiteContentRules.LinesText(overrides?.Eras);
         _nowText = SiteContentRules.LinesText(overrides?.Now);
+        _ownerPhotoFlipAlt = overrides?.OwnerPhotoFlipAlt ?? string.Empty;
     }
 
     private async Task UploadPhotoAsync(InputFileChangeEventArgs e)
@@ -254,6 +308,39 @@
         _photoUrl = Photo.GetVersionedUrl();
     }
 
+    private async Task UploadPhotoFlipAsync(InputFileChangeEventArgs e)
+    {
+        if (_photoFlipBusy)
+        {
+            return;
+        }
+
+        _photoFlipBusy = true;
+        _error = null;
+        try
+        {
+            await using var stream = e.File.OpenReadStream(OwnerPhotoService.MaxBytes);
+            await Photo.SaveAsync(stream, OwnerPhotoSlot.Flip);
+            _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or SixLabors.ImageSharp.ImageFormatException)
+        {
+            _error = ex is SixLabors.ImageSharp.ImageFormatException
+                ? "That file isn't a readable image — use a PNG, JPEG, WebP, or GIF."
+                : ex.Message;
+        }
+        finally
+        {
+            _photoFlipBusy = false;
+        }
+    }
+
+    private void RemovePhotoFlip()
+    {
+        Photo.Delete(OwnerPhotoSlot.Flip);
+        _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
+    }
+
     private async Task SaveAsync()
     {
         if (_busy)
@@ -274,7 +361,8 @@
             BeltDegreesText: _beltDegreesText,
             PrinciplesText: _principlesText,
             ErasText: _erasText,
-            NowText: _nowText);
+            NowText: _nowText,
+            OwnerPhotoFlipAlt: _ownerPhotoFlipAlt);
         _error = SiteContentRules.Validate(draft, Site);
         if (_error is not null)
         {

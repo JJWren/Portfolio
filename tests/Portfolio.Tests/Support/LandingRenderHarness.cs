@@ -79,7 +79,8 @@ internal static class LandingRenderHarness
         int? beltDegrees = null,
         IReadOnlyList<string>? principleLines = null,
         IReadOnlyList<string>? eraLines = null,
-        IReadOnlyList<string>? nowLines = null)
+        IReadOnlyList<string>? nowLines = null,
+        string? ownerPhotoFlipFile = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -101,7 +102,8 @@ internal static class LandingRenderHarness
             BeltDegrees: beltDegrees,
             PrincipleLines: principleLines,
             EraLines: eraLines,
-            NowLines: nowLines);
+            NowLines: nowLines,
+            OwnerPhotoFlipFile: ownerPhotoFlipFile);
 
     /// <summary>Builds an EffectiveSiteContent with fixed, neutral defaults; pass only what a given test cares about varying.</summary>
     public static EffectiveSiteContent BuildContent(
@@ -116,7 +118,8 @@ internal static class LandingRenderHarness
         int beltDegrees = 0,
         IReadOnlyList<Principle>? principles = null,
         IReadOnlyList<Era>? eras = null,
-        IReadOnlyList<NowItem>? now = null)
+        IReadOnlyList<NowItem>? now = null,
+        string ownerPhotoFlipAlt = "Jane on the mat")
         => new(
             HeroHeading: heroHeading,
             Tagline: tagline,
@@ -129,16 +132,18 @@ internal static class LandingRenderHarness
             BeltDegrees: beltDegrees,
             Principles: principles,
             Eras: eras,
-            Now: now);
+            Now: now,
+            OwnerPhotoFlipAlt: ownerPhotoFlipAlt);
 
     /// <summary>
     /// A SiteConfig with every optional branch populated (GitHub, LinkedIn,
-    /// and — since <paramref name="ownerPhotoFile"/> must name a file that
+    /// and — since <paramref name="ownerPhotoFile"/> and
+    /// <paramref name="ownerPhotoFlipFile"/> must each name a file that
     /// really exists, OwnerPhotoService.GetVersionedUrl only checks
-    /// File.Exists — a photo), plus the Bjj flavor so every BJJ-only branch
-    /// (Unit 10) also renders. Pair with <see cref="MaximalContent"/> so a
-    /// render exercises every optional piece of markup LandingSections can
-    /// emit today.
+    /// File.Exists — two photos, so the hero's switch markup renders too),
+    /// plus the Bjj flavor so every BJJ-only branch (Unit 10) also renders.
+    /// Pair with <see cref="MaximalContent"/> so a render exercises every
+    /// optional piece of markup LandingSections can emit today.
     ///
     /// IMPORTANT: AppCssTests' fixed-position cross-check (BR-13) walks the
     /// classes/ids/tags in a maximal render and assumes it has seen
@@ -148,12 +153,13 @@ internal static class LandingRenderHarness
     /// unit10-bjj-landing-plan.md) — MUST extend this pair to populate the
     /// new branch too, or the cross-check silently stops covering it.
     /// </summary>
-    public static SiteConfig MaximalConfig(string ownerPhotoFile)
+    public static SiteConfig MaximalConfig(string ownerPhotoFile, string ownerPhotoFlipFile)
         => BuildConfig(
             gitHubUrl: "https://github.com/janedev",
             linkedInUrl: "https://linkedin.com/in/janedev",
             ownerPhotoFile: ownerPhotoFile,
-            flavor: SiteFlavor.Bjj);
+            flavor: SiteFlavor.Bjj,
+            ownerPhotoFlipFile: ownerPhotoFlipFile);
 
     /// <summary>See <see cref="MaximalConfig"/>.</summary>
     public static EffectiveSiteContent MaximalContent()

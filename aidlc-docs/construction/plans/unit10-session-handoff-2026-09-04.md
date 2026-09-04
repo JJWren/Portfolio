@@ -9,15 +9,15 @@
 | 0 owner actions | Closed: the demo post stays published (owner decision); the drafts ship as drafts. Optional local `.env` alignment still open. |
 | 1 `test:` render safety net | Merged 2026-09-04 as PR #89, squash `c1380a2`. `tests/Portfolio.Tests/Support/LandingRenderHarness.cs` and `CssScanner.cs` are the shared helpers every later phase extends. |
 | 2 `feat:` foundation | Merged 2026-09-04 as PR #90, squash `e6a4a75`. Five-area internal review, remediation, Copilot rounds 1 to 3 (three robustness fixes, one tail-field parsing fix, then a pass with no new comments). 567 tests. |
-| 3 `feat:` The road and Now | Not started. The subagent brief is ready: `unit10-phase3-brief.md` (self-contained; spawn a Sonnet general-purpose agent with its full text as the prompt). |
-| 4 `feat:` second photo slot and portrait switch | Not started; brief it from the plan's Phase 4 section the way Phases 2 and 3 were briefed. |
+| 3 `feat:` The road and Now | Merged 2026-09-04 as PR #92, squash `7dddfdf`. Five-area review found three real problems (owner facts in fixtures, BR-9 check on draft-only values, reduced-motion block losing the cascade) fixed by a remediation agent; Copilot round 1 had zero comments. 666 tests. |
+| 4 `feat:` second photo slot and portrait switch | In progress since 2026-09-04 on `feat/owner-photo-flip` (docs commit `1523835`); brief: `unit10-phase4-brief.md`. |
 | 5 `perf:` close-out | Not started. |
 
 Owner actions after the Phase 2 image deploys: set `SITE_FLAVOR=bjj` in the production `.env`, then paste the Phase 2 rows of the plan's content sheet at `/admin/site` (hero heading, eyebrow, tagline, game plan, belt caption, degrees, principles). Two visual checks were not possible locally and are worth an owner glance after deploy: reduced-motion behavior (covered by the CSS invariant tests) and the `/admin/theme` preview frame with the flavor on.
 
 ## Working tree at handoff
 
-Uncommitted, deliberately: `aidlc-docs/audit.md` (appended entries), `aidlc-docs/aidlc-state.md`, `aidlc-docs/construction/plans/unit10-bjj-landing-plan.md` (Phase 2 gate box), this file, and `unit10-phase3-brief.md`. Commit them on the Phase 3 branch as a `docs:` commit before opening that PR (Phase 1 did the same). Never let a subagent stage, stash or revert these files; every brief says so.
+Pattern: after each merge the plan gate box, `aidlc-docs/aidlc-state.md` and `aidlc-docs/audit.md` are edited on master and left uncommitted; the next phase branch starts with a `docs:` commit carrying them plus that phase's brief, and a second `docs:` commit lands before the PR opens with the review trail. Never let a subagent stage, stash or revert these files; every brief says so.
 
 ## The execution model (owner instruction, 2026-09-04)
 
@@ -39,7 +39,11 @@ Uncommitted, deliberately: `aidlc-docs/audit.md` (appended entries), `aidlc-docs
 - **Hook noise (resolved 2026-09-04)**: the `security-guidance` plugin's shim (`sg-python.sh`) picked `python3`, which on this machine is a Windows app-execution alias for Python 3.14; a process launched through that alias cannot see `%APPDATA%\Claude`, so every Stop, commit and push hook failed with "can't open file ... security_reminder_hook.py" and re-woke the session in a loop. Fix applied: `python3.12.exe` (a copy of `python.exe`) added to `%LOCALAPPDATA%\Programs\Python\Python312`, which the shim now picks first. Durable fix for the owner: turn off the `python3.exe` app execution alias in Windows Settings. Post-mortem: `~/Downloads/claude-code-security-hook-loop-2026-09-04.md`. A `metrics` JSON line with `"skipped": true` from the plugin is normal.
 - **Shell quoting**: long markdown goes through the Write tool, not Bash heredocs (Git Bash quoting failed on one). Audit entries are appended with a `cat <<EOF | sed ... >> audit.md` block using CRLF line endings and no backticks or apostrophes inside.
 
-## Public surface after Phase 2 (for briefing Phases 3 and 4)
+## Public surface after Phase 3 (for briefing Phases 4 and 5)
+
+Added by Phase 3 on top of the Phase 2 surface below: `BjjRules.Belt` (`White, Blue, Purple, Brown, Black`), `ParseBelt`, `CssName`, `DateFormat`, records `Era(Date, Belt, Stripes, Gym, Location, Role)`, `Rung(Belt, Stripes)`, `NowItem(Label, Value)`, `ParseEras`, `Rungs`, `ParseNow`, `ValidateEras`, `ValidateNow`, `ValidateDegreesAgainstEras(degrees, eras, degreesSource?, erasSource?)`, constants `MaxEras = 12`, `MaxNowItems = 8`; `SiteConfig.EraLines`, `NowLines` (`SITE_ERAS`, `SITE_NOW`); `SiteContent.Eras`, `Now` (migration `20260904182920_AddRoadAndNow`); `EffectiveSiteContent.Eras`, `Rungs` (resolved once), `Now`; `SiteContentDraft` with twelve positional fields ending `PrinciplesText, ErasText, NowText`; `SiteContentRules.Validate(draft, SiteConfig? site = null)` (BR-9 on effective values); `Components/BeltBand.razor(Belt, Stripes)`, `Components/Road.razor(Eras, Rungs)`; the reduced-motion block carries `!important` on every declaration (tested); one 720px block per banner section (tested).
+
+### Phase 2 surface
 
 - `Services/SiteFlavor.cs`: `SiteFlavor { Default, Bjj }`, `SiteFlavorRules.Parse(string?)`.
 - `Services/BjjRules.cs`: records `GamePlanNode(Term, Reading, How)`, `Principle(Maxim, Reading)`; `SplitLines`, `SplitFields`, `BoundLineLength` (truncates), `ParseGamePlan`, `ParsePrinciples` (lenient, capped), `ClampDegrees`, `ValidateGamePlan`, `ValidatePrinciples`, `ValidateDegrees`; constants `MaxDegrees = 6`, `GamePlanNodeCount = 4`, `MaxPrinciples = 6`, `MaxLineLength = 500`. The `Belt` enum, eras and now are Phase 3.
