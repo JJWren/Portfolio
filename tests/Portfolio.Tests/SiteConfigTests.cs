@@ -44,6 +44,8 @@ public class SiteConfigTests
         Assert.Null(site.ResumeFile);
         Assert.Null(site.OwnerPhotoFile);
         Assert.Null(site.OwnerPhotoAlt);
+        Assert.Null(site.OwnerPhotoFlipFile);
+        Assert.Null(site.OwnerPhotoFlipAlt);
     }
 
     [Fact]
@@ -134,6 +136,40 @@ public class SiteConfigTests
 
         Assert.Equal("/app/photo/owner-photo.webp", site.OwnerPhotoFile);
         Assert.Equal("Jane at her desk", site.OwnerPhotoAlt);
+    }
+
+    [Fact]
+    public void FromConfiguration_OwnerPhotoFlipIsConfigurable()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["OWNER_PHOTO_FLIP_FILE"] = "/app/photo/owner-photo-flip.webp",
+            ["OWNER_PHOTO_FLIP_ALT"] = "Jane on the mat",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal("/app/photo/owner-photo-flip.webp", site.OwnerPhotoFlipFile);
+        Assert.Equal("Jane on the mat", site.OwnerPhotoFlipAlt);
+    }
+
+    [Fact]
+    public void FromConfiguration_OwnerPhotoFlip_BlankBecomesNull()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["OWNER_PHOTO_FLIP_FILE"] = "  ",
+            ["OWNER_PHOTO_FLIP_ALT"] = "",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Null(site.OwnerPhotoFlipFile);
+        Assert.Null(site.OwnerPhotoFlipAlt);
     }
 
     [Fact]

@@ -17,13 +17,17 @@ public class LandingSectionsRenderTests : IDisposable
 
     /// <summary>Creates a real (tiny) file at a fresh path under the per-test temp
     /// dir; OwnerPhotoService.GetVersionedUrl only checks File.Exists.</summary>
-    private string CreatePhotoFile()
+    private string CreatePhotoFile(string fileName = "owner-photo.webp")
     {
         Directory.CreateDirectory(_tempDir);
-        var path = Path.Combine(_tempDir, "owner-photo.webp");
+        var path = Path.Combine(_tempDir, fileName);
         File.WriteAllBytes(path, [0x00, 0x01, 0x02, 0x03]);
         return path;
     }
+
+    /// <summary>The second (mat) portrait's file, for tests exercising the
+    /// hero's two-photo switch (Unit 10 Phase 4).</summary>
+    private string CreatePhotoFlipFile() => CreatePhotoFile("owner-photo-flip.webp");
 
     private static int CountOccurrences(string haystack, string needle)
     {
@@ -192,6 +196,9 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("<img class=\"owner-photo\"", html);
         Assert.Contains("alt=\"Jane at her desk\"", html);
         Assert.Contains("src=\"/owner-photo?v=", html);
+        // Unit 10 Phase 4: fetchpriority is on the primary hero image
+        // whether or not the second (flip) slot is ever configured.
+        Assert.Contains("fetchpriority=\"high\"", html);
     }
 
     [Fact]
@@ -499,7 +506,8 @@ public class LandingSectionsRenderTests : IDisposable
     public async Task Render_FullBjjContent_ContainsNoFixedPositioningAndNoScriptTags()
     {
         var photoPath = CreatePhotoFile();
-        var site = LandingRenderHarness.MaximalConfig(photoPath);
+        var photoFlipPath = CreatePhotoFlipFile();
+        var site = LandingRenderHarness.MaximalConfig(photoPath, photoFlipPath);
         var content = LandingRenderHarness.MaximalContent();
 
         var html = await LandingRenderHarness.RenderAsync(site, content);
@@ -693,6 +701,95 @@ public class LandingSectionsRenderTests : IDisposable
 
         Assert.Contains("Two ladders, one clock", html);
         Assert.DoesNotContain("class=\"now\"", html);
+    }
+
+    // -- Second owner-photo slot (Unit 10 Phase 4) -------------------------
+
+    [Fact]
+    public async Task Render_Bjj_BothPhotosConfigured_RendersPhotoSwitchWithDeskCheckedAndFetchpriorityOnDeskOnly()
+    {
+        var photoPath = CreatePhotoFile();
+        var photoFlipPath = CreatePhotoFlipFile();
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(
+                flavor: SiteFlavor.Bjj, ownerPhotoFile: photoPath, ownerPhotoFlipFile: photoFlipPath),
+            LandingRenderHarness.BuildContent(ownerPhotoAlt: "Jane at her desk", ownerPhotoFlipAlt: "Jane on the mat"));
+
+        Assert.Contains("class=\"container has-photo\"", html);
+        Assert.Contains("<div class=\"photo-slot\">", html);
+        Assert.Contains("<div class=\"photo-stack\">", html);
+        Assert.Contains("<div class=\"photo-tile desk\">", html);
+        Assert.Contains("<div class=\"photo-tile mat\">", html);
+        Assert.Contains("<fieldset class=\"pill-switch photo-switch\">", html);
+        Assert.Contains("<legend class=\"visually-hidden\">Show photo</legend>", html);
+        Assert.Contains("id=\"ph-desk\" checked", html);
+        Assert.DoesNotContain("id=\"ph-mat\" checked", html);
+        Assert.Contains("<label for=\"ph-desk\">At the desk</label>", html);
+        Assert.Contains("<label for=\"ph-mat\">On the mat</label>", html);
+        Assert.Contains("alt=\"Jane at her desk\"", html);
+        Assert.Contains("alt=\"Jane on the mat\"", html);
+        Assert.Contains("src=\"/owner-photo?v=", html);
+        Assert.Contains("src=\"/owner-photo-flip?v=", html);
+        // fetchpriority is on the primary (desk) image only.
+        Assert.Equal(1, CountOccurrences(html, "fetchpriority=\"high\""));
+        // The single-image path (used when only one photo resolves) must not
+        // also render.
+        Assert.DoesNotContain("<img class=\"owner-photo\"", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_BothPhotosConfigured_AltTextsAreEncoded()
+    {
+        var photoPath = CreatePhotoFile();
+        var photoFlipPath = CreatePhotoFlipFile();
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(
+                flavor: SiteFlavor.Bjj, ownerPhotoFile: photoPath, ownerPhotoFlipFile: photoFlipPath),
+            LandingRenderHarness.BuildContent(ownerPhotoAlt: "<b>Desk</b>", ownerPhotoFlipAlt: "<i>Mat</i>"));
+
+        Assert.DoesNotContain("<b>", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<i>Mat", html, StringComparison.Ordinal);
+        Assert.Contains("alt=\"&lt;b&gt;Desk&lt;/b&gt;\"", html, StringComparison.Ordinal);
+        Assert.Contains("alt=\"&lt;i&gt;Mat&lt;/i&gt;\"", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_OnlyPrimaryPhotoConfigured_RendersSingleImageNotSwitch()
+    {
+        var photoPath = CreatePhotoFile();
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj, ownerPhotoFile: photoPath),
+            LandingRenderHarness.BuildContent());
+
+        Assert.Contains("<img class=\"owner-photo\"", html);
+        Assert.Contains("fetchpriority=\"high\"", html);
+        Assert.DoesNotContain("photo-slot", html);
+        Assert.DoesNotContain("photo-switch", html);
+        Assert.DoesNotContain("<fieldset", html);
+    }
+
+    [Fact]
+    public async Task Render_Default_BothPhotosConfigured_RendersSingleImageNotSwitch()
+    {
+        var photoPath = CreatePhotoFile();
+        var photoFlipPath = CreatePhotoFlipFile();
+
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(
+                flavor: SiteFlavor.Default, ownerPhotoFile: photoPath, ownerPhotoFlipFile: photoFlipPath),
+            LandingRenderHarness.BuildContent());
+
+        Assert.Contains("<img class=\"owner-photo\"", html);
+        Assert.Contains("fetchpriority=\"high\"", html);
+        Assert.DoesNotContain("photo-slot", html);
+        Assert.DoesNotContain("photo-switch", html);
+        Assert.DoesNotContain("<fieldset", html);
+        // The flip photo resolves (BuildConfig sets the path) but never
+        // renders under the Default flavor (BR-1).
+        Assert.DoesNotContain("/owner-photo-flip", html);
     }
 
     /// <summary>Counts the `&lt;i&gt;&lt;/i&gt;` degree stripes inside the

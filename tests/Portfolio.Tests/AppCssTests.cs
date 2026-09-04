@@ -97,17 +97,20 @@ public class AppCssTests : IDisposable
         }
     }
 
-    /// <summary>Renders LandingSections with every optional piece (photo, tagline,
-    /// about, skills, GitHub/LinkedIn links) present, so the collected token set
+    /// <summary>Renders LandingSections with every optional piece (both photo
+    /// slots — so the hero's switch markup renders too — tagline, about,
+    /// skills, GitHub/LinkedIn links) present, so the collected token set
     /// covers everything the component can ever emit.</summary>
     private async Task<HashSet<string>> RenderMaximalTokensAsync()
     {
         Directory.CreateDirectory(_tempDir);
         var photoPath = Path.Combine(_tempDir, "owner-photo.webp");
         await File.WriteAllBytesAsync(photoPath, [0x00, 0x01, 0x02, 0x03]);
+        var photoFlipPath = Path.Combine(_tempDir, "owner-photo-flip.webp");
+        await File.WriteAllBytesAsync(photoFlipPath, [0x00, 0x01, 0x02, 0x03]);
 
         var html = await LandingRenderHarness.RenderAsync(
-            LandingRenderHarness.MaximalConfig(photoPath),
+            LandingRenderHarness.MaximalConfig(photoPath, photoFlipPath),
             LandingRenderHarness.MaximalContent());
 
         return RenderedTokens(html);
@@ -159,8 +162,12 @@ public class AppCssTests : IDisposable
     [InlineData(".theme-preview-frame img { position: fixed; }", "img")] // type subject, class ancestor ignored
     [InlineData("h1 { position: fixed; }", "h1")] // bare type selector
     [InlineData(".theme-preview-frame * { position: fixed; }", "*")] // universal subject
-    [InlineData(".owner-photo:hover { position: fixed; }", ".owner-photo")] // pseudo-class ignored, class matches
-    [InlineData("@media (min-width: 700px) { .owner-photo { position: fixed; } }", ".owner-photo")] // nested in @media
+    // .hero-text (not .owner-photo): unconditional, so it renders whichever
+    // photo path the maximal render takes — with both slots configured
+    // (Unit 10 Phase 4) that's the switch, whose desk <img> deliberately
+    // does not carry the .owner-photo class (see LandingSections.razor).
+    [InlineData(".hero-text:hover { position: fixed; }", ".hero-text")] // pseudo-class ignored, class matches
+    [InlineData("@media (min-width: 700px) { .hero-text { position: fixed; } }", ".hero-text")] // nested in @media
     [InlineData("a, .btn { position: fixed; }", "a")] // selector list
     public async Task FixedPositionSelectors_SyntheticCssWithRenderedMatch_IsAViolation(string css, string expectedToken)
     {
@@ -248,6 +255,17 @@ public class AppCssTests : IDisposable
     [Fact]
     public void LandingBanner_DeclaresNoFixedPositioning()
         => Assert.Empty(FixedPositionRules(LandingBannerRules));
+
+    [Fact]
+    public void LandingBanner_Has720pxBlock_ExactlyOnce()
+    {
+        // Unit 10 Phase 4 appends its mobile placement rules into the
+        // section's existing @media (max-width: 720px) block rather than
+        // opening a second one.
+        var count = Regex.Matches(LandingBannerCss, @"@media\s*\(\s*max-width:\s*720px", RegexOptions.IgnoreCase).Count;
+
+        Assert.Equal(1, count);
+    }
 
     [Fact]
     public void ReducedMotionBlock_AppearsExactlyOnceInAppCss()
@@ -342,9 +360,10 @@ public class AppCssTests : IDisposable
     {
         // Documents today's full set (game plan + rank bar from Phase 2, the
         // road's hover transition and the eight per-row scroll-glow
-        // timelines from Phase 3) so a future addition to the banner section
-        // is deliberately noticed here, not just silently covered (or not)
-        // by the generic check above.
+        // timelines from Phase 3, the photo switch's crossfade from Phase 4)
+        // so a future addition to the banner section is deliberately noticed
+        // here, not just silently covered (or not) by the generic check
+        // above.
         var declaring = LandingBannerRules
             .Where(r => Regex.IsMatch(r.Declarations, @"\b(animation|transition)\s*:", RegexOptions.IgnoreCase))
             .SelectMany(r => SplitSelectorList(r.Selector))
@@ -353,7 +372,7 @@ public class AppCssTests : IDisposable
         var expected = new List<string>
         {
             ".gp-node a", ".gp-node::after", ".gp-node::before", ".belt-bar i",
-            ".belt-band", ".road-table .swatch", ".row",
+            ".belt-band", ".road-table .swatch", ".row", ".photo-tile",
         };
         for (var n = 1; n <= 8; n++)
         {
