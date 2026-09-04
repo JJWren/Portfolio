@@ -191,7 +191,7 @@ internal static class LandingRenderHarness
             ],
             now:
             [
-                new NowItem("Teaches", "Adult classes."),
-                new NowItem("Building", "A side project."),
+                new NowItem("Training", "Evening classes."),
+                new NowItem("Reading", "A long novel."),
             ]);
 }

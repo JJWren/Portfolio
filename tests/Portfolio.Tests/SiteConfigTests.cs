@@ -312,15 +312,15 @@ public class SiteConfigTests
         {
             ["SITE_OWNER_NAME"] = "Jane",
             ["CONTACT_EMAIL"] = "jane@example.com",
-            ["SITE_ERAS"] = "2005-12-01 | white | 2 | Gym A | City A | Role A\\n\\n  2018-01-30 | blue | 3 | Gym B | City B | Role B  \\n",
-            ["SITE_NOW"] = "Teaches | Adult no-gi.\\n\\nBuilding | ",
+            ["SITE_ERAS"] = "2010-01-01 | white | 2 | Gym A | City A | Role A\\n\\n  2012-06-15 | blue | 3 | Gym B | City B | Role B  \\n",
+            ["SITE_NOW"] = "Training | Evening classes.\\n\\nReading | ",
         });
 
         var site = SiteConfig.FromConfiguration(config);
 
         Assert.Equal(
-            ["2005-12-01 | white | 2 | Gym A | City A | Role A", "2018-01-30 | blue | 3 | Gym B | City B | Role B"],
+            ["2010-01-01 | white | 2 | Gym A | City A | Role A", "2012-06-15 | blue | 3 | Gym B | City B | Role B"],
             site.EraLines);
-        Assert.Equal(["Teaches | Adult no-gi.", "Building |"], site.NowLines);
+        Assert.Equal(["Training | Evening classes.", "Reading |"], site.NowLines);
     }
 }

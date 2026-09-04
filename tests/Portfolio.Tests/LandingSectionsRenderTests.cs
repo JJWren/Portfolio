@@ -271,8 +271,8 @@ public class LandingSectionsRenderTests : IDisposable
                 beltCaption: "Test belt",
                 beltDegrees: 3,
                 principles: [new Principle("Ship small.", "reading")],
-                eras: [new Era(new DateOnly(2020, 9, 23), Belt.Brown, 4, "Gym", "City", "Role.")],
-                now: [new NowItem("Teaches", "Adult no-gi.")]));
+                eras: [new Era(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role.")],
+                now: [new NowItem("Training", "Evening classes.")]));
 
         // BR-1: under the Default flavor, the BJJ columns are simply never
         // consulted — present or not, the rendered markup is byte-for-byte
@@ -530,7 +530,7 @@ public class LandingSectionsRenderTests : IDisposable
                 ],
                 beltCaption: unsafeText,
                 principles: [new Principle(unsafeText, unsafeText)],
-                eras: [new Era(new DateOnly(2020, 9, 23), Belt.Brown, 4, unsafeText, unsafeText, unsafeText)],
+                eras: [new Era(new DateOnly(2013, 4, 5), Belt.Brown, 4, unsafeText, unsafeText, unsafeText)],
                 now: [new NowItem(unsafeText, unsafeText)]));
 
         Assert.DoesNotContain("<b>", html, StringComparison.Ordinal);
@@ -542,11 +542,11 @@ public class LandingSectionsRenderTests : IDisposable
 
     private static readonly Era[] FiveDistinctBeltEras =
     [
-        new(new DateOnly(2005, 12, 1), Belt.White, 2, "Gym A", "City A", "Role A."),
-        new(new DateOnly(2018, 1, 30), Belt.Blue, 3, "Gym B", "City B", "Role B."),
-        new(new DateOnly(2019, 8, 23), Belt.Purple, 1, "Gym C", "City C", "Role C."),
-        new(new DateOnly(2020, 9, 23), Belt.Brown, 4, "Gym D", "City D", "Role D."),
-        new(new DateOnly(2025, 12, 9), Belt.Black, 0, "Gym E", "City E", "Role E."),
+        new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym A", "City A", "Role A."),
+        new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym B", "City B", "Role B."),
+        new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym C", "City C", "Role C."),
+        new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym D", "City D", "Role D."),
+        new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym E", "City E", "Role E."),
     ];
 
     [Fact]
@@ -569,7 +569,7 @@ public class LandingSectionsRenderTests : IDisposable
     [Fact]
     public async Task Render_Bjj_RoadRowsCarryOneRowbeltBandIsoDatesAndTheRestOfTheFields()
     {
-        Era[] eras = [new(new DateOnly(2020, 9, 23), Belt.Brown, 4, "Iron Grip BJJ", "Fairhope, AL", "Transitioning.")];
+        Era[] eras = [new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Sample Gym", "Sample City", "Changing roles.")];
 
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
@@ -580,11 +580,11 @@ public class LandingSectionsRenderTests : IDisposable
         // <td class="rowbelt"> per row, its BeltBand aria-hidden inside.
         Assert.Contains("<th class=\"rowbelt\"></th>", html);
         Assert.Equal(1, CountOccurrences(html, "<td class=\"rowbelt\">"));
-        Assert.Contains("<time datetime=\"2020-09-23\">2020-09-23</time>", html);
+        Assert.Contains("<time datetime=\"2013-04-05\">2013-04-05</time>", html);
         Assert.Contains("<td class=\"belt\" data-label=\"Belt\"><i class=\"swatch\" aria-hidden=\"true\"></i>Brown</td>", html);
-        Assert.Contains("<td class=\"gym\" data-label=\"Gym\">Iron Grip BJJ</td>", html);
-        Assert.Contains("<td class=\"place\" data-label=\"Location\">Fairhope, AL</td>", html);
-        Assert.Contains("<td class=\"work\" data-label=\"Role\">Transitioning.</td>", html);
+        Assert.Contains("<td class=\"gym\" data-label=\"Gym\">Sample Gym</td>", html);
+        Assert.Contains("<td class=\"place\" data-label=\"Location\">Sample City</td>", html);
+        Assert.Contains("<td class=\"work\" data-label=\"Role\">Changing roles.</td>", html);
     }
 
     [Fact]
@@ -619,11 +619,11 @@ public class LandingSectionsRenderTests : IDisposable
     {
         Era[] eras =
         [
-            new(new DateOnly(2005, 12, 1), Belt.White, 2, "Gym", "City", "Role."),
-            new(new DateOnly(2018, 1, 30), Belt.Blue, 3, "Gym", "City", "Role."),
-            new(new DateOnly(2019, 8, 23), Belt.Purple, 1, "Gym", "City", "First purple era."),
+            new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym", "City", "Role."),
+            new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym", "City", "Role."),
+            new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym", "City", "First purple era."),
             new(new DateOnly(2020, 1, 1), Belt.Purple, 4, "Gym", "City", "Second purple era."),
-            new(new DateOnly(2025, 12, 9), Belt.Black, 0, "Gym", "City", "Role."),
+            new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role."),
         ];
 
         var html = await LandingRenderHarness.RenderAsync(
@@ -652,10 +652,10 @@ public class LandingSectionsRenderTests : IDisposable
     {
         NowItem[] items =
         [
-            new("Teaches", "Adult no-gi."),
-            new("Building", "A side project."),
-            new("Home lab", "Containerized."),
-            new("Household", "Wife, 5 kids, 6 dogs"),
+            new("Training", "Evening classes."),
+            new("Reading", "A long novel."),
+            new("Cooking", "Weeknight meals."),
+            new("Travel", "Coast roads."),
         ];
 
         var html = await LandingRenderHarness.RenderAsync(
@@ -666,10 +666,10 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("<dl class=\"now\">", html);
         Assert.Equal(4, CountOccurrences(html, "<dt>"));
         Assert.Equal(4, CountOccurrences(html, "<dd>"));
-        Assert.Contains("<dt>Teaches</dt>", html);
-        Assert.Contains("<dd>Adult no-gi.</dd>", html);
-        Assert.Contains("<dt>Household</dt>", html);
-        Assert.Contains("<dd>Wife, 5 kids, 6 dogs</dd>", html);
+        Assert.Contains("<dt>Training</dt>", html);
+        Assert.Contains("<dd>Evening classes.</dd>", html);
+        Assert.Contains("<dt>Travel</dt>", html);
+        Assert.Contains("<dd>Coast roads.</dd>", html);
     }
 
     [Fact]
@@ -688,7 +688,7 @@ public class LandingSectionsRenderTests : IDisposable
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
             LandingRenderHarness.BuildContent(
-                eras: [new Era(new DateOnly(2020, 9, 23), Belt.Brown, 4, "Gym", "City", "Role.")],
+                eras: [new Era(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role.")],
                 now: []));
 
         Assert.Contains("Two ladders, one clock", html);

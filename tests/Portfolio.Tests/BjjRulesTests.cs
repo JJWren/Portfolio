@@ -394,10 +394,10 @@ public class BjjRulesTests
     [Fact]
     public void ParseEras_GoodLine_ParsesEveryField()
     {
-        var eras = BjjRules.ParseEras(["2020-09-23 | brown | 4 | Test Gym | Test City | Coaching."]);
+        var eras = BjjRules.ParseEras(["2013-04-05 | brown | 4 | Test Gym | Test City | Coaching."]);
 
         var era = Assert.Single(eras);
-        Assert.Equal(new DateOnly(2020, 9, 23), era.Date);
+        Assert.Equal(new DateOnly(2013, 4, 5), era.Date);
         Assert.Equal(Belt.Brown, era.Belt);
         Assert.Equal(4, era.Stripes);
         Assert.Equal("Test Gym", era.Gym);
@@ -408,7 +408,7 @@ public class BjjRulesTests
     [Fact]
     public void ParseEras_BlankStripesField_CountsAsZero()
     {
-        var eras = BjjRules.ParseEras(["2020-09-23 | brown |  | Test Gym | Test City | Coaching."]);
+        var eras = BjjRules.ParseEras(["2013-04-05 | brown |  | Test Gym | Test City | Coaching."]);
 
         Assert.Equal(0, Assert.Single(eras).Stripes);
     }
@@ -421,32 +421,32 @@ public class BjjRulesTests
     public void ParseEras_NonIsoDateFormat_LineDropped()
         // BR-8 requires exactly YYYY-MM-DD; a different, otherwise-valid date
         // format must still be rejected (dropped, not reinterpreted).
-        => Assert.Empty(BjjRules.ParseEras(["09/23/2020 | brown | 4 | Gym | City | Role."]));
+        => Assert.Empty(BjjRules.ParseEras(["04/05/2013 | brown | 4 | Gym | City | Role."]));
 
     [Fact]
     public void ParseEras_BadBelt_LineDropped()
-        => Assert.Empty(BjjRules.ParseEras(["2020-09-23 | coral | 4 | Gym | City | Role."]));
+        => Assert.Empty(BjjRules.ParseEras(["2013-04-05 | coral | 4 | Gym | City | Role."]));
 
     [Fact]
     public void ParseEras_StripesAboveMax_LineDropped()
-        => Assert.Empty(BjjRules.ParseEras(["2020-09-23 | brown | 7 | Gym | City | Role."]));
+        => Assert.Empty(BjjRules.ParseEras(["2013-04-05 | brown | 7 | Gym | City | Role."]));
 
     [Fact]
     public void ParseEras_NegativeStripes_LineDropped()
-        => Assert.Empty(BjjRules.ParseEras(["2020-09-23 | brown | -1 | Gym | City | Role."]));
+        => Assert.Empty(BjjRules.ParseEras(["2013-04-05 | brown | -1 | Gym | City | Role."]));
 
     [Fact]
     public void ParseEras_NonNumericStripes_LineDropped()
-        => Assert.Empty(BjjRules.ParseEras(["2020-09-23 | brown | four | Gym | City | Role."]));
+        => Assert.Empty(BjjRules.ParseEras(["2013-04-05 | brown | four | Gym | City | Role."]));
 
     [Fact]
     public void ParseEras_FewerThanThreeFields_LineDropped()
-        => Assert.Empty(BjjRules.ParseEras(["2020-09-23 | brown"]));
+        => Assert.Empty(BjjRules.ParseEras(["2013-04-05 | brown"]));
 
     [Fact]
     public void ParseEras_BlankGymLocationRole_Allowed()
     {
-        var eras = BjjRules.ParseEras(["2020-09-23 | brown | 4"]);
+        var eras = BjjRules.ParseEras(["2013-04-05 | brown | 4"]);
 
         var era = Assert.Single(eras);
         Assert.Equal(string.Empty, era.Gym);
@@ -459,9 +459,9 @@ public class BjjRulesTests
     {
         string[] lines =
         [
-            "2020-09-23 | brown | 4 | Gym | City | Third.",
-            "2005-12-01 | white | 2 | Gym | City | First.",
-            "2018-01-30 | blue | 3 | Gym | City | Second.",
+            "2013-04-05 | brown | 4 | Gym | City | Third.",
+            "2010-01-01 | white | 2 | Gym | City | First.",
+            "2012-06-15 | blue | 3 | Gym | City | Second.",
         ];
 
         var eras = BjjRules.ParseEras(lines);
@@ -491,7 +491,7 @@ public class BjjRulesTests
     [Fact]
     public void ParseEras_ExtraSeparatorInRole_KeepsTheWholeTail()
     {
-        var eras = BjjRules.ParseEras(["2020-09-23 | brown | 4 | Gym | City | Coaching | and teaching"]);
+        var eras = BjjRules.ParseEras(["2013-04-05 | brown | 4 | Gym | City | Coaching | and teaching"]);
 
         Assert.Equal("Coaching | and teaching", Assert.Single(eras).Role);
     }
@@ -500,13 +500,13 @@ public class BjjRulesTests
     public void ParseEras_OverlongLine_TruncatesInsteadOfDroppingTheLine()
     {
         var overlongRole = new string('a', 600);
-        var line = $"2020-09-23 | brown | 4 | Gym | City | {overlongRole}";
+        var line = $"2013-04-05 | brown | 4 | Gym | City | {overlongRole}";
         Assert.True(line.Length > BjjRules.MaxLineLength);
 
         var eras = BjjRules.ParseEras([line]);
 
         var era = Assert.Single(eras);
-        Assert.Equal(new DateOnly(2020, 9, 23), era.Date);
+        Assert.Equal(new DateOnly(2013, 4, 5), era.Date);
         Assert.True(era.Role.Length < overlongRole.Length);
     }
 
@@ -517,11 +517,11 @@ public class BjjRulesTests
     {
         Era[] eras =
         [
-            new(new DateOnly(2005, 12, 1), Belt.White, 2, "Gym", "City", "Role"),
-            new(new DateOnly(2018, 1, 30), Belt.Blue, 3, "Gym", "City", "Role"),
-            new(new DateOnly(2019, 8, 23), Belt.Purple, 1, "Gym", "City", "Role"),
-            new(new DateOnly(2020, 9, 23), Belt.Brown, 4, "Gym", "City", "Role"),
-            new(new DateOnly(2025, 12, 9), Belt.Black, 0, "Gym", "City", "Role"),
+            new(new DateOnly(2010, 1, 1), Belt.White, 2, "Gym", "City", "Role"),
+            new(new DateOnly(2012, 6, 15), Belt.Blue, 3, "Gym", "City", "Role"),
+            new(new DateOnly(2014, 3, 20), Belt.Purple, 1, "Gym", "City", "Role"),
+            new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role"),
+            new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role"),
         ];
 
         var rungs = BjjRules.Rungs(eras);
@@ -574,20 +574,20 @@ public class BjjRulesTests
     [Fact]
     public void ParseNow_LabelRequiredValueOptional()
     {
-        var items = BjjRules.ParseNow(["Teaches | Adult no-gi.", "Building | "]);
+        var items = BjjRules.ParseNow(["Training | Evening classes.", "Reading | "]);
 
         Assert.Equal(2, items.Count);
-        Assert.Equal(new NowItem("Teaches", "Adult no-gi."), items[0]);
-        Assert.Equal(new NowItem("Building", string.Empty), items[1]);
+        Assert.Equal(new NowItem("Training", "Evening classes."), items[0]);
+        Assert.Equal(new NowItem("Reading", string.Empty), items[1]);
     }
 
     [Fact]
     public void ParseNow_BlankLabel_LineDropped()
     {
-        var items = BjjRules.ParseNow([" | value only", "Teaches | Adult no-gi."]);
+        var items = BjjRules.ParseNow([" | value only", "Training | Evening classes."]);
 
         Assert.Single(items);
-        Assert.Equal("Teaches", items[0].Label);
+        Assert.Equal("Training", items[0].Label);
     }
 
     [Fact]
@@ -609,7 +609,7 @@ public class BjjRulesTests
     [Fact]
     public void ParseNow_ExtraSeparatorInValue_KeepsTheWholeTail()
     {
-        var items = BjjRules.ParseNow(["Building | A bot | with reminders"]);
+        var items = BjjRules.ParseNow(["Reading | A bot | with reminders"]);
 
         Assert.Equal("A bot | with reminders", Assert.Single(items).Value);
     }
@@ -618,12 +618,12 @@ public class BjjRulesTests
     public void ParseNow_OverlongLine_TruncatesInsteadOfDroppingTheLine()
     {
         var overlongValue = new string('a', 600);
-        var line = $"Building | {overlongValue}";
+        var line = $"Reading | {overlongValue}";
 
         var items = BjjRules.ParseNow([line]);
 
         var item = Assert.Single(items);
-        Assert.Equal("Building", item.Label);
+        Assert.Equal("Reading", item.Label);
         Assert.True(item.Value.Length < overlongValue.Length);
     }
 
@@ -637,20 +637,20 @@ public class BjjRulesTests
     public void ValidateEras_ValidLines_ReturnsNull()
         => Assert.Null(BjjRules.ValidateEras(
         [
-            "2005-12-01 | white | 2 | Gym | City | Role.",
-            "2018-01-30 | blue | 3 | Gym | City | Role.",
+            "2010-01-01 | white | 2 | Gym | City | Role.",
+            "2012-06-15 | blue | 3 | Gym | City | Role.",
         ]));
 
     [Fact]
     public void ValidateEras_BlankGymLocationRole_Allowed()
-        => Assert.Null(BjjRules.ValidateEras(["2020-09-23 | brown | 4"]));
+        => Assert.Null(BjjRules.ValidateEras(["2013-04-05 | brown | 4"]));
 
     [Fact]
     public void ValidateEras_BadDate_NamesTheLineNumber()
     {
         var error = BjjRules.ValidateEras(
         [
-            "2005-12-01 | white | 2 | Gym | City | Role.",
+            "2010-01-01 | white | 2 | Gym | City | Role.",
             "not-a-date | blue | 3 | Gym | City | Role.",
         ]);
 
@@ -664,9 +664,9 @@ public class BjjRulesTests
     {
         var error = BjjRules.ValidateEras(
         [
-            "2005-12-01 | white | 2 | Gym | City | Role.",
-            "2018-01-30 | coral | 3 | Gym | City | Role.",
-            "2019-08-23 | purple | 1 | Gym | City | Role.",
+            "2010-01-01 | white | 2 | Gym | City | Role.",
+            "2012-06-15 | coral | 3 | Gym | City | Role.",
+            "2014-03-20 | purple | 1 | Gym | City | Role.",
         ]);
 
         Assert.NotNull(error);
@@ -679,10 +679,10 @@ public class BjjRulesTests
     {
         var error = BjjRules.ValidateEras(
         [
-            "2005-12-01 | white | 2 | Gym | City | Role.",
-            "2018-01-30 | blue | 3 | Gym | City | Role.",
-            "2019-08-23 | purple | 1 | Gym | City | Role.",
-            "2020-09-23 | brown | 7 | Gym | City | Role.",
+            "2010-01-01 | white | 2 | Gym | City | Role.",
+            "2012-06-15 | blue | 3 | Gym | City | Role.",
+            "2014-03-20 | purple | 1 | Gym | City | Role.",
+            "2013-04-05 | brown | 7 | Gym | City | Role.",
         ]);
 
         Assert.NotNull(error);
@@ -706,7 +706,7 @@ public class BjjRulesTests
     [Fact]
     public void ValidateEras_MissingRequiredFields_NamesTheLineNumber()
     {
-        var error = BjjRules.ValidateEras(["2020-09-23 | brown"]);
+        var error = BjjRules.ValidateEras(["2013-04-05 | brown"]);
 
         Assert.NotNull(error);
         Assert.Contains("Eras line 1", error);
@@ -718,8 +718,8 @@ public class BjjRulesTests
     {
         string[] lines =
         [
-            "2005-12-01 | white | 2 | Gym | City | Role.",
-            $"2018-01-30 | blue | 3 | Gym | City | {new string('x', BjjRules.MaxLineLength)}",
+            "2010-01-01 | white | 2 | Gym | City | Role.",
+            $"2012-06-15 | blue | 3 | Gym | City | {new string('x', BjjRules.MaxLineLength)}",
         ];
 
         var error = BjjRules.ValidateEras(lines);
@@ -737,7 +737,7 @@ public class BjjRulesTests
 
     [Fact]
     public void ValidateNow_ValidLines_ReturnsNull()
-        => Assert.Null(BjjRules.ValidateNow(["Teaches | Adult no-gi.", "Building | "]));
+        => Assert.Null(BjjRules.ValidateNow(["Training | Evening classes.", "Reading | "]));
 
     [Fact]
     public void ValidateNow_TooManyLines_NamesTheLimit()
@@ -753,7 +753,7 @@ public class BjjRulesTests
     [Fact]
     public void ValidateNow_BlankLabel_NamesTheLineNumber()
     {
-        var error = BjjRules.ValidateNow(["Teaches | Adult no-gi.", " | blank label"]);
+        var error = BjjRules.ValidateNow(["Training | Evening classes.", " | blank label"]);
 
         Assert.NotNull(error);
         Assert.Contains("Now line 2", error);
@@ -774,7 +774,7 @@ public class BjjRulesTests
     [Fact]
     public void ValidateDegreesAgainstEras_DegreesUnset_ReturnsNull()
     {
-        Era[] eras = [new(new DateOnly(2025, 12, 9), Belt.Black, 3, "Gym", "City", "Role")];
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 3, "Gym", "City", "Role")];
 
         Assert.Null(BjjRules.ValidateDegreesAgainstEras(null, eras));
     }
@@ -782,7 +782,7 @@ public class BjjRulesTests
     [Fact]
     public void ValidateDegreesAgainstEras_NoBlackEra_ReturnsNull()
     {
-        Era[] eras = [new(new DateOnly(2020, 9, 23), Belt.Brown, 4, "Gym", "City", "Role")];
+        Era[] eras = [new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role")];
 
         Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, eras));
     }
@@ -794,7 +794,7 @@ public class BjjRulesTests
     [Fact]
     public void ValidateDegreesAgainstEras_MatchingStripes_ReturnsNull()
     {
-        Era[] eras = [new(new DateOnly(2025, 12, 9), Belt.Black, 3, "Gym", "City", "Role")];
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 3, "Gym", "City", "Role")];
 
         Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, eras));
     }
@@ -802,7 +802,7 @@ public class BjjRulesTests
     [Fact]
     public void ValidateDegreesAgainstEras_DisagreeingStripes_ReturnsFriendlyError()
     {
-        Era[] eras = [new(new DateOnly(2025, 12, 9), Belt.Black, 1, "Gym", "City", "Role")];
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 1, "Gym", "City", "Role")];
 
         var error = BjjRules.ValidateDegreesAgainstEras(0, eras);
 
@@ -817,7 +817,7 @@ public class BjjRulesTests
     {
         Era[] eras =
         [
-            new(new DateOnly(2025, 12, 9), Belt.Black, 0, "Gym", "City", "First black era."),
+            new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "First black era."),
             new(new DateOnly(2026, 6, 1), Belt.Black, 1, "Gym", "City", "Second black era."),
         ];
 
