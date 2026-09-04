@@ -403,6 +403,18 @@ public class LandingSectionsRenderTests : IDisposable
     }
 
     [Fact]
+    public async Task Render_Bjj_RankBarDegreesAboveMax_ClampsToMaxStripes()
+    {
+        // BuildContent bypasses Resolve's clamp, so this pins the component's
+        // own clamp: no caller can make the belt emit an unbounded stripe run.
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: "Black belt", beltDegrees: 99));
+
+        Assert.Equal(BjjRules.MaxDegrees, CountBeltStripes(html));
+    }
+
+    [Fact]
     public async Task Render_Bjj_NoBeltCaption_OmitsRankBar()
     {
         var html = await LandingRenderHarness.RenderAsync(

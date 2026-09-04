@@ -155,8 +155,10 @@ internal static class CssScanner
     public static string ExtractBannerSection(string css, string sectionName)
     {
         // \r?\n: app.css is CRLF on this repo's checkout, but the marker
-        // must not silently stop matching on an LF checkout.
-        var marker = new Regex($@"\r?\n   {Regex.Escape(sectionName)}\r?\n");
+        // must not silently stop matching on an LF checkout. (?:^|\r?\n):
+        // the section name line may also open the file (no Multiline option,
+        // so ^ is the start of the string only).
+        var marker = new Regex($@"(?:^|\r?\n)   {Regex.Escape(sectionName)}\r?\n");
         var markerMatch = marker.Match(css);
         if (!markerMatch.Success)
         {

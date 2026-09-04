@@ -201,6 +201,20 @@ public class AppCssTests : IDisposable
         => selector.Split(',').Select(static s => Regex.Replace(s.Trim(), @"\s+", " ")).ToList();
 
     [Fact]
+    public void ExtractBannerSection_BannerAtStartOfFile_IsFound()
+    {
+        // The banner marker must match at the start of the text as well as
+        // after a newline, so a section moved to the top of app.css keeps
+        // being scoped instead of throwing.
+        const string css = "   Landing (BJJ flavor)\n   ==== */\n.a { color: red; }\n/* ====\n   Other\n   ==== */\n.b { color: blue; }\n";
+
+        var section = CssScanner.ExtractBannerSection(css, "Landing (BJJ flavor)");
+
+        Assert.Contains(".a {", section);
+        Assert.DoesNotContain(".b {", section);
+    }
+
+    [Fact]
     public void RootConstants_BeltAndRankColors_MatchTheAdrValues()
     {
         // ADR 0002: the seven fixed constants, not the light-theme block.
