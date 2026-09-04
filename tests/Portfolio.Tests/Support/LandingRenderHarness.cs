@@ -29,7 +29,10 @@ internal static class LandingRenderHarness
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton(site);
-        services.AddSingleton(new OwnerPhotoService(site));
+        // By type, not a pre-built instance, so the harness keeps compiling
+        // when the service grows constructor dependencies (its SiteConfig
+        // comes from the registration above).
+        services.AddSingleton<OwnerPhotoService>();
         await using var provider = services.BuildServiceProvider();
 
         await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());

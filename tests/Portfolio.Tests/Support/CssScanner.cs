@@ -14,12 +14,13 @@ internal sealed record CssRule(string Selector, string Declarations, IReadOnlyLi
 /// <summary>
 /// A brace-depth-aware CSS scanner good enough for this repo's
 /// hand-authored app.css — not a real CSS parser. Known limitations, all
-/// unexercised by this repo's app.css today: comments and quoted string
-/// literals are blanked everywhere in the input (including inside a
-/// selector's own attribute-value quotes — <c>[data-h="nw"]</c> becomes
-/// <c>[data-h=  ]</c> in a stored Selector/Ancestors string) before any
-/// brace-counting runs, so a literal brace inside either can never desync
-/// the parser, at the cost of that cosmetic loss on selector text; there is
+/// unexercised by this repo's app.css today: comments are removed entirely
+/// and quoted string literals are blanked to spaces of the same length
+/// everywhere in the input (including inside a selector's own
+/// attribute-value quotes — <c>[data-h="nw"]</c> becomes <c>[data-h=  ]</c>
+/// in a stored Selector/Ancestors string) before any brace-counting runs,
+/// so a literal brace inside either can never desync the parser, at the
+/// cost of that cosmetic loss on selector text; there is
 /// no handling of a backslash-escaped quote inside a string literal; there
 /// is no CSS-nesting support (only at-rules can hold nested rules here);
 /// and an attribute selector whose value contains a space or a combinator
@@ -142,13 +143,12 @@ internal static class CssScanner
     }
 
     /// <summary>
-    /// Strips <c>/* ... */</c> comments and quoted string literals (blanked
-    /// to spaces of the same length, quotes included) so a comment or a
-    /// declaration like <c>content: "{"</c> can never desync the brace
-    /// stack or fake a <c>position: fixed</c> match. Comments are stripped
-    /// first, then strings, as two independent passes rather than one
-    /// combined tokenizer — see the class summary for what that trades
-    /// away.
+    /// Removes <c>/* ... */</c> comments entirely and blanks quoted string
+    /// literals to spaces of the same length (quotes included) so a comment
+    /// or a declaration like <c>content: "{"</c> can never desync the brace
+    /// stack or fake a <c>position: fixed</c> match. Comments go first, then
+    /// strings, as two independent passes rather than one combined tokenizer
+    /// — see the class summary for what that trades away.
     /// </summary>
     private static string StripCommentsAndStrings(string css)
     {

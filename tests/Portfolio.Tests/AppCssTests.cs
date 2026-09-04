@@ -114,14 +114,17 @@ public class AppCssTests : IDisposable
     }
 
     [Fact]
-    public void FixedPositionSelectors_AppCssHasExactlyBlazorErrorUiFixed()
+    public void FixedPositionSelectors_AppCssIncludesBlazorErrorUiFixed()
     {
-        // Sanity check that the scanner itself works: today's one known
-        // fixed-position rule must be found, or the cross-check below would
-        // pass vacuously.
-        var selector = Assert.Single(FixedPositionRules(AppCssRules)).Selector;
+        // Sanity check that the scanner itself works against the real file:
+        // the one fixed-position rule known to exist must be found, or the
+        // cross-check below would pass vacuously. Deliberately not "exactly
+        // one": unrelated fixed UI elsewhere (a modal, a toast) is BR-13's
+        // concern only if it names something LandingSections renders, and
+        // that is what the cross-check asserts.
+        var selectors = FixedPositionRules(AppCssRules).Select(rule => rule.Selector).ToList();
 
-        Assert.Contains("#blazor-error-ui", selector, StringComparison.Ordinal);
+        Assert.Contains(selectors, selector => selector.Contains("#blazor-error-ui", StringComparison.Ordinal));
     }
 
     [Fact]
