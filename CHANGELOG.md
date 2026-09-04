@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/JJWren/Portfolio/compare/v1.23.0...v1.24.0) (2026-09-04)
+
+
+### Features
+
+* the road and now sections for the BJJ landing ([#92](https://github.com/JJWren/Portfolio/issues/92)) ([7dddfdf](https://github.com/JJWren/Portfolio/commit/7dddfdfe1a94f660ca628adbf0ecf77dd2cc7335))
+
 ## [1.23.0](https://github.com/JJWren/Portfolio/compare/v1.22.0...v1.23.0) (2026-09-04)
 
 
