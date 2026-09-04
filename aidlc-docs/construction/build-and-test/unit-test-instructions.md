@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (690 tests, 38 fixtures — as of Unit 10 Phase 5, the BJJ landing close-out)
+## Coverage (697 tests, 38 fixtures — as of Unit 10 Phase 5, the BJJ landing close-out)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |

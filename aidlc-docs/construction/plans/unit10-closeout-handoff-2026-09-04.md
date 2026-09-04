@@ -14,7 +14,7 @@ Unit 10 turned the landing page into an opt-in BJJ-themed layout (`SITE_FLAVOR=b
 | 2 `feat:` | #90 | `e6a4a75` | 567 | `SiteFlavor`, hero game plan, rank bar, principles, admin copy fields, migration `AddBjjLandingCopy`, ADR 0002 (belt colors as fixed constants) |
 | 3 `feat:` | #92 | `7dddfdf` | 666 | The road (belt ladder and era table) and Now (tiles), migration `AddRoadAndNow`, BR-9 check on effective values, reduced-motion block made to win the cascade with `!important` |
 | 4 `feat:` | #94 | `18b1788` | 689 | Second owner-photo slot (`OwnerPhotoSlot.Flip`, `/owner-photo-flip`, `OwnerPhotoFlipAlt`, migration `AddOwnerPhotoFlipAlt`), hero two-photo switch, `fetchpriority` on the hero image |
-| 5 `perf:` | #96 | see `git log` on master | 690 | Fraunces preload, delegated `data-action` clicks (no inline `onclick` left, pinned by a test), README, `CONTEXT.md` glossary, test instructions reconciled |
+| 5 `perf:` | #96 | see `git log` on master | 697 | Fraunces preload, delegated `data-action` clicks (no inline `onclick` left, pinned by a test), README, `CONTEXT.md` glossary, test instructions reconciled (690 after the phase agent, 697 after the Copilot round that pinned the onclick regex with a Theory) |
 
 Releases 1.23.0 (`027e862`) and 1.24.0 (`e2c7c05`) landed on master between the phases; release-please will propose the next one from the `feat:`/`perf:` squash titles.
 
