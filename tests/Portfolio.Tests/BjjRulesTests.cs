@@ -327,4 +327,32 @@ public class BjjRulesTests
         Assert.NotNull(error);
         Assert.Contains("0 and 6", error);
     }
+
+    [Fact]
+    public void ParseGamePlan_ExtraSeparatorInHow_KeepsTheWholeTail()
+    {
+        // The last field absorbs extra pipes instead of losing the text after them.
+        string[] lines =
+        [
+            "Warm-up | Loosen up | Stretch first | then breathe",
+            "Drill | Repeat the motion | Slowly",
+            "Roll | Test it live | Lightly",
+            "Rest | Recover | Sleep",
+        ];
+
+        var nodes = BjjRules.ParseGamePlan(lines);
+
+        Assert.Equal(4, nodes.Count);
+        Assert.Equal("Stretch first | then breathe", nodes[0].How);
+    }
+
+    [Fact]
+    public void ParsePrinciples_ExtraSeparatorInReading_KeepsTheWholeTail()
+    {
+        var principles = BjjRules.ParsePrinciples(["Show up. | Consistency | not talent"]);
+
+        var principle = Assert.Single(principles);
+        Assert.Equal("Show up.", principle.Maxim);
+        Assert.Equal("Consistency | not talent", principle.Reading);
+    }
 }

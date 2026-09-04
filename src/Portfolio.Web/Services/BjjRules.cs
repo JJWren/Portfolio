@@ -81,11 +81,20 @@ public static class BjjRules
                 continue; // Malformed line: dropped, not thrown (BR-4).
             }
 
-            nodes.Add(new GamePlanNode(fields[0], fields[1], fields.Length > 2 ? fields[2] : string.Empty));
+            nodes.Add(new GamePlanNode(fields[0], fields[1], TailField(fields, 2)));
         }
 
         return nodes.Count == GamePlanNodeCount ? nodes : [];
     }
+
+    /// <summary>
+    /// The last field of a line absorbs any extra separators: a free-text
+    /// `how` or `reading` that itself contains " | " is kept whole (re-joined
+    /// with the same separator) instead of being silently cut at the next
+    /// pipe. Empty when the line has no field at <paramref name="start"/>.
+    /// </summary>
+    private static string TailField(string[] fields, int start)
+        => fields.Length > start ? string.Join(" | ", fields[start..]) : string.Empty;
 
     /// <summary>
     /// `maxim | reading` per line; `reading` may be blank. Malformed lines
@@ -108,7 +117,7 @@ public static class BjjRules
                 continue;
             }
 
-            principles.Add(new Principle(fields[0], fields.Length > 1 ? fields[1] : string.Empty));
+            principles.Add(new Principle(fields[0], TailField(fields, 1)));
             if (principles.Count == MaxPrinciples)
             {
                 break;
