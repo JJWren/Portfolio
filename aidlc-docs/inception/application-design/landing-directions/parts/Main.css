@@ -1,0 +1,43 @@
+/* Quiet Belt: rank bar, portrait switch, principles */
+.photo-slot { position: relative; z-index: 1; }
+.photo-stack { position: relative; width: 100%; aspect-ratio: 4 / 5; margin-top: 3rem; }
+.photo-tile { position: absolute; inset: 0; border-radius: var(--radius); overflow: hidden; transition: opacity 0.25s ease; }
+.photo-tile.mat { opacity: 0; }
+.hero:has(#ph-mat:checked) .photo-tile.mat { opacity: 1; }
+.hero:has(#ph-mat:checked) .photo-tile.desk { opacity: 0; }
+.ph-art { height: 100%; display: grid; place-content: center; gap: 0.4rem; text-align: center; border: 1px dashed var(--border); border-radius: var(--radius); background: repeating-linear-gradient(135deg, var(--surface-2) 0 14px, var(--surface) 14px 28px); font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted); }
+.ph-art.mat-art { background: repeating-linear-gradient(0deg, var(--surface-2) 0 1px, var(--surface) 1px 40px), repeating-linear-gradient(90deg, var(--surface-2) 0 1px, var(--surface) 1px 40px); }
+.ph-art small { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.photo-switch { margin-top: 0.8rem; }
+
+.rank-bar { margin: 0; padding: 0 0 3rem; }
+.rank-bar .belt { display: flex; height: 12px; }
+.belt-body { flex: 1; background: var(--belt-black); border: 1px solid var(--border); border-right: 0; border-radius: 3px 0 0 3px; }
+.belt-bar { display: flex; align-items: stretch; gap: 6px; width: 112px; padding: 0 10px; }
+.belt-bar i { width: 4px; background: var(--belt-white); transform-origin: left; animation: stripe-on 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards; }
+.belt-bar i:nth-child(1) { animation-delay: 0.45s; }
+.belt-bar i:nth-child(2) { animation-delay: 0.6s; }
+.belt-bar i:nth-child(3) { animation-delay: 0.75s; }
+.belt-bar i:nth-child(4) { animation-delay: 0.9s; }
+.belt-bar i:nth-child(5) { animation-delay: 1.05s; }
+.belt-bar i:nth-child(6) { animation-delay: 1.2s; }
+.belt-tip { width: 44px; background: var(--belt-black); border: 1px solid var(--border); border-left: 0; border-radius: 0 3px 3px 0; }
+@keyframes stripe-on { from { transform: scaleX(0); } }
+.rank-bar figcaption { margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem; margin-top: 1.4rem; }
+.principle h3 { margin: 0 0 0.5rem; font-size: 1.35rem; }
+.principle p { margin: 0; max-width: 30ch; color: var(--text-muted); }
+
+@media (max-width: 720px) {
+  .photo-slot { order: -1; justify-self: center; width: min(60vw, 260px); }
+  .photo-stack { margin-top: 2rem; width: 100%; }
+  .photo-switch { justify-content: center; }
+  .rank-bar .belt { height: 9px; }
+  .belt-bar { width: 84px; gap: 5px; padding: 0 8px; }
+  .belt-bar i { width: 3px; }
+  .belt-tip { width: 30px; }
+  .principles { grid-template-columns: 1fr; gap: 1.6rem; }
+}
+
+.photo-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }

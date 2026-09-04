@@ -6,7 +6,8 @@
 
 ## Inception Phase
 - [x] Workspace Detection — greenfield; existing repo is static HTML/CSS/JS, content reference only
-- [x] Reverse Engineering — skipped (greenfield rewrite; old code intentionally discarded)
+- [x] Reverse Engineering — executed 2026-09-03 at v1.22.0 (brownfield pass; artifacts in inception/reverse-engineering/). The July note "skipped (greenfield rewrite)" is superseded.
+- [x] Requirements Analysis (2026-09-03) — portfolio review + BJJ landing directions; see inception/requirements/requirements.md
 - [x] Requirements Analysis — standard depth; decisions captured via two clarification rounds (see audit.md)
 - [x] User Stories — skipped (single stakeholder/owner; requirements fully enumerated in approved plan)
 - [x] Workflow Planning — approved plan with 8 construction units
@@ -31,6 +32,7 @@
 - [x] Unit 7: Contact form (COMPLETE — see construction/plans/unit7-contact-plan.md)
 - [x] Unit 8: Extras + polish + CI (COMPLETE — repo live at github.com/JJWren/Portfolio; see construction/plans/unit8-extras-plan.md)
 - [x] Build and Test — instruction docs written; CI run 1 SUCCESS (build + 41 tests + GHCR publish); clean-slate compose verified. User-only items listed in build-and-test-summary.md.
+- [ ] Unit 10: BJJ-themed landing page — Application Design done as a Claude Design canvas (sources in inception/application-design/landing-directions/). Direction chosen by the owner 2026-09-03: a merged lead (Game Plan hero with the Quiet Belt portrait beside it and the Guard-to-Submit chart below; Quiet Belt rank bar, About, Principles; Long Road's The road and Now). Design content-complete 2026-09-04 (live About preserved, belt history table, hover-linked ladder, mobile belts with scroll glow). Handoff for the next session: construction/plans/unit10-bjj-landing-handoff.md. Construction plan (unit10-bjj-landing-plan.md) not yet written; next step is Code Generation Part 1 (checkbox plan for approval) after a short Functional Design pass for the new SiteContent fields. Phase plan and decisions to lock in inception/requirements/requirements.md sections 9 and the Phase 0 checklist in inception/reverse-engineering/code-quality-assessment.md. Seven implementation decisions locked with the owner on 2026-09-04 (see construction/plans/unit10-bjj-landing-handoff.md).
 
 ## Operations Phase — Post-Launch (2026-07-21 → present)
 - [x] Deployed: live at https://joshuamykitta.dev (HTTP container behind reverse proxy, TLS at proxy; image ghcr.io/jjwren/portfolio)
@@ -52,7 +54,7 @@
   - v1.10.0 sortable admin columns; project cards deep-link to the editor for admins
   - v1.11.0 admin-editable landing-page content overrides (/admin/site)
   - v1.12.0 inline icons for external links and sign-in providers
-- Test suite: 41 → 184 tests, 23 fixtures (see construction/build-and-test/unit-test-instructions.md)
+- Test suite: 41 → 184 → 250 test methods across 35 files at v1.22.0 (about 390 cases with theory rows; see inception/reverse-engineering/reverse-engineering-timestamp.md; unit-test-instructions.md still shows the older count)
 - Full history in CHANGELOG.md (release-please); decision log in audit.md
 
 ## Key Decisions

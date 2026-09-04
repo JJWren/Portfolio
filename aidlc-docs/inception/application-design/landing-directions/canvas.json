@@ -1,0 +1,154 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Lead"
+    },
+    {
+      "id": "page-2",
+      "name": "Directions"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Lead: Game Plan hero + Quiet Belt + The Road",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 2650,
+      "is_interactive": true,
+      "page": "page-1"
+    },
+    {
+      "file": "MainMobile.dc.html",
+      "title": "Lead at 390",
+      "x": 1520,
+      "y": 0,
+      "w": 390,
+      "h": 4500,
+      "is_interactive": true,
+      "page": "page-1"
+    },
+    {
+      "file": "Baseline.dc.html",
+      "title": "Baseline: the site today",
+      "x": 2000,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "is_interactive": true,
+      "page": "page-1"
+    },
+    {
+      "file": "QuietBelt.dc.html",
+      "title": "Quiet Belt (original)",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1750,
+      "is_interactive": true,
+      "page": "page-2"
+    },
+    {
+      "file": "GamePlan.dc.html",
+      "title": "Game Plan",
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 2350,
+      "is_interactive": true,
+      "page": "page-2"
+    },
+    {
+      "file": "LongRoad.dc.html",
+      "title": "Long Road",
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1950,
+      "is_interactive": true,
+      "page": "page-2"
+    },
+    {
+      "file": "MatRoom.dc.html",
+      "title": "Mat Room",
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 1550,
+      "is_interactive": true,
+      "page": "page-2"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "dir-lead",
+      "page": "page-1",
+      "x": 0,
+      "y": -380,
+      "w": 700,
+      "text": "LEAD (Joshua's pick, merged 2026-09-03)\nTop: the Game Plan hero (eyebrow, 'Position before submission.', the game-plan description, CTAs) with the Quiet Belt portrait to the right, and the Guard > Pass > Mount > Submit chart under both. Then the Quiet Belt rank bar, About and Principles, followed by Long Road's 'The road' and 'Now'.\nWorking here: theme button in the header (dark = black belt, light = white gi), the desk/mat portrait switch, stripes wrapping on at load, node hover/focus trace (every node scrolls to Principles, since the four Game Plan sections were not carried over), hover a belt on the ladder (white to black, left to right) and it glows with its row in the Date / Belt / Gym / Location / Role table; hover a row and its belt glows back. At 390px the ladder is gone and each stacked row carries its own belt band above it and glows as it scrolls through the middle of the screen (CSS scroll timeline; static where unsupported). Tweaks: theme, degrees (0 today: a black belt with no stripes, per Joshua; raise it to preview future degrees), belt red.\nOpen questions: keep the chart nodes pointing at Principles, or bring back short Position / Transition / Control / Finish sections? The tagline and the four node readings are drafts for Joshua to rewrite."
+    },
+    {
+      "id": "ideas",
+      "page": "page-1",
+      "x": 3520,
+      "y": 0,
+      "w": 600,
+      "text": "INTERACTIVE IDEAS, RANKED (S/M/L effort; all CSS or tiny JS, none needs a server circuit)\n1. Rank bar with degree stripes on the hero seam (S, CSS).\n2. Theme toggle as black belt / white gi (S).\n3. Desk/mat portrait switch in the empty photo slot (M; needs a second photo).\n4. Principles pairs, optional 'on the mat / in the code' radio (S static, M toggle).\n5. Game-plan chart with hover/focus trace (M-L, CSS).\n6. Belt-ladder timeline, hover-linked to a dated table (M; needs eras content).\n7. Belt-degree scroll progress in Home.razor via animation-timeline: scroll() (S; opinion split, kept optional).\n8. Scroll-laid mat tape lines (M, CSS, @supports).\n9. Tatami texture via repeating gradients (S).\n10. 'oss' easter egg in site.js (S; optional).\n11. Microcopy: contact success 'I read everything and reply when I'm off the mat', 404 'Out of bounds', footer motto POSITION BEFORE SUBMISSION or an 'Oss.' sign-off, reconnect 'hold position' (S)."
+    },
+    {
+      "id": "content-needed",
+      "page": "page-1",
+      "x": 3520,
+      "y": 1180,
+      "w": 600,
+      "text": "CONTENT STATUS (from Joshua, 2026-09-03)\nOn the canvas now: black belt with no stripes (Degrees stays 0), promoted December 9, 2025 by Rodney Souza at Championship Mixed Martial Arts, Daphne, AL; belt dates and academies on The road (white 2005 Tamaso's MMA, blue 2018 and purple 2019 Bagram BJJ, brown 2020 Iron Grip BJJ, black 2025); full-stack .NET since January 2021, on the mat since December 2005; Tuesday and Thursday morning adult no-gi; both portraits with alt text; stripes earned on the way (2 on white, 3 on blue, 1 on purple, 4 on brown) shown on the ladder bars.\nDrafted in his voice from his own repo descriptions, for approval: the CalCrony line and the home-lab line.\nThe road is now a dated table (Date, Belt, Gym, Location, Role) carrying Joshua's eras in his words (Baumhower's Wings, aviation backshop mechanic in Afghanistan, backshop manager teaching BJJ at night, the University of Arizona Cyber Operations degree and Coding Dojo). The About paragraphs and the seven skill chips are the live site's, verbatim (2026-09-03), and the black-belt row reads Software Engineer at Acentra Health with his own description of the work. The Baseline shows the live tagline and a portrait stand-in. Still open: the three principle readings and the four chart node readings are drafts; the lead's tagline is a draft (the live one is 'Secure software engineer with a love for self-hosted things and folding clothes with people in them').\nAcademy name confirmed as Championship Mixed Martial Arts (2026-09-04)."
+    },
+    {
+      "id": "rejected",
+      "page": "page-1",
+      "x": 3520,
+      "y": 1800,
+      "w": 600,
+      "text": "REJECTED, AND WHY\n'Tap to submit' on the contact form: the first pun everyone makes, and 'tap' is the mobile verb for pressing.\n'Oss' in the hero: in-group slang as the first word a recruiter reads. Footer at most.\nBelt-colored skill chips: recruiters scan the chips; a joke there costs information.\nChoke or armbar icons: violence imagery, and it breaks the stroke-icon house style.\nCursor tricks, parallax, konami codes: self-indulgent.\nGi/no-gi as the theme labels: no-gi is not 'dark'.\nTheming the projects carousel: projects are the evidence; keep the metaphor out of the evidence.\nItalic Fraunces for maxims: no italic face is bundled.\nA live 'last class taught' line: charming for a week, stale forever."
+    },
+    {
+      "id": "dir-quiet-belt",
+      "page": "page-2",
+      "x": 0,
+      "y": -330,
+      "w": 640,
+      "text": "QUIET BELT (original, before the merge)\nAxis: re-read the marks already here. The dark theme is already a black belt (near-black ground, red accent); the light theme is a white gi. Nothing structural changes: one figure (the rank bar with real degree stripes) and one section (three maxims true on the mat and in the codebase).\nWorking here: the theme button, the desk/mat portrait switch, stripes wrapping on at load. Tweaks: theme, degrees, belt red.\nTradeoff: it is quiet. The tagline carries all the new information. Joshua kept the portrait, the belt, About and Principles and swapped the hero for Game Plan's."
+    },
+    {
+      "id": "dir-game-plan",
+      "page": "page-2",
+      "x": 1520,
+      "y": -330,
+      "w": 640,
+      "text": "GAME PLAN\nAxis: structure. Everyone past blue belt has drawn one: boxes for positions, arrows for transitions. It is also a sitemap. Guard = secure the position, Pass = improve it with tooling, Mount = keep control, Submit = finish and write it up. The four brand colors finally mean something: each node owns a section and that section's eyebrow bar takes the node's color.\nWorking here: hover or Tab onto a node and its outgoing arrow lights in the node's color while the next node lifts; nodes scroll to their section.\nJoshua took this hero and chart for the lead; the four sections below the chart were not carried over."
+    },
+    {
+      "id": "dir-long-road",
+      "page": "page-2",
+      "x": 3040,
+      "y": -330,
+      "w": 640,
+      "text": "LONG ROAD\nAxis: time. What a black belt actually proves is a decade-plus of showing up. That is the proof a senior developer wants to make and cannot state without sounding like a CV. Two ladders share one year axis: five belts on the left, career eras on the right, the family arriving as ticks.\nWorking here: hover a belt band (white to black, left to right) and it glows together with its row; hover a row and its belt glows back. Tweaks: theme, degrees.\nJoshua took 'The road' and 'Now' for the lead. Five belt colors live outside the brand palette (fixed constants, not admin tokens)."
+    },
+    {
+      "id": "dir-mat-room",
+      "page": "page-2",
+      "x": 4560,
+      "y": -330,
+      "w": 640,
+      "text": "MAT ROOM\nAxis: material. The other three put BJJ in words and marks; this one puts it in the room: puzzle-mat grid as the page ground at about 5% contrast, mat-tape lines where a competition area's boundaries go (red inner frame, gold outer rail, squared corners), ribbons squared off into tape ends. Nothing says BJJ; the room does.\nWorking here: scroll the artboard and the gold rail lays down the page (CSS scroll-driven animation; static full line in Firefox and under reduced motion).\nTradeoff: texture is the fastest route to the generic look, and it fights the admin theme editor. Not chosen; the squared-off ribbon idea is worth keeping."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}

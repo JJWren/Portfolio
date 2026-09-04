@@ -1,0 +1,565 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Public+Sans:wght@400;500;700&amp;display=swap">
+  <style>
+/* Mirrors src/Portfolio.Web/wwwroot/app.css (v1.22.0). Tokens: app.css:31-75.
+   :root is the artboard iframe, so the token set lives on .site[data-theme]. */
+.site {
+  --c-red: #a63d40;
+  --c-gold: #e9b872;
+  --c-green: #90a959;
+  --c-blue: #6494aa;
+  --bg: #151515;
+  --surface: #1d1c1a;
+  --surface-2: #262421;
+  --border: #35322d;
+  --text: #e8e4dd;
+  --text-muted: #a49d91;
+  --accent: var(--c-gold);
+  --accent-ink: #151515;
+  --info: #8fb6c9;
+  --positive: #a9c17a;
+  --danger: #d98c8e;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'Cascadia Mono', monospace;
+  --radius: 6px;
+  /* Proposed fixed constants (sport-defined, not admin tokens) */
+  --belt-black: #0c0c0c;
+  --belt-white: #e8e4dd;
+  --rank-white: #e6dfd0;
+  --rank-blue: #2b4c8c;
+  --rank-purple: #5a3d8a;
+  --rank-brown: #6b4423;
+  --rank-black: #0c0c0c;
+  color-scheme: dark;
+}
+.site[data-theme='light'] {
+  --bg: #f6f3ec;
+  --surface: #fdfbf6;
+  --surface-2: #ece7db;
+  --border: #d8d1c2;
+  --text: #24211c;
+  --text-muted: #6b6459;
+  --accent: #8a6520;
+  --accent-ink: #fdfbf6;
+  --info: #3f6e86;
+  --positive: #5c7a35;
+  --danger: #8f3538;
+  color-scheme: light;
+}
+
+/* Base: app.css:80-155 */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+.site {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; }
+a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 2px; border-radius: 2px; }
+::selection { background: #e9b872; color: #151515; }
+img { max-width: 100%; }
+.container { width: min(1080px, 92vw); margin-inline: auto; }
+main { min-height: 65vh; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.muted { color: var(--text-muted); }
+
+/* Header / nav: app.css:160-246 */
+.site-header { position: relative; border-bottom: 1px solid var(--border); }
+.site-header .inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.9rem; }
+.brand { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
+.brand-logo { height: 28px; width: auto; }
+.nav-burger { display: none; place-items: center; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: var(--radius); background: transparent; color: var(--text); cursor: pointer; padding: 0; }
+.nav-burger:hover { color: var(--accent); border-color: var(--accent); }
+.site-nav { display: flex; align-items: center; gap: 1.4rem; }
+.site-nav a { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); text-decoration: none; padding-block: 0.35rem; border-bottom: 2px solid transparent; }
+.site-nav a:hover, .site-nav a.active { color: var(--text); border-bottom-color: var(--c-gold); }
+.theme-toggle { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; padding: 0; }
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.theme-toggle .icon-moon { display: none; }
+.site[data-theme='light'] .theme-toggle .icon-moon { display: block; }
+.site[data-theme='light'] .theme-toggle .icon-sun { display: none; }
+
+/* Hero: app.css:251-328 */
+.hero { position: relative; padding: 6.5rem 0 5rem; }
+.ribbons { position: absolute; top: 0; right: 6%; display: flex; gap: 12px; z-index: 2; }
+.ribbons i { width: 10px; border-radius: 0 0 3px 3px; transform-origin: top; animation: ribbon-drop 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) backwards; }
+.ribbons i:nth-child(1) { background: var(--c-red);   height: 110px; animation-delay: 0.05s; }
+.ribbons i:nth-child(2) { background: var(--c-gold);  height: 170px; animation-delay: 0.15s; }
+.ribbons i:nth-child(3) { background: var(--c-green); height: 85px;  animation-delay: 0.25s; }
+.ribbons i:nth-child(4) { background: var(--c-blue);  height: 140px; animation-delay: 0.35s; }
+@keyframes ribbon-drop { from { transform: scaleY(0); } }
+.hero h1 { margin: 0.4rem 0 1rem; font-size: clamp(2.75rem, 7vw, 4.75rem); letter-spacing: -0.015em; }
+.hero .tagline { max-width: 36rem; margin: 0; font-size: clamp(1.05rem, 2vw, 1.3rem); color: var(--text-muted); }
+.hero .actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 2.25rem; }
+.hero .container.has-photo { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 2.5rem; align-items: start; }
+.owner-photo { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); position: relative; z-index: 1; margin-top: 3rem; }
+
+/* Buttons: app.css:333-371 */
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.15rem; border: 1px solid transparent; border-radius: var(--radius); font-family: var(--font-mono); font-size: 0.85rem; text-decoration: none; cursor: pointer; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 500; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { border-color: var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.icon { width: 1em; height: 1em; flex: none; }
+
+/* Sections: app.css:376-447 */
+.section { padding: 3.5rem 0; border-top: 1px solid var(--border); }
+.eyebrow { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.eyebrow::before { content: ''; width: 22px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--c-red) 0 25%, var(--c-gold) 25% 50%, var(--c-green) 50% 75%, var(--c-blue) 75% 100%); }
+.section h2 { margin: 0.8rem 0 1.2rem; font-size: 1.9rem; }
+.about-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 3rem; margin-top: 1.2rem; }
+.about-text p { max-width: 62ch; margin: 0 0 1rem; }
+.skills { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 0; list-style: none; align-content: start; }
+.skills li { padding: 0.35rem 0.75rem; border: 1px solid var(--border); border-radius: 999px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); }
+.skills li::before { content: '\25CF'; margin-right: 0.45rem; font-size: 0.6rem; vertical-align: 1px; }
+.skills li:nth-child(4n + 1)::before { color: var(--c-gold); }
+.skills li:nth-child(4n + 2)::before { color: var(--c-green); }
+.skills li:nth-child(4n + 3)::before { color: var(--c-blue); }
+.skills li:nth-child(4n + 4)::before { color: var(--c-red); }
+
+/* Footer: app.css:2296-2339 */
+.site-footer { margin-top: 4rem; }
+.footer-strip { height: 4px; background: linear-gradient(90deg, var(--c-red) 0 25%, var(--c-gold) 25% 50%, var(--c-green) 50% 75%, var(--c-blue) 75% 100%); }
+.site-footer .inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.6rem; font-size: 0.9rem; color: var(--text-muted); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 1.2rem; }
+.footer-links a { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text-muted); text-decoration: none; }
+.footer-links a:hover { color: var(--accent); }
+.sponsor-link .icon { color: var(--c-red); }
+.footer-legal { font-size: 0.82rem; }
+
+/* Shared BJJ devices used by more than one direction */
+.pill-switch { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; border: 0; min-width: 0; }
+.pill-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.pill-switch label { padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 999px; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); cursor: pointer; }
+.pill-switch input:checked + label { border-color: var(--accent); color: var(--accent); }
+.pill-switch input:focus-visible + label { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+.placeholder { font-family: var(--font-mono); color: var(--text-muted); }
+
+/* Mobile: app.css:449-510 */
+@media (max-width: 720px) {
+  .about-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .hero { padding-top: 4.5rem; }
+  .ribbons { right: 4%; gap: 8px; }
+  .ribbons i { width: 7px; }
+  .hero .container.has-photo { grid-template-columns: 1fr; gap: 1.5rem; }
+  .owner-photo, .photo-stack { order: -1; width: min(60vw, 260px); justify-self: center; margin-top: 2rem; }
+  .nav-burger { display: grid; }
+  .site-nav { display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 50; flex-direction: column; align-items: flex-start; gap: 0.9rem; padding: 1rem 4vw 1.3rem; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 12px 24px rgb(0 0 0 / 0.25); }
+  .site-nav.open { display: flex; }
+  .site-nav a { font-size: 0.9rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ribbons i, .belt-bar i, .tape-outer { animation: none; }
+  .photo-tile, .gp-node a, .row { transition: none; }
+}
+
+/* Quiet Belt: rank bar, portrait switch, principles */
+.photo-slot { position: relative; z-index: 1; }
+.photo-stack { position: relative; width: 100%; aspect-ratio: 4 / 5; margin-top: 3rem; }
+.photo-tile { position: absolute; inset: 0; border-radius: var(--radius); overflow: hidden; transition: opacity 0.25s ease; }
+.photo-tile.mat { opacity: 0; }
+.hero:has(#ph-mat:checked) .photo-tile.mat { opacity: 1; }
+.hero:has(#ph-mat:checked) .photo-tile.desk { opacity: 0; }
+.ph-art { height: 100%; display: grid; place-content: center; gap: 0.4rem; text-align: center; border: 1px dashed var(--border); border-radius: var(--radius); background: repeating-linear-gradient(135deg, var(--surface-2) 0 14px, var(--surface) 14px 28px); font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted); }
+.ph-art.mat-art { background: repeating-linear-gradient(0deg, var(--surface-2) 0 1px, var(--surface) 1px 40px), repeating-linear-gradient(90deg, var(--surface-2) 0 1px, var(--surface) 1px 40px); }
+.ph-art small { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.photo-switch { margin-top: 0.8rem; }
+
+.rank-bar { margin: 0; padding: 0 0 3rem; }
+.rank-bar .belt { display: flex; height: 12px; }
+.belt-body { flex: 1; background: var(--belt-black); border: 1px solid var(--border); border-right: 0; border-radius: 3px 0 0 3px; }
+.belt-bar { display: flex; align-items: stretch; gap: 6px; width: 112px; padding: 0 10px; }
+.belt-bar i { width: 4px; background: var(--belt-white); transform-origin: left; animation: stripe-on 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards; }
+.belt-bar i:nth-child(1) { animation-delay: 0.45s; }
+.belt-bar i:nth-child(2) { animation-delay: 0.6s; }
+.belt-bar i:nth-child(3) { animation-delay: 0.75s; }
+.belt-bar i:nth-child(4) { animation-delay: 0.9s; }
+.belt-bar i:nth-child(5) { animation-delay: 1.05s; }
+.belt-bar i:nth-child(6) { animation-delay: 1.2s; }
+.belt-tip { width: 44px; background: var(--belt-black); border: 1px solid var(--border); border-left: 0; border-radius: 0 3px 3px 0; }
+@keyframes stripe-on { from { transform: scaleX(0); } }
+.rank-bar figcaption { margin-top: 0.7rem; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem; margin-top: 1.4rem; }
+.principle h3 { margin: 0 0 0.5rem; font-size: 1.35rem; }
+.principle p { margin: 0; max-width: 30ch; color: var(--text-muted); }
+
+@media (max-width: 720px) {
+  .photo-slot { order: -1; justify-self: center; width: min(60vw, 260px); }
+  .photo-stack { margin-top: 2rem; width: 100%; }
+  .photo-switch { justify-content: center; }
+  .rank-bar .belt { height: 9px; }
+  .belt-bar { width: 84px; gap: 5px; padding: 0 8px; }
+  .belt-bar i { width: 3px; }
+  .belt-tip { width: 30px; }
+  .principles { grid-template-columns: 1fr; gap: 1.6rem; }
+}
+
+.photo-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Game Plan: the four brand colors become the four nodes */
+.hero .eyebrow { margin-bottom: 0.4rem; }
+.gp-red { --node: var(--c-red); }
+.gp-gold { --node: var(--c-gold); }
+.gp-green { --node: var(--c-green); }
+.gp-blue { --node: var(--c-blue); }
+.game-plan { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; list-style: none; margin: 2.75rem 0 0; padding: 0; }
+.gp-node { position: relative; padding-right: 34px; }
+.gp-node:last-child { padding-right: 0; }
+.gp-node a { display: block; height: 100%; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--border); border-top: 3px solid var(--node); border-radius: var(--radius); background: var(--surface); color: var(--text); text-decoration: none; transition: transform 0.2s ease, border-color 0.2s ease; }
+.gp-node .term { display: block; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.gp-node .read { display: block; margin-top: 0.3rem; font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; line-height: 1.2; }
+.gp-node .how { display: block; margin-top: 0.4rem; font-size: 0.85rem; color: var(--text-muted); }
+.gp-node::after { content: ''; position: absolute; top: 50%; right: 8px; width: 20px; height: 2px; background: var(--border); transform: translateY(-50%); transition: background 0.2s ease; }
+.gp-node::before { content: ''; position: absolute; top: 50%; right: 4px; border: 5px solid transparent; border-left: 7px solid var(--border); transform: translateY(-50%); transition: border-left-color 0.2s ease; }
+.gp-node:last-child::after, .gp-node:last-child::before { display: none; }
+.gp-node a:hover, .gp-node a:focus-visible { border-color: var(--node); transform: translateY(-3px); }
+.gp-node:has(a:hover)::after, .gp-node:has(a:focus-visible)::after { background: var(--node); }
+.gp-node:has(a:hover)::before, .gp-node:has(a:focus-visible)::before { border-left-color: var(--node); }
+.gp-node:has(a:hover) + .gp-node a, .gp-node:has(a:focus-visible) + .gp-node a { transform: translateY(-3px); border-color: var(--node); }
+.eyebrow-red::before { background: var(--c-red); }
+.eyebrow-gold::before { background: var(--c-gold); }
+.eyebrow-green::before { background: var(--c-green); }
+.eyebrow-blue::before { background: var(--c-blue); }
+.section .placeholder { max-width: 62ch; margin: 0; }
+
+@media (max-width: 720px) {
+  .game-plan { grid-template-columns: 1fr; gap: 26px; }
+  .gp-node { padding-right: 0; }
+  .gp-node::after { top: auto; bottom: -16px; left: 24px; right: auto; width: 2px; height: 12px; transform: none; }
+  .gp-node::before { top: auto; bottom: -22px; left: 20px; right: auto; border: 5px solid transparent; border-top: 7px solid var(--border); transform: none; }
+  .gp-node:has(a:hover)::before, .gp-node:has(a:focus-visible)::before { border-left-color: transparent; border-top-color: var(--node); }
+}
+
+/* Long Road: belt ladder (white to black, left to right) above a dated table of belts, gyms, locations and roles */
+.hero .eyebrow { margin-bottom: 0.4rem; }
+.road { display: grid; grid-template-columns: 1fr; gap: 1.8rem; margin-top: 1.4rem; }
+.ladder { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.rung { display: flex; flex-direction: column; gap: 0.5rem; }
+.ladder .name { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.belt-band { position: relative; height: 16px; border: 1px solid var(--border); border-radius: 3px; background: var(--rank); overflow: hidden; }
+.belt-band.white { --rank: var(--rank-white); }
+.belt-band.blue { --rank: var(--rank-blue); }
+.belt-band.purple { --rank: var(--rank-purple); }
+.belt-band.brown { --rank: var(--rank-brown); }
+.belt-band.black { --rank: var(--rank-black); }
+.belt-band .bar { position: absolute; top: 0; bottom: 0; right: 22px; width: 64px; display: flex; gap: 5px; padding: 0 7px; background: var(--belt-black); }
+.belt-band.black .bar { background: var(--c-red); }
+.belt-band .bar i { width: 3px; background: var(--belt-white); }
+/* The table: mono uppercase headers like the admin tables (app.css:1601-1610) */
+.road-table { width: 100%; border-collapse: collapse; }
+.road-table .rowbelt { display: none; }
+.road-table th { padding: 0 1rem 0.6rem 0; text-align: left; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.road-table td { padding: 0.85rem 1rem 0.85rem 0; vertical-align: top; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+.road-table th:last-child, .road-table td:last-child { padding-right: 0; }
+.road-table .year { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.road-table .belt { white-space: nowrap; }
+.road-table .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 0.5rem; border-radius: 2px; border: 1px solid var(--border); background: var(--rank); vertical-align: -1px; }
+.road-table .gym, .road-table .place { white-space: nowrap; }
+.road-table .work { color: var(--text-muted); }
+.row[data-belt='white'] { --rank: var(--rank-white); }
+.row[data-belt='blue'] { --rank: var(--rank-blue); }
+.row[data-belt='purple'] { --rank: var(--rank-purple); }
+.row[data-belt='brown'] { --rank: var(--rank-brown); }
+.row[data-belt='black'] { --rank: var(--rank-black); }
+
+/* Hover-linked glow: a belt lights its row, a row lights its belt (decoration only; every row is readable at rest) */
+.belt-band, .road-table .swatch, .row { transition: box-shadow 0.15s ease, outline-color 0.15s ease, background-color 0.15s ease; }
+.belt-band.glow, .belt-band:hover { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 14px var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+.row.glow, .row:hover { background: var(--surface-2); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.row.glow .swatch, .row:hover .swatch { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 10px var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.row.glow .work, .row:hover .work { color: var(--text); }
+.road:has(.belt-band.white:hover) .row[data-belt='white'] { background: var(--surface-2); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.road:has(.belt-band.white:hover) .row[data-belt='white'] .swatch { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 10px var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.white:hover) .row[data-belt='white'] .work { color: var(--text); }
+.road:has(.row[data-belt='white']:hover) .belt-band.white { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 14px var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.blue:hover) .row[data-belt='blue'] { background: var(--surface-2); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.road:has(.belt-band.blue:hover) .row[data-belt='blue'] .swatch { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 10px var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.blue:hover) .row[data-belt='blue'] .work { color: var(--text); }
+.road:has(.row[data-belt='blue']:hover) .belt-band.blue { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 14px var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.purple:hover) .row[data-belt='purple'] { background: var(--surface-2); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.road:has(.belt-band.purple:hover) .row[data-belt='purple'] .swatch { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 10px var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.purple:hover) .row[data-belt='purple'] .work { color: var(--text); }
+.road:has(.row[data-belt='purple']:hover) .belt-band.purple { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 14px var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.brown:hover) .row[data-belt='brown'] { background: var(--surface-2); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.road:has(.belt-band.brown:hover) .row[data-belt='brown'] .swatch { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 10px var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.brown:hover) .row[data-belt='brown'] .work { color: var(--text); }
+.road:has(.row[data-belt='brown']:hover) .belt-band.brown { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 14px var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.black:hover) .row[data-belt='black'] { background: var(--surface-2); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.road:has(.belt-band.black:hover) .row[data-belt='black'] .swatch { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 10px var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+.road:has(.belt-band.black:hover) .row[data-belt='black'] .work { color: var(--text); }
+.road:has(.row[data-belt='black']:hover) .belt-band.black { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 14px var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+.row td:first-child { padding-left: 0.5rem; }
+.road-table th:first-child { padding-left: 0.5rem; }
+
+.now { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin: 1.4rem 0 0; }
+.now div { padding: 1rem 1.1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.now dt { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+.now dd { margin: 0.35rem 0 0; }
+
+@media (max-width: 720px) {
+  .ladder { gap: 8px; }
+  .ladder .name { font-size: 0.62rem; letter-spacing: 0.08em; }
+  .road-table thead { display: none; }
+  .road-table, .road-table tbody { display: block; }
+  .road-table tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+  .ladder { display: none; }
+  .road-table .rowbelt { display: block; grid-column: 1 / -1; padding: 0 0 0.4rem; }
+  .road-table .rowbelt::before { display: none; }
+  .road-table .rowbelt .belt-band { display: block; height: 14px; }
+  .road-table .rowbelt .belt-band, .road-table .swatch { outline: 2px solid transparent; }
+  .road-table .rowbelt .belt-band { outline-offset: 3px; }
+  /* Scroll-driven glow: the row passing through the middle of the screen lights up with its belt */
+  @supports (animation-timeline: view()) {
+    .road-table { timeline-scope: --r-white, --r-blue, --r-purple, --r-brown, --r-black; }
+    .row[data-belt='white'] { view-timeline-name: --r-white; }
+    .row[data-belt='white'] .belt-band, .row[data-belt='white'] .swatch { animation: band-glow linear both; animation-timeline: --r-white; animation-range: cover 15% cover 85%; }
+    .row[data-belt='blue'] { view-timeline-name: --r-blue; }
+    .row[data-belt='blue'] .belt-band, .row[data-belt='blue'] .swatch { animation: band-glow linear both; animation-timeline: --r-blue; animation-range: cover 15% cover 85%; }
+    .row[data-belt='purple'] { view-timeline-name: --r-purple; }
+    .row[data-belt='purple'] .belt-band, .row[data-belt='purple'] .swatch { animation: band-glow linear both; animation-timeline: --r-purple; animation-range: cover 15% cover 85%; }
+    .row[data-belt='brown'] { view-timeline-name: --r-brown; }
+    .row[data-belt='brown'] .belt-band, .row[data-belt='brown'] .swatch { animation: band-glow linear both; animation-timeline: --r-brown; animation-range: cover 15% cover 85%; }
+    .row[data-belt='black'] { view-timeline-name: --r-black; }
+    .row[data-belt='black'] .belt-band, .row[data-belt='black'] .swatch { animation: band-glow linear both; animation-timeline: --r-black; animation-range: cover 15% cover 85%; }
+    .road-table tr.row { animation: row-glow linear both; animation-timeline: view(); animation-range: cover 15% cover 85%; }
+  }
+  .road-table td { display: block; padding: 0; border: 0; }
+  .road-table td::before { content: attr(data-label); display: block; margin-bottom: 0.1rem; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .road-table .gym, .road-table .place { white-space: normal; }
+  .road-table .work { grid-column: 1 / -1; }
+  .now { grid-template-columns: 1fr 1fr; }
+}
+
+@keyframes row-glow {
+  0%, 100% { background-color: transparent; }
+  30%, 70% { background-color: color-mix(in srgb, var(--accent) 9%, transparent); }
+}
+@keyframes band-glow {
+  0%, 100% { outline-color: transparent; box-shadow: 0 0 0 transparent; }
+  30%, 70% { outline-color: var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+}
+
+/* Lead: Game Plan hero with the Quiet Belt portrait beside the copy and the chart below both */
+.hero-plan { grid-column: 1 / -1; margin-top: 1.5rem; }
+.hero .container.has-photo .photo-slot { align-self: start; }
+@media (max-width: 720px) {
+  .hero-plan { margin-top: 0.5rem; }
+}
+
+  </style>
+</helmet>
+<div class="site" data-theme="{{theme}}">
+<header class="site-header">
+  <div class="container inner">
+    <a class="brand" href="#" aria-label="Joshua Mykitta — home">
+      <img class="brand-logo" src="logo-sm.png" alt="" />
+    </a>
+    <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="#">Projects</a>
+      <a href="#">Blog</a>
+      <a href="#">Contact</a>
+      <a href="#">Sign in</a>
+      <button class="theme-toggle" type="button" onClick="{{toggleTheme}}" title="{{toggleTitle}}" aria-label="Switch between dark and light theme">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container has-photo">
+      <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="hero-text">
+        <p class="eyebrow">Joshua Mykitta · Software Engineer</p>
+        <h1>Position before submission.</h1>
+        <p class="tagline">A game plan borrowed from the mat: secure the application first, build the tooling that improves position, then finish. Secure software engineer; Brazilian jiu-jitsu black belt.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>GitHub</a>
+          <a class="btn btn-ghost" href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>LinkedIn</a>
+          <a class="btn btn-ghost" href="#">Get in touch</a>
+        </div>
+      </div>
+      <div class="photo-slot">
+        <div class="photo-stack">
+          <div class="photo-tile desk"><img src="josh-desk.jpg" alt="Joshua Mykitta in sunglasses and a tuxedo, looking slightly off to the left with a subtle, pensive smile" /></div>
+          <div class="photo-tile mat"><img src="josh-mat.jpg" alt="Joshua Mykitta, on the left, being promoted to Brazilian jiu-jitsu black belt by Rodney Souza, on the right" /></div>
+        </div>
+        <fieldset class="pill-switch photo-switch">
+          <legend class="visually-hidden">Show photo</legend>
+          <input type="radio" name="photo" id="ph-desk" defaultChecked="{{ on }}" /><label for="ph-desk">At the desk</label>
+          <input type="radio" name="photo" id="ph-mat" /><label for="ph-mat">On the mat</label>
+        </fieldset>
+      </div>
+      <ol class="game-plan hero-plan" aria-label="Game plan">
+        <li class="gp-node gp-red"><a href="#principles"><span class="term">Guard</span><span class="read">Secure the position</span><span class="how">Auth, secrets, boundaries. Get the position first.</span></a></li>
+        <li class="gp-node gp-gold"><a href="#principles"><span class="term">Pass</span><span class="read">Improve the position</span><span class="how">Developer tooling that makes the next move easier.</span></a></li>
+        <li class="gp-node gp-green"><a href="#principles"><span class="term">Mount</span><span class="read">Keep control</span><span class="how">Tests, reviews, boring deploys.</span></a></li>
+        <li class="gp-node gp-blue"><a href="#principles"><span class="term">Submit</span><span class="read">Finish</span><span class="how">Ship it, then write it up.</span></a></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="container">
+    <figure class="rank-bar">
+      <div class="belt" aria-hidden="true">
+        <span class="belt-body"></span>
+        <span class="belt-bar" style="background: {{beltRed}}"><sc-for list="{{stripes}}" as="s" hint-placeholder-count="2"><i></i></sc-for></span>
+        <span class="belt-tip"></span>
+      </div>
+      <figcaption>Black belt · Championship Mixed Martial Arts, Daphne, AL · promoted December 9, 2025 by Rodney Souza</figcaption>
+    </figure>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">About</p>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I am a passionate builder that loves seeing minor details sparkle and complex machina run smoothly and securely.</p>
+          <p>I have been building software applications for 6 years and have completed a BASc degree in Cyber Operations focusing on engineering. I currently work at Acentra Health where I build healthcare software that integrates care management, utilization management, and prior authorization requests into a single system. Before this, I worked in aviation for just over 10 years, 9 of which were spent directly in or in support of the US Army.</p>
+          <p>Outside of my professional life, I like to tinker with my home lab where I build and break various home and software automations, and I practice picking apart malware or investigating new / current security practices. I am a Brazilian jiu-jitsu black belt instructor with over 20 years of experience in the martial art and I love training as much as I can fit into my busy schedule. I have an amazing and supportive wife whom I raise 5 kids and 6 dogs with!</p>
+        </div>
+        <ul class="skills">
+          <li>C#</li>
+          <li>ASP.NET Core</li>
+          <li>Application Security</li>
+          <li>Cybersecurity</li>
+          <li>Generative AI</li>
+          <li>Brazilian Jiu-jitsu</li>
+          <li>...and More!</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="principles">
+    <div class="container">
+      <p class="eyebrow">Principles</p>
+      <div class="principles">
+        <div class="principle">
+          <h3>Position before submission.</h3>
+          <p>Security before features. Lock the position down, then attack the problem.</p>
+        </div>
+        <div class="principle">
+          <h3>Tap early, tap often.</h3>
+          <p>Roll back early. A revert costs nothing; an outage does.</p>
+        </div>
+        <div class="principle">
+          <h3>Leave your ego at the door.</h3>
+          <p>Code review is not a fight. The best idea wins, not the loudest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">The road</p>
+      <h2>Two ladders, one clock</h2>
+      <div class="road">
+        <div class="ladder" aria-hidden="true">
+          <div class="rung"><span class="belt-band white"><span class="bar"><i></i><i></i></span></span><span class="name">White</span></div>
+          <div class="rung"><span class="belt-band blue"><span class="bar"><i></i><i></i><i></i></span></span><span class="name">Blue</span></div>
+          <div class="rung"><span class="belt-band purple"><span class="bar"><i></i></span></span><span class="name">Purple</span></div>
+          <div class="rung"><span class="belt-band brown"><span class="bar"><i></i><i></i><i></i><i></i></span></span><span class="name">Brown</span></div>
+          <div class="rung"><span class="belt-band black"><span class="bar"><sc-for list="{{stripes}}" as="s" hint-placeholder-count="2"><i></i></sc-for></span></span><span class="name">Black</span></div>
+        </div>
+        <table class="road-table">
+          <thead>
+            <tr><th class="rowbelt" aria-hidden="true"></th><th scope="col">Date</th><th scope="col">Belt</th><th scope="col">Gym</th><th scope="col">Location</th><th scope="col">Role</th></tr>
+          </thead>
+          <tbody>
+            <tr class="row" data-belt="white"><td class="rowbelt" aria-hidden="true"><span class="belt-band white"><span class="bar"><i></i><i></i></span></span></td><td class="year" data-label="Date">2005-12-01</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>White</td><td class="gym" data-label="Gym">Tamaso's MMA</td><td class="place" data-label="Location">Fairhope, AL</td><td class="work" data-label="Role">High school junior, working at Baumhower's Wings.</td></tr>
+            <tr class="row" data-belt="blue"><td class="rowbelt" aria-hidden="true"><span class="belt-band blue"><span class="bar"><i></i><i></i><i></i></span></span></td><td class="year" data-label="Date">2018-01-30</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Blue</td><td class="gym" data-label="Gym">Bagram BJJ</td><td class="place" data-label="Location">Bagram, Afghanistan</td><td class="work" data-label="Role">Veteran and contractor in Afghanistan, keeping Army helicopters in top shape as an aviation backshop mechanic.</td></tr>
+            <tr class="row" data-belt="purple"><td class="rowbelt" aria-hidden="true"><span class="belt-band purple"><span class="bar"><i></i></span></span></td><td class="year" data-label="Date">2019-08-23</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Purple</td><td class="gym" data-label="Gym">Bagram BJJ</td><td class="place" data-label="Location">Bagram, Afghanistan</td><td class="work" data-label="Role">Backshop manager leading multiple shops and 20+ personnel, and teaching BJJ to base personnel at night.</td></tr>
+            <tr class="row" data-belt="brown"><td class="rowbelt" aria-hidden="true"><span class="belt-band brown"><span class="bar"><i></i><i></i><i></i><i></i></span></span></td><td class="year" data-label="Date">2020-09-23</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Brown</td><td class="gym" data-label="Gym">Iron Grip BJJ</td><td class="place" data-label="Location">Fairhope, AL</td><td class="work" data-label="Role">Transitioning into tech through a University of Arizona Cyber Operations degree and the Coding Dojo coding bootcamp.</td></tr>
+            <tr class="row" data-belt="black"><td class="rowbelt" aria-hidden="true"><span class="belt-band black"><span class="bar"><sc-for list="{{stripes}}" as="s" hint-placeholder-count="2"><i></i></sc-for></span></span></td><td class="year" data-label="Date">2025-12-09</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Black</td><td class="gym" data-label="Gym">Championship Mixed Martial Arts</td><td class="place" data-label="Location">Daphne, AL</td><td class="work" data-label="Role">Software Engineer at Acentra Health, building healthcare software that integrates care management, utilization management, and prior authorization requests into a single system.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Now</p>
+      <dl class="now">
+        <div><dt>Teaches</dt><dd>Adult no-gi, Tuesday and Thursday mornings, at Championship Mixed Martial Arts</dd></div>
+        <div><dt>Building</dt><dd>CalCrony: a self-hosted Discord bot for events and RSVPs, with reminders, ICS feeds and Google Calendar free/busy checks. The .NET 10 API is the product; the bot is just a client.</dd></div>
+        <div><dt>Home lab</dt><dd>Containerized, locked down, and built for high availability. This site runs on it.</dd></div>
+        <div><dt>Household</dt><dd>Wife, 5 kids, 6 dogs</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-strip" aria-hidden="true"></div>
+  <div class="container inner">
+    <span>© 2026 Joshua Mykitta</span>
+    <nav class="footer-links" aria-label="Social">
+      <a href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>GitHub</a>
+      <a href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>LinkedIn</a>
+      <a href="#"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 7 10 6 10-6"></path></svg>Email</a>
+      <a class="sponsor-link" href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Buy me a coffee</a>
+    </nav>
+    <nav class="footer-links footer-legal" aria-label="Legal">
+      <a href="#">Terms</a>
+      <a href="#">Privacy</a>
+      <a href="#" title="This site runs on an open-source project">MIT</a>
+    </nav>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Theme"},"degrees":{"editor":"int","min":0,"max":6,"default":0,"section":"Belt"},"beltRed":{"editor":"color","options":["#a63d40","#c8102e"],"default":"#a63d40","section":"Belt"},"$preview":{"width":390,"height":4500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null };
+  }
+  renderVals() {
+    var theme = this.state.theme || this.props.theme || 'dark';
+    var raw = Number(this.props.degrees);
+    var degrees = Number.isFinite(raw) ? Math.max(0, Math.min(6, Math.round(raw))) : 0;
+    var self = this;
+    return {
+      theme: theme,
+      on: true,
+      beltRed: this.props.beltRed || '#a63d40',
+      stripes: Array.from({ length: degrees }, function (_, i) { return { i: i }; }),
+      toggleTheme: function () { self.setState({ theme: theme === 'dark' ? 'light' : 'dark' }); },
+      toggleTitle: theme === 'dark' ? 'Switch to the white gi (light theme)' : 'Switch to the black belt (dark theme)'
+    };
+  }
+}
+
+</script>
+</body>
+</html>

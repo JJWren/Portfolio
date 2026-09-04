@@ -1,0 +1,127 @@
+<main>
+  <section class="hero">
+    <div class="container has-photo">
+      <div class="ribbons" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="hero-text">
+        <p class="eyebrow">Joshua Mykitta · Software Engineer</p>
+        <h1>Position before submission.</h1>
+        <p class="tagline">A game plan borrowed from the mat: secure the application first, build the tooling that improves position, then finish. Secure software engineer; Brazilian jiu-jitsu black belt.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg>GitHub</a>
+          <a class="btn btn-ghost" href="#"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>LinkedIn</a>
+          <a class="btn btn-ghost" href="#">Get in touch</a>
+        </div>
+      </div>
+      <div class="photo-slot">
+        <div class="photo-stack">
+          <div class="photo-tile desk"><img src="josh-desk.jpg" alt="Joshua Mykitta in sunglasses and a tuxedo, looking slightly off to the left with a subtle, pensive smile" /></div>
+          <div class="photo-tile mat"><img src="josh-mat.jpg" alt="Joshua Mykitta, on the left, being promoted to Brazilian jiu-jitsu black belt by Rodney Souza, on the right" /></div>
+        </div>
+        <fieldset class="pill-switch photo-switch">
+          <legend class="visually-hidden">Show photo</legend>
+          <input type="radio" name="photo" id="ph-desk" defaultChecked="{{ on }}" /><label for="ph-desk">At the desk</label>
+          <input type="radio" name="photo" id="ph-mat" /><label for="ph-mat">On the mat</label>
+        </fieldset>
+      </div>
+      <ol class="game-plan hero-plan" aria-label="Game plan">
+        <li class="gp-node gp-red"><a href="#principles"><span class="term">Guard</span><span class="read">Secure the position</span><span class="how">Auth, secrets, boundaries. Get the position first.</span></a></li>
+        <li class="gp-node gp-gold"><a href="#principles"><span class="term">Pass</span><span class="read">Improve the position</span><span class="how">Developer tooling that makes the next move easier.</span></a></li>
+        <li class="gp-node gp-green"><a href="#principles"><span class="term">Mount</span><span class="read">Keep control</span><span class="how">Tests, reviews, boring deploys.</span></a></li>
+        <li class="gp-node gp-blue"><a href="#principles"><span class="term">Submit</span><span class="read">Finish</span><span class="how">Ship it, then write it up.</span></a></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="container">
+    <figure class="rank-bar">
+      <div class="belt" aria-hidden="true">
+        <span class="belt-body"></span>
+        <span class="belt-bar" style="background: {{beltRed}}"><sc-for list="{{stripes}}" as="s" hint-placeholder-count="2"><i></i></sc-for></span>
+        <span class="belt-tip"></span>
+      </div>
+      <figcaption>Black belt · Championship Mixed Martial Arts, Daphne, AL · promoted December 9, 2025 by Rodney Souza</figcaption>
+    </figure>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">About</p>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I am a passionate builder that loves seeing minor details sparkle and complex machina run smoothly and securely.</p>
+          <p>I have been building software applications for 6 years and have completed a BASc degree in Cyber Operations focusing on engineering. I currently work at Acentra Health where I build healthcare software that integrates care management, utilization management, and prior authorization requests into a single system. Before this, I worked in aviation for just over 10 years, 9 of which were spent directly in or in support of the US Army.</p>
+          <p>Outside of my professional life, I like to tinker with my home lab where I build and break various home and software automations, and I practice picking apart malware or investigating new / current security practices. I am a Brazilian jiu-jitsu black belt instructor with over 20 years of experience in the martial art and I love training as much as I can fit into my busy schedule. I have an amazing and supportive wife whom I raise 5 kids and 6 dogs with!</p>
+        </div>
+        <ul class="skills">
+          <li>C#</li>
+          <li>ASP.NET Core</li>
+          <li>Application Security</li>
+          <li>Cybersecurity</li>
+          <li>Generative AI</li>
+          <li>Brazilian Jiu-jitsu</li>
+          <li>...and More!</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="principles">
+    <div class="container">
+      <p class="eyebrow">Principles</p>
+      <div class="principles">
+        <div class="principle">
+          <h3>Position before submission.</h3>
+          <p>Security before features. Lock the position down, then attack the problem.</p>
+        </div>
+        <div class="principle">
+          <h3>Tap early, tap often.</h3>
+          <p>Roll back early. A revert costs nothing; an outage does.</p>
+        </div>
+        <div class="principle">
+          <h3>Leave your ego at the door.</h3>
+          <p>Code review is not a fight. The best idea wins, not the loudest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">The road</p>
+      <h2>Two ladders, one clock</h2>
+      <div class="road">
+        <div class="ladder" aria-hidden="true">
+          <div class="rung"><span class="belt-band white"><span class="bar"><i></i><i></i></span></span><span class="name">White</span></div>
+          <div class="rung"><span class="belt-band blue"><span class="bar"><i></i><i></i><i></i></span></span><span class="name">Blue</span></div>
+          <div class="rung"><span class="belt-band purple"><span class="bar"><i></i></span></span><span class="name">Purple</span></div>
+          <div class="rung"><span class="belt-band brown"><span class="bar"><i></i><i></i><i></i><i></i></span></span><span class="name">Brown</span></div>
+          <div class="rung"><span class="belt-band black"><span class="bar"><sc-for list="{{stripes}}" as="s" hint-placeholder-count="2"><i></i></sc-for></span></span><span class="name">Black</span></div>
+        </div>
+        <table class="road-table">
+          <thead>
+            <tr><th class="rowbelt" aria-hidden="true"></th><th scope="col">Date</th><th scope="col">Belt</th><th scope="col">Gym</th><th scope="col">Location</th><th scope="col">Role</th></tr>
+          </thead>
+          <tbody>
+            <tr class="row" data-belt="white"><td class="rowbelt" aria-hidden="true"><span class="belt-band white"><span class="bar"><i></i><i></i></span></span></td><td class="year" data-label="Date">2005-12-01</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>White</td><td class="gym" data-label="Gym">Tamaso's MMA</td><td class="place" data-label="Location">Fairhope, AL</td><td class="work" data-label="Role">High school junior, working at Baumhower's Wings.</td></tr>
+            <tr class="row" data-belt="blue"><td class="rowbelt" aria-hidden="true"><span class="belt-band blue"><span class="bar"><i></i><i></i><i></i></span></span></td><td class="year" data-label="Date">2018-01-30</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Blue</td><td class="gym" data-label="Gym">Bagram BJJ</td><td class="place" data-label="Location">Bagram, Afghanistan</td><td class="work" data-label="Role">Veteran and contractor in Afghanistan, keeping Army helicopters in top shape as an aviation backshop mechanic.</td></tr>
+            <tr class="row" data-belt="purple"><td class="rowbelt" aria-hidden="true"><span class="belt-band purple"><span class="bar"><i></i></span></span></td><td class="year" data-label="Date">2019-08-23</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Purple</td><td class="gym" data-label="Gym">Bagram BJJ</td><td class="place" data-label="Location">Bagram, Afghanistan</td><td class="work" data-label="Role">Backshop manager leading multiple shops and 20+ personnel, and teaching BJJ to base personnel at night.</td></tr>
+            <tr class="row" data-belt="brown"><td class="rowbelt" aria-hidden="true"><span class="belt-band brown"><span class="bar"><i></i><i></i><i></i><i></i></span></span></td><td class="year" data-label="Date">2020-09-23</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Brown</td><td class="gym" data-label="Gym">Iron Grip BJJ</td><td class="place" data-label="Location">Fairhope, AL</td><td class="work" data-label="Role">Transitioning into tech through a University of Arizona Cyber Operations degree and the Coding Dojo coding bootcamp.</td></tr>
+            <tr class="row" data-belt="black"><td class="rowbelt" aria-hidden="true"><span class="belt-band black"><span class="bar"><sc-for list="{{stripes}}" as="s" hint-placeholder-count="2"><i></i></sc-for></span></span></td><td class="year" data-label="Date">2025-12-09</td><td class="belt" data-label="Belt"><i class="swatch" aria-hidden="true"></i>Black</td><td class="gym" data-label="Gym">Championship Mixed Martial Arts</td><td class="place" data-label="Location">Daphne, AL</td><td class="work" data-label="Role">Software Engineer at Acentra Health, building healthcare software that integrates care management, utilization management, and prior authorization requests into a single system.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Now</p>
+      <dl class="now">
+        <div><dt>Teaches</dt><dd>Adult no-gi, Tuesday and Thursday mornings, at Championship Mixed Martial Arts</dd></div>
+        <div><dt>Building</dt><dd>CalCrony: a self-hosted Discord bot for events and RSVPs, with reminders, ICS feeds and Google Calendar free/busy checks. The .NET 10 API is the product; the bot is just a client.</dd></div>
+        <div><dt>Home lab</dt><dd>Containerized, locked down, and built for high availability. This site runs on it.</dd></div>
+        <div><dt>Household</dt><dd>Wife, 5 kids, 6 dogs</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
