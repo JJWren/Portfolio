@@ -251,7 +251,7 @@ public static class BjjRules
             : null;
     }
 
-    // -- Eras / the road (BR-8, BR-9) ------------------------------------
+    // -- Eras / the road / Now (BR-8, BR-9, BR-10) ------------------------
 
     /// <summary>Trimmed, case-insensitive belt name to <see cref="Belt"/>, or
     /// null for anything outside the closed set (ADR 0002) — rejected at
@@ -491,8 +491,15 @@ public static class BjjRules
     /// kept equal at the only place they can drift: the save gate. Null
     /// (unset degrees, or no black-belt era yet) never conflicts; when both
     /// exist, the LAST black-belt era in <paramref name="eras"/> must agree.
+    /// <paramref name="degreesSource"/> and <paramref name="erasSource"/>
+    /// optionally name the environment variable a value came from (for
+    /// example "SITE_BELT_DEGREES", "SITE_ERAS") when the caller resolved it
+    /// from the environment rather than the admin's own draft; the failure
+    /// message then says so and points the admin at what to fix. Leave both
+    /// null for the draft-only case — the message is unchanged.
     /// </summary>
-    public static string? ValidateDegreesAgainstEras(int? degrees, IReadOnlyList<Era> eras)
+    public static string? ValidateDegreesAgainstEras(
+        int? degrees, IReadOnlyList<Era> eras, string? degreesSource = null, string? erasSource = null)
     {
         if (degrees is null)
         {
@@ -505,6 +512,20 @@ public static class BjjRules
             return null;
         }
 
-        return $"Belt degrees ({degrees.Value}) and the black belt era's stripes ({lastBlackEra.Stripes}) disagree.";
+        if (degreesSource is null && erasSource is null)
+        {
+            return $"Belt degrees ({degrees.Value}) and the black belt era's stripes ({lastBlackEra.Stripes}) disagree.";
+        }
+
+        var degreesText = degreesSource is null
+            ? degrees.Value.ToString(CultureInfo.InvariantCulture)
+            : $"{degrees.Value}, from {degreesSource}";
+        var stripesText = erasSource is null
+            ? lastBlackEra.Stripes.ToString(CultureInfo.InvariantCulture)
+            : $"{lastBlackEra.Stripes}, from {erasSource}";
+        var fixHint = erasSource is not null ? "the eras" : "the belt degrees";
+
+        return $"Belt degrees ({degreesText}) and the black belt era's stripes ({stripesText}) disagree; " +
+            $"override {fixHint} here or change the environment.";
     }
 }

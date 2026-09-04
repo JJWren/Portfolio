@@ -35,8 +35,11 @@ public record EffectiveSiteContent(
     /// <summary>One per distinct belt in <see cref="Eras"/>, first-appearance
     /// order, each carrying the stripes of that belt's last era (BR-8).
     /// Derived from <see cref="Eras"/>, not independently resolved or
-    /// stored.</summary>
-    public IReadOnlyList<Rung> Rungs => BjjRules.Rungs(Eras);
+    /// stored — but, like <see cref="GamePlan"/>, <see cref="Principles"/>,
+    /// <see cref="Eras"/> and <see cref="Now"/>, computed once at
+    /// construction (init-assigned from the primary constructor's Eras
+    /// parameter) rather than recomputed on every access.</summary>
+    public IReadOnlyList<Rung> Rungs { get; init; } = BjjRules.Rungs(Eras ?? []);
 
     /// <summary>Never null — empty means "no Now section" (BR-2).</summary>
     public IReadOnlyList<NowItem> Now { get; init; } = Now ?? [];
@@ -154,10 +157,18 @@ public static class SiteContentRules
     /// degrees, principles, eras, now — so the first error reported is
     /// always the first invalid field the admin would scroll to. The BR-9
     /// degrees-vs-eras cross-check runs last, once both fields it compares
-    /// have individually validated. Returns the first friendly error, or
-    /// null when the whole draft may be saved.
+    /// have individually validated, and against the EFFECTIVE values (draft,
+    /// falling back to <paramref name="site"/>'s environment values) rather
+    /// than the draft's own text alone — the editor seeds its textareas from
+    /// the DB override, so a field left blank because it defers to
+    /// SITE_BELT_DEGREES / SITE_ERAS would otherwise let a real disagreement
+    /// between the two save unblocked. <paramref name="site"/> is optional
+    /// (defaults to null, keeping every pre-existing call site compiling);
+    /// without it the cross-check runs on the draft alone, same as before.
+    /// Returns the first friendly error, or null when the whole draft may be
+    /// saved.
     /// </summary>
-    public static string? Validate(SiteContentDraft draft)
+    public static string? Validate(SiteContentDraft draft, SiteConfig? site = null)
     {
         var lengthError = CheckLengths(
             NormalizeField(draft.HeroHeading),
@@ -227,10 +238,26 @@ public static class SiteContentRules
             return nowError;
         }
 
-        var degreesVsErasError = BjjRules.ValidateDegreesAgainstEras(beltDegrees, BjjRules.ParseEras(eraLines));
-        if (degreesVsErasError is not null)
+        // Only when the draft supplies at least one of the two fields: when
+        // both are blank the save touches neither fact, so it must not be
+        // blocked by an environment-only disagreement between them (see the
+        // summary above).
+        if (beltDegreesText is not null || eraLines.Count > 0)
         {
-            return degreesVsErasError;
+            var effectiveDegrees = beltDegrees ?? site?.BeltDegrees;
+            var effectiveEraLines = eraLines.Count > 0 ? eraLines : (site?.EraLines ?? []);
+
+            // Named only on the side that fell back to the environment — the
+            // other side came from the draft itself, same as always.
+            var degreesSource = beltDegreesText is null ? "SITE_BELT_DEGREES" : null;
+            var erasSource = eraLines.Count > 0 ? null : "SITE_ERAS";
+
+            var degreesVsErasError = BjjRules.ValidateDegreesAgainstEras(
+                effectiveDegrees, BjjRules.ParseEras(effectiveEraLines), degreesSource, erasSource);
+            if (degreesVsErasError is not null)
+            {
+                return degreesVsErasError;
+            }
         }
 
         return null;
@@ -249,8 +276,9 @@ public static class SiteContentRules
     /// truncated, GamePlan keeps its exactly-four-or-none rule, and
     /// Principles/Eras/Now are each capped at their MaxXxx constant (see
     /// BjjRules.Parse*) — a bad env or stored value can never take the
-    /// landing page down (BR-4). Rungs is not resolved here: it is derived
-    /// from Eras by EffectiveSiteContent itself.</summary>
+    /// landing page down (BR-4). Rungs is not resolved here: EffectiveSiteContent
+    /// computes it once at construction, from Eras, via its own init-assigned
+    /// property.</summary>
     public static EffectiveSiteContent Resolve(SiteConfig site, SiteContent? overrides)
     {
         var gamePlanLines = overrides?.GamePlan is { Count: > 0 } gamePlanOverride

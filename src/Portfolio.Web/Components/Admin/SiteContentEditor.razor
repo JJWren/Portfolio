@@ -275,7 +275,7 @@
             PrinciplesText: _principlesText,
             ErasText: _erasText,
             NowText: _nowText);
-        _error = SiteContentRules.Validate(draft);
+        _error = SiteContentRules.Validate(draft, Site);
         if (_error is not null)
         {
             return;
