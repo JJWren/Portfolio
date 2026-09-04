@@ -111,7 +111,10 @@
     // replaced wholesale on every merge — so nothing needs re-attaching in
     // onEnhancedLoad the way a per-element listener would.
     document.addEventListener('click', function (event) {
-        var target = event.target.closest('[data-action]');
+        // Only <button>s carry data-action; requiring the tag keeps a stray
+        // attribute in rendered content inert (belt and braces: markdown
+        // output never carries attributes anyway).
+        var target = event.target.closest('button[data-action]');
         if (!target) {
             return;
         }

@@ -18,14 +18,17 @@
     <base href="/" />
     <ResourcePreloader />
     <script src="@Assets["js/theme.js"]"></script>
-    @* Preloads the hero h1's display font before first paint (it's the LCP
-       text). The URL must exactly match what app.css's Fraunces @font-face
-       requests — url('fonts/fraunces-latin.woff2'), resolved against
-       <base href="/"> — rather than the fingerprinted @Assets[...] URL: a
-       fingerprinted preload names a different resource than the one the
-       stylesheet actually fetches, so the font would download twice instead
-       of once. Public Sans and JetBrains Mono are body/mono faces, not
-       render-critical, so only Fraunces is preloaded. *@
+    @* Preloads the Fraunces display font before first paint: every heading
+       (h1 to h4) uses it, and on a photo-less hero the h1 is the LCP element
+       (with a photo, the desk image is; see LandingSections). The href must be
+       textually the same relative path app.css requests in its Fraunces
+       @font-face, url('fonts/fraunces-latin.woff2'): the stylesheet is served
+       from the wwwroot root, so its url() resolves to /fonts/..., and this tag
+       resolves the same path against <base href="/">. A fingerprinted
+       @Assets[...] URL would name a different resource than the one the
+       stylesheet fetches, so the font would download twice instead of once.
+       Public Sans and JetBrains Mono are body/mono faces, not render-critical,
+       so only Fraunces is preloaded. *@
     <link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     @if (_theme.OverrideCss.Length > 0)

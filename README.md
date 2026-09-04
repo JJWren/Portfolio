@@ -40,11 +40,11 @@ Built with ASP.NET Core Blazor (.NET 10) and PostgreSQL, shipped as a Docker Com
 - **BJJ landing flavor** (opt-in): setting `SITE_FLAVOR=bjj` swaps the landing
   page into a belt-themed layout — a hero game-plan chart, a rank bar, a
   Principles section, The road (a belt ladder above a dated era table), Now
-  status tiles, and a two-photo hero switch — all editable at `/admin/site`;
+  tiles, and a two-photo hero switch — all editable at `/admin/site`;
   leave the flag unset and the default landing page renders exactly as before
 - **In-app site content**: the landing page's hero heading, tagline, about,
   skills, and (under the BJJ flavor) hero eyebrow, game plan, belt caption
-  and degrees, principles, eras, and now tiles can all be overridden from
+  and degrees, principles, eras, and Now tiles can all be overridden from
   the admin area — no redeploy needed
 - **In-app theming**: every palette color (brand, dark, and light) can be
   overridden from the admin area, with swatches, hex fields, a live
@@ -72,7 +72,7 @@ annotated list. The `SITE_*` values seed the landing page; once running, admins 
 override the hero heading, tagline, about text, and skills at `/admin/site` without
 touching `.env` (blank fields fall back to the `.env` values). Under the opt-in BJJ
 landing flavor (`SITE_FLAVOR=bjj`), the same admin page also carries fields for the
-hero eyebrow, game plan, belt caption and degrees, principles, eras, and now tiles.
+hero eyebrow, game plan, belt caption and degrees, principles, eras, and Now tiles.
 The color palette can likewise be overridden at `/admin/theme` (blank fields fall
 back to the built-in colors).
 
@@ -88,7 +88,7 @@ back to the built-in colors).
 | `SITE_BELT_CAPTION`, `SITE_BELT_DEGREES` | | Rank-bar caption and its degree stripes (0 to 6); the bar is hidden while the caption is blank; BJJ flavor only |
 | `SITE_PRINCIPLES` | | Principles section: 1 to 6 `maxim \| reading` lines joined with `\n`; BJJ flavor only |
 | `SITE_ERAS` | | The road's belt ladder and table: 1 to 12 `date \| belt \| stripes \| gym \| location \| role` lines joined with `\n` (`date` is `YYYY-MM-DD`; `belt` is white, blue, purple, brown, or black); BJJ flavor only |
-| `SITE_NOW` | | Now section tiles: 1 to 8 `label \| value` lines joined with `\n`; BJJ flavor only |
+| `SITE_NOW` | | Now tiles: 1 to 8 `label \| value` lines joined with `\n`; BJJ flavor only |
 | `SITE_META_DESCRIPTION` | | Search/social snippet; blank falls back to `SITE_TAGLINE` |
 | `CONTACT_PHONE`, `LINKEDIN_URL`, `GITHUB_URL` | | Contact & social links; `GITHUB_URL` drives the projects-page CTA |
 | `ADMIN_EMAILS` | | Comma-separated; matching OAuth emails get the hidden admin area |

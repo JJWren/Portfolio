@@ -143,7 +143,7 @@ Tests:
 
 - [x] `Components/App.razor`: `<link rel="preload" as="font" type="font/woff2" crossorigin>` for `fonts/fraunces-latin.woff2` using the same un-fingerprinted URL the CSS requests (a fingerprinted `@Assets` URL would download the font twice).
 - [x] `wwwroot/js/site.js`: one delegated click handler keyed on `data-action` (`toggle-nav`, `toggle-theme`, `scroll-projects` with `data-direction`); `MainLayout.razor` and `Projects.razor` lose their four inline `onclick` attributes; the global `__toggleNav` and `__scrollProjects` stay exported until nothing references them, then go. Deviation (additive, not in the plan's file list): added `tests/Portfolio.Tests/NoInlineOnClickTests.cs`, a cheap regression pin scanning every `.razor` file under `src/Portfolio.Web/Components` for a bare `onclick="` (ignoring Blazor's `@onclick=`), fed by a new glob `None`/`CopyToOutputDirectory` item in `Portfolio.Tests.csproj` mirroring the existing `app.css` link.
-- [ ] Optional, owner's call: under `Bjj`, the theme toggle's `title` reads "Switch to the white gi (light theme)" / "Switch to the black belt (dark theme)" (set by `theme.js` from a `data-flavor` attribute on `<html>`); the `aria-label` stays functional. Deferred — left to the owner, see the Phase 5 report.
+- [ ] Optional, owner's call: under `Bjj`, the theme toggle's `title` reads "Switch to the white gi (light theme)" / "Switch to the black belt (dark theme)" (set by `theme.js` from a `data-flavor` attribute on `<html>`); the `aria-label` stays functional. Deferred: the owner has not chosen the wording, so the title stays as it is until asked (recorded in audit.md at the Phase 5 close-out).
 - [x] `README.md`: a Features bullet for the opt-in BJJ landing flavor, the Configuration paragraph, env-table rows for every new key.
 - [x] `CONTEXT.md`: glossary entries Belt, Degree, Era, Flavor (and the road, the game plan) in the existing "avoid" format.
 - [x] `construction/build-and-test/unit-test-instructions.md`: final counts and the new fixtures.
@@ -156,6 +156,7 @@ Tests:
 - Per-node landing sections for Guard, Pass, Mount, Submit (decision 4 keeps `#principles` for v1).
 - Kids' and coral belts in the closed belt set.
 - Security headers, rate limiting and the other engineering cons from the reverse-engineering pass (separate units).
+- Font caching: the un-fingerprinted `/fonts/*` route that the preload and the CSS share gets `max-age=3600, must-revalidate` from the `MapStaticAssets` defaults (fingerprinted routes get a year, immutable); a longer max-age for `/fonts/*` or routing the CSS font references through fingerprinting would remove an hourly conditional request (Phase 5 performance review).
 
 ## Risks and how the plan handles them
 
