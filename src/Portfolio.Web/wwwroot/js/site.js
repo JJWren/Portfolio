@@ -89,18 +89,48 @@
     localizeTimes();
     highlightNewCode();
 
-    window.__toggleNav = function (button) {
+    function toggleNav(button) {
         var nav = document.getElementById('site-nav');
         if (nav) {
             var open = nav.classList.toggle('open');
             button.setAttribute('aria-expanded', open ? 'true' : 'false');
         }
-    };
+    }
 
-    window.__scrollProjects = function (direction) {
+    function scrollProjects(direction) {
         var carousel = document.getElementById('projects-carousel');
         if (carousel) {
             carousel.scrollBy({ left: direction * carousel.clientWidth * 0.8, behavior: 'smooth' });
         }
-    };
+    }
+
+    // One delegated listener on document, keyed on data-action, instead of
+    // per-element inline onclick="" attributes (or window globals rewired
+    // per element). A listener on document survives Blazor enhanced-navigation
+    // DOM swaps — the burger, theme toggle and carousel buttons are all
+    // replaced wholesale on every merge — so nothing needs re-attaching in
+    // onEnhancedLoad the way a per-element listener would.
+    document.addEventListener('click', function (event) {
+        var target = event.target.closest('[data-action]');
+        if (!target) {
+            return;
+        }
+
+        switch (target.dataset.action) {
+            case 'toggle-nav':
+                toggleNav(target);
+                break;
+            case 'toggle-theme':
+                // __toggleTheme stays in theme.js: it must also run from the
+                // head before first paint, and __applyTheme's own flow calls
+                // it there independently of this delegated handler.
+                if (typeof window.__toggleTheme === 'function') {
+                    window.__toggleTheme();
+                }
+                break;
+            case 'scroll-projects':
+                scrollProjects(parseInt(target.dataset.direction, 10) || 1);
+                break;
+        }
+    });
 })();

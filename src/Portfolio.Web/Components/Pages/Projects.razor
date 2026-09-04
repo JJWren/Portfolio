@@ -33,7 +33,7 @@
         else
         {
             <div class="carousel-wrap">
-                <button class="carousel-btn" type="button" onclick="__scrollProjects(-1)"
+                <button class="carousel-btn" type="button" data-action="scroll-projects" data-direction="-1"
                         aria-label="Scroll to previous projects">‹</button>
                 <ul class="carousel" id="projects-carousel">
                     @foreach (var project in _projects)
@@ -94,7 +94,7 @@
                         </li>
                     }
                 </ul>
-                <button class="carousel-btn" type="button" onclick="__scrollProjects(1)"
+                <button class="carousel-btn" type="button" data-action="scroll-projects" data-direction="1"
                         aria-label="Scroll to more projects">›</button>
             </div>
         }

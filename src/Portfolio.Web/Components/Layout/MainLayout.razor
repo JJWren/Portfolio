@@ -13,7 +13,7 @@
             <img class="brand-logo" src="logo.png" alt="" />
         </a>
         <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false"
-                aria-controls="site-nav" onclick="__toggleNav(this)">
+                aria-controls="site-nav" data-action="toggle-nav">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" aria-hidden="true">
                 <path d="M4 6h16M4 12h16M4 18h16" />
@@ -60,7 +60,7 @@
                     <NavLink href="/signin">Sign in</NavLink>
                 </NotAuthorized>
             </AuthorizeView>
-            <button class="theme-toggle" type="button" onclick="__toggleTheme()"
+            <button class="theme-toggle" type="button" data-action="toggle-theme"
                     title="Switch theme" aria-label="Switch between dark and light theme">
                 <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
