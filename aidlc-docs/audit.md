@@ -831,3 +831,67 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Phase 5 build agent report
+**Timestamp**: 2026-09-04T21:11:33Z
+**User Input**: (none)
+**AI Response**: "Phase 5 subagent finished: e9d73b5 (Fraunces preload with the un-fingerprinted URL, delegated data-action click listener in site.js replacing the four inline onclick attributes and the two globals, plus a NoInlineOnClickTests file-scan test with a csproj glob linking the razor files), 9977a98 (README features bullet, configuration paragraph and ten env rows; CONTEXT.md landing-page glossary and two-slot Owner Photo entry), 18cb261 (unit-test-instructions rebuilt: 690 tests, 38 fixtures; plan boxes). Build 0 warnings; 690 tests. Local check done: burger, theme toggle, carousel, all surviving enhanced navigation; the font requested once. Deferred to the owner: the optional BJJ theme-toggle titles. Next: five-area review."
+**Context**: Construction, Unit 10, Phase 5 code generation complete, review pending
+
+---
+
+## Phase 5 five-area review launched
+**Timestamp**: 2026-09-04T21:13:56Z
+**User Input**: (none)
+**AI Response**: "Verified the Phase 5 branch (51d0501 docs + e9d73b5, 9977a98, 18cb261; 10 files; build 0 warnings; 690 tests; no bare onclick left, globals gone, preload present). Launched five report-only Sonnet reviewers in parallel: correctness (handler, preload URL, test, docs accuracy), security (delegated handler as an attack surface, BR-18 in docs), framework, maintainability (docs as the deliverable), performance (does the preload and the delegation deliver)."
+**Context**: Construction, Unit 10, Phase 5 review
+
+---
+
+## Phase 5 review 1 of 5: security
+**Timestamp**: 2026-09-04T21:20:36Z
+**User Input**: (none)
+**AI Response**: "Security reviewer verdict PASS WITH NOTES. Note 1 (Low): the delegated click listener matches any element with data-action document-wide; no user content can carry the attribute today (ToSafeHtml disables HTML and generic attributes, other user text is Razor-encoded) and the worst case is a UI toggle, but requiring a button target or scoping to the header and carousel is a one-line hardening; will apply. Note 2 (Low): CONTEXT.md names Guard, Pass, Mount, Submit, which match the owner entered chart terms but are generic BJJ vocabulary mandated by the brief; keep. BR-18 grep over README, CONTEXT.md and the test instructions: no hits (the only Mykitta hit is the pre-existing sponsor link). Passed: no inline handlers, no javascript: URLs, no inline scripts (a step toward a strict CSP; none configured yet), same-origin preload with the matching URL and crossorigin, the test glob confined to the test project, the regex excludes @onclick with a non-empty guard."
+**Context**: Construction, Unit 10, Phase 5 review
+
+---
+
+## User instruction: close-out handoff and a new session
+**Timestamp**: 2026-09-04T21:22:37Z
+**User Input**: "After this phase lands, make a hand-off document for where to pick this work up from and then start a new session with that hand-off document"
+**AI Response**: "Acknowledged. After the Phase 5 squash-merge: write a dedicated close-out handoff (what shipped, owner actions pending, deferred items and recorded follow-ups, mechanics), land it on master through a docs PR so a fresh session or worktree can see it, then start a new session pointed at that document."
+**Context**: Construction, Unit 10, Phase 5 review in progress
+
+---
+
+## Phase 5 review 2 of 5: framework awareness
+**Timestamp**: 2026-09-04T21:23:13Z
+**User Input**: (none)
+**AI Response**: "Framework reviewer verdict PASS, no findings. Verified: the document-level listener registers once and survives enhanced navigation like the existing observer registrations; no bare onclick left; globals gone from src and tests; MapStaticAssets serves the un-fingerprinted font path with ETag revalidation and never rewrites CSS URLs, so the preload and the CSS fetch name the same resource; ResourcePreloader only emits WebAssembly assets and this app has none; preload attributes and placement correct; Razor comment safe; ES5-style JS with no leaked globals; the csproj None glob with LinkBase preserves subfolders and is not compiled (43 razor files today, guard at more than 10); the regex excludes @onclick; README rows match the config keys; CONTEXT.md entries in the exact format; 38 fixtures and 690 tests consistent; conventional commits; plan boxes correct."
+**Context**: Construction, Unit 10, Phase 5 review
+
+---
+
+## Phase 5 review 3 of 5: maintainability
+**Timestamp**: 2026-09-04T21:24:15Z
+**User Input**: (none)
+**AI Response**: "Maintainability reviewer verdict PASS WITH NOTES. Finding 1 (Medium): README calls the Now section Now status tiles, now tiles and Now section tiles in the same commit that adds the glossary entry avoiding status; standardize on Now tiles. Finding 2 (Low): the App.razor preload comment says the CSS url resolves against base href, but a relative url in an external stylesheet resolves against the stylesheet location; reword to say both are root-relative because app.css is served from the wwwroot root. Finding 3 (Low): the plan line for the deferred owner call points at a Phase 5 report that is not in the repo; inline the reason. Passed: fixture table complete (38) and the 690 count reproduced from Facts and InlineData, conventions text accurate, site.js bodies byte-identical, no bare onclick, test naming and csproj comment, README rows cross-checked against BjjRules constants and .env.example, CONTEXT.md placement and format, clean commits, plan boxes."
+**Context**: Construction, Unit 10, Phase 5 review
+
+---
+
+## Phase 5 review 4 of 5: performance
+**Timestamp**: 2026-09-04T21:26:51Z
+**User Input**: (none)
+**AI Response**: "Performance reviewer verdict PASS WITH NOTES. Finding 1 (Medium): the App.razor preload comment calls the hero h1 the LCP text while LandingSections.razor treats the desk photo as the LCP; soften the wording (the font is used by every heading sitewide, and is the LCP element only on a photo-less hero). Finding 2 (Low, inherited): the un-fingerprinted font route the preload and the CSS share is cached max-age 3600 must-revalidate by MapStaticAssets defaults, versus immutable for fingerprinted routes; none required now; record as a follow-up. Measurements: fraunces 67 KB (only font preloaded), site.js +1.4 KB raw (+443 gzip), 43 razor files (223 KB) copied into the test output incrementally, 38 fixtures and 690 tests consistent. Passed: single-fetch preload confirmed from the static-asset manifest, crossorigin and type correct, listener registered once, globals retired, no bare onclick, defer kept, docs make no performance claims."
+**Context**: Construction, Unit 10, Phase 5 review
+
+---
+
+## Phase 5 review 5 of 5: correctness; remediation applied; PR opened
+**Timestamp**: 2026-09-04T21:28:06Z
+**User Input**: (none)
+**AI Response**: "Correctness reviewer verdict PASS, no findings (690/690 on its own run; ResourcePreloader confirmed to emit nothing here; the razor glob copies all 43 files with subfolders intact). Consolidated remediation applied directly by the orchestrator: the delegated listener now matches button[data-action] only; README uses Now tiles everywhere; the App.razor preload comment no longer credits base href for the CSS-side resolution and calls the h1 the LCP element only on a photo-less hero; the plan deferral line inlines the reason; the font cache lifetime recorded as a follow-up. Build 0 warnings; 690 tests. Pushed perf/landing-closeout and opened the PR with the plan title: perf: display-font preload and delegated nav handlers, BJJ landing docs."
+**Context**: Construction, Unit 10, Phase 5 gate: PR and Copilot rounds
+
+---
+

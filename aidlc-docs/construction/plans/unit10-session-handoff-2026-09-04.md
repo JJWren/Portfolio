@@ -10,8 +10,8 @@
 | 1 `test:` render safety net | Merged 2026-09-04 as PR #89, squash `c1380a2`. `tests/Portfolio.Tests/Support/LandingRenderHarness.cs` and `CssScanner.cs` are the shared helpers every later phase extends. |
 | 2 `feat:` foundation | Merged 2026-09-04 as PR #90, squash `e6a4a75`. Five-area internal review, remediation, Copilot rounds 1 to 3 (three robustness fixes, one tail-field parsing fix, then a pass with no new comments). 567 tests. |
 | 3 `feat:` The road and Now | Merged 2026-09-04 as PR #92, squash `7dddfdf`. Five-area review found three real problems (owner facts in fixtures, BR-9 check on draft-only values, reduced-motion block losing the cascade) fixed by a remediation agent; Copilot round 1 had zero comments. 666 tests. |
-| 4 `feat:` second photo slot and portrait switch | In progress since 2026-09-04 on `feat/owner-photo-flip` (docs commit `1523835`); brief: `unit10-phase4-brief.md`. |
-| 5 `perf:` close-out | Not started. |
+| 4 `feat:` second photo slot and portrait switch | Merged 2026-09-04 as PR #94, squash `18b1788`. Five-area review clean apart from four small notes applied by the orchestrator; Copilot round 1 one doc-comment note, round 2 zero comments. 689 tests. |
+| 5 `perf:` close-out | In progress since 2026-09-04 on `perf/landing-closeout` (docs commit `51d0501`); brief: `unit10-phase5-brief.md`. The optional BJJ theme-toggle titles are deferred to the owner. |
 
 Owner actions after the Phase 2 image deploys: set `SITE_FLAVOR=bjj` in the production `.env`, then paste the Phase 2 rows of the plan's content sheet at `/admin/site` (hero heading, eyebrow, tagline, game plan, belt caption, degrees, principles). Two visual checks were not possible locally and are worth an owner glance after deploy: reduced-motion behavior (covered by the CSS invariant tests) and the `/admin/theme` preview frame with the flavor on.
 
