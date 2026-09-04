@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Portfolio.Tests.Support;
 using Portfolio.Web.Services;
 
@@ -37,14 +38,25 @@ public class LandingSectionsRenderTests : IDisposable
         return count;
     }
 
+    /// <summary>Extracts the first `&lt;li class="{liClass}"&gt;...&lt;/li&gt;`
+    /// block from rendered HTML, so a test can assert on what is nested
+    /// inside one specific game-plan node rather than on the page as a
+    /// whole (see the color-to-term pairing assertions below).</summary>
+    private static string ExtractLiBlock(string html, string liClass)
+    {
+        var match = Regex.Match(html, $@"<li class=""{Regex.Escape(liClass)}"">.*?</li>", RegexOptions.Singleline);
+        Assert.True(match.Success, $"Expected a <li class=\"{liClass}\"> block in the rendered HTML.");
+        return match.Value;
+    }
+
     [Fact]
     public async Task Render_HeroHeading_AppearsInH1()
     {
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(),
-            LandingRenderHarness.BuildContent(heroHeading: "Position before submission."));
+            LandingRenderHarness.BuildContent(heroHeading: "Sample heading"));
 
-        Assert.Contains("<h1>Position before submission.</h1>", html);
+        Assert.Contains("<h1>Sample heading</h1>", html);
     }
 
     [Fact]
@@ -244,10 +256,10 @@ public class LandingSectionsRenderTests : IDisposable
                 heroEyebrow: "Jane · Engineer",
                 gamePlan:
                 [
-                    new GamePlanNode("Guard", "Secure the position", "How"),
-                    new GamePlanNode("Pass", "Improve the position", "How"),
-                    new GamePlanNode("Mount", "Keep control", "How"),
-                    new GamePlanNode("Submit", "Finish", "How"),
+                    new GamePlanNode("Warm-up", "Loosen up", "How"),
+                    new GamePlanNode("Drill", "Repeat the motion", "How"),
+                    new GamePlanNode("Roll", "Test it live", "How"),
+                    new GamePlanNode("Rest", "Recover", "How"),
                 ],
                 beltCaption: "Test belt",
                 beltDegrees: 3,
@@ -269,11 +281,11 @@ public class LandingSectionsRenderTests : IDisposable
                 // punctuation like the middle dot (· becomes &#xB7;), which
                 // is correct, safe HTML but not literal-string-matchable.
                 heroEyebrow: "Jane Developer - Software Engineer",
-                heroHeading: "Position before submission."));
+                heroHeading: "Sample heading"));
 
         Assert.Contains("<p class=\"eyebrow\">Jane Developer - Software Engineer</p>", html);
         var eyebrowIndex = html.IndexOf("class=\"eyebrow\"", StringComparison.Ordinal);
-        var h1Index = html.IndexOf("<h1>Position before submission.</h1>", StringComparison.Ordinal);
+        var h1Index = html.IndexOf("<h1>Sample heading</h1>", StringComparison.Ordinal);
         Assert.True(eyebrowIndex >= 0);
         Assert.True(h1Index >= 0);
         Assert.True(eyebrowIndex < h1Index);
@@ -296,10 +308,10 @@ public class LandingSectionsRenderTests : IDisposable
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
             LandingRenderHarness.BuildContent(gamePlan:
             [
-                new GamePlanNode("Guard", "Secure the position", "Auth, secrets, boundaries."),
-                new GamePlanNode("Pass", "Improve the position", "Developer tooling."),
-                new GamePlanNode("Mount", "Keep control", "Tests, reviews."),
-                new GamePlanNode("Submit", "Finish", string.Empty),
+                new GamePlanNode("Warm-up", "Loosen up", "Stretch first."),
+                new GamePlanNode("Drill", "Repeat the motion", "Slow reps first."),
+                new GamePlanNode("Roll", "Test it live", "Go at full speed."),
+                new GamePlanNode("Rest", "Recover", string.Empty),
             ]));
 
         Assert.Contains("class=\"gp-node gp-red\"", html);
@@ -307,13 +319,27 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("class=\"gp-node gp-green\"", html);
         Assert.Contains("class=\"gp-node gp-blue\"", html);
         Assert.Equal(4, CountOccurrences(html, "href=\"#principles\""));
-        Assert.Contains("<span class=\"term\">Guard</span>", html);
-        Assert.Contains("<span class=\"read\">Secure the position</span>", html);
-        Assert.Contains("<span class=\"how\">Auth, secrets, boundaries.</span>", html);
-        Assert.Contains("<span class=\"term\">Submit</span>", html);
-        Assert.Contains("<span class=\"read\">Finish</span>", html);
-        // Submit's How is blank: three nodes carry a .how span, not four.
+        Assert.Contains("<span class=\"term\">Warm-up</span>", html);
+        Assert.Contains("<span class=\"read\">Loosen up</span>", html);
+        Assert.Contains("<span class=\"how\">Stretch first.</span>", html);
+        Assert.Contains("<span class=\"term\">Rest</span>", html);
+        Assert.Contains("<span class=\"read\">Recover</span>", html);
+        // Rest's How is blank: three nodes carry a .how span, not four.
         Assert.Equal(3, CountOccurrences(html, "class=\"how\""));
+
+        // Pin the color-to-term pairing, not just that all four gp-* classes
+        // and all four terms appear somewhere in the page: the first node
+        // (red) must itself contain "Warm-up" and the last (blue) must
+        // itself contain "Rest", each inside its own #principles link. This
+        // fails if GamePlan.razor's positional class order were ever
+        // swapped relative to the node order.
+        var redNode = ExtractLiBlock(html, "gp-node gp-red");
+        Assert.Contains("<span class=\"term\">Warm-up</span>", redNode);
+        Assert.Contains("href=\"#principles\"", redNode);
+
+        var blueNode = ExtractLiBlock(html, "gp-node gp-blue");
+        Assert.Contains("<span class=\"term\">Rest</span>", blueNode);
+        Assert.Contains("href=\"#principles\"", blueNode);
     }
 
     [Fact]
@@ -323,11 +349,29 @@ public class LandingSectionsRenderTests : IDisposable
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
             LandingRenderHarness.BuildContent(gamePlan:
             [
-                new GamePlanNode("Guard", "Secure the position", string.Empty),
-                new GamePlanNode("Pass", "Improve the position", string.Empty),
+                new GamePlanNode("Warm-up", "Loosen up", string.Empty),
+                new GamePlanNode("Drill", "Repeat the motion", string.Empty),
             ]));
 
         Assert.DoesNotContain("game-plan", html);
+    }
+
+    [Fact]
+    public async Task RenderGamePlan_ThreeNodes_RendersNothing()
+    {
+        // GamePlan.razor's own defensive guard (BR-5), exercised directly —
+        // bypassing both LandingSections' Content.GamePlan.Count gate and
+        // BjjRules.ParseGamePlan's exactly-four-or-empty rule, neither of
+        // which this render goes through — so a caller that skips those
+        // still can never make the component index out of range.
+        var html = await LandingRenderHarness.RenderGamePlanAsync(
+        [
+            new GamePlanNode("Warm-up", "Loosen up", string.Empty),
+            new GamePlanNode("Drill", "Repeat the motion", string.Empty),
+            new GamePlanNode("Roll", "Test it live", string.Empty),
+        ]);
+
+        Assert.DoesNotContain("<ol class=\"game-plan\"", html);
     }
 
     [Fact]
@@ -454,9 +498,9 @@ public class LandingSectionsRenderTests : IDisposable
                 gamePlan:
                 [
                     new GamePlanNode(unsafeText, unsafeText, unsafeText),
-                    new GamePlanNode("Pass", "Improve the position", string.Empty),
-                    new GamePlanNode("Mount", "Keep control", string.Empty),
-                    new GamePlanNode("Submit", "Finish", string.Empty),
+                    new GamePlanNode("Drill", "Repeat the motion", string.Empty),
+                    new GamePlanNode("Roll", "Test it live", string.Empty),
+                    new GamePlanNode("Rest", "Recover", string.Empty),
                 ],
                 beltCaption: unsafeText,
                 principles: [new Principle(unsafeText, unsafeText)]));

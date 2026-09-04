@@ -20,8 +20,8 @@ public class BjjRulesTests
     [Fact]
     public void SplitFields_SplitsOnPipeAndTrimsEachField()
         => Assert.Equal(
-            ["Guard", "Secure the position", "Auth, secrets."],
-            BjjRules.SplitFields(" Guard | Secure the position | Auth, secrets. "));
+            ["Warm-up", "Loosen up", "Stretch first."],
+            BjjRules.SplitFields(" Warm-up | Loosen up | Stretch first. "));
 
     // -- ParseGamePlan ----------------------------------------------------
 
@@ -30,17 +30,17 @@ public class BjjRulesTests
     {
         string[] lines =
         [
-            "Guard | Secure the position | Auth, secrets, boundaries.",
-            "Pass | Improve the position | Developer tooling.",
-            "Mount | Keep control | Tests, reviews.",
-            "Submit | Finish | Ship it.",
+            "Warm-up | Loosen up | Stretch first.",
+            "Drill | Repeat the motion | Slow reps first.",
+            "Roll | Test it live | Go at full speed.",
+            "Rest | Recover | Sleep and eat well.",
         ];
 
         var nodes = BjjRules.ParseGamePlan(lines);
 
         Assert.Equal(4, nodes.Count);
-        Assert.Equal(new GamePlanNode("Guard", "Secure the position", "Auth, secrets, boundaries."), nodes[0]);
-        Assert.Equal(new GamePlanNode("Submit", "Finish", "Ship it."), nodes[3]);
+        Assert.Equal(new GamePlanNode("Warm-up", "Loosen up", "Stretch first."), nodes[0]);
+        Assert.Equal(new GamePlanNode("Rest", "Recover", "Sleep and eat well."), nodes[3]);
     }
 
     [Fact]
@@ -48,10 +48,10 @@ public class BjjRulesTests
     {
         string[] lines =
         [
-            "Guard | Secure the position",
-            "Pass | Improve the position",
-            "Mount | Keep control",
-            "Submit | Finish",
+            "Warm-up | Loosen up",
+            "Drill | Repeat the motion",
+            "Roll | Test it live",
+            "Rest | Recover",
         ];
 
         var nodes = BjjRules.ParseGamePlan(lines);
@@ -64,9 +64,9 @@ public class BjjRulesTests
     public void ParseGamePlan_ThreeLines_ResolvesToEmpty()
         => Assert.Empty(BjjRules.ParseGamePlan(
         [
-            "Guard | Secure the position",
-            "Pass | Improve the position",
-            "Mount | Keep control",
+            "Warm-up | Loosen up",
+            "Drill | Repeat the motion",
+            "Roll | Test it live",
         ]));
 
     [Fact]
@@ -76,15 +76,15 @@ public class BjjRulesTests
     [Fact]
     public void ParseGamePlan_MalformedLineDropped_LeavesOffCountChart_ResolvesEmpty()
     {
-        // Four raw lines, but one ("Pass", no '|' at all) is malformed and
+        // Four raw lines, but one ("Nope", no '|' at all) is malformed and
         // gets dropped, leaving three valid nodes — not four, so the whole
         // chart resolves to empty (BR-5) rather than an off-count chart.
         string[] lines =
         [
-            "Guard | Secure the position",
-            "Pass",
-            "Mount | Keep control",
-            "Submit | Finish",
+            "Warm-up | Loosen up",
+            "Nope",
+            "Roll | Test it live",
+            "Rest | Recover",
         ];
 
         Assert.Empty(BjjRules.ParseGamePlan(lines));
@@ -95,14 +95,42 @@ public class BjjRulesTests
     {
         string[] lines =
         [
-            " | Secure the position", // blank term
-            "Pass | ", // blank reading
-            "Mount | Keep control",
-            "Submit | Finish",
+            " | Loosen up", // blank term
+            "Drill | ", // blank reading
+            "Roll | Test it live",
+            "Rest | Recover",
         ];
 
         // Both malformed lines drop, leaving two valid nodes: not four, so empty.
         Assert.Empty(BjjRules.ParseGamePlan(lines));
+    }
+
+    [Fact]
+    public void ParseGamePlan_OverlongLine_TruncatesInsteadOfDroppingTheLine()
+    {
+        // The "how" field alone pushes this line past MaxLineLength; term
+        // and reading are short, so they survive untouched and only the
+        // tail of "how" is clipped.
+        var overlongHow = new string('a', 600);
+        string[] lines =
+        [
+            $"Warm-up | Loosen up | {overlongHow}",
+            "Drill | Repeat the motion",
+            "Roll | Test it live",
+            "Rest | Recover",
+        ];
+        Assert.True(lines[0].Length > BjjRules.MaxLineLength);
+
+        var nodes = BjjRules.ParseGamePlan(lines);
+
+        // BR-4/BR-11: the overlong line is truncated, not dropped — dropping
+        // it would leave three nodes, and BR-5 requires exactly four or
+        // none, so the whole chart would vanish instead of just losing the
+        // tail of one "how" line.
+        Assert.Equal(4, nodes.Count);
+        Assert.Equal("Warm-up", nodes[0].Term);
+        Assert.Equal("Loosen up", nodes[0].Reading);
+        Assert.True(nodes[0].How.Length < overlongHow.Length);
     }
 
     // -- ParsePrinciples ----------------------------------------------------
@@ -141,6 +169,36 @@ public class BjjRulesTests
     public void ParsePrinciples_NoLines_ReturnsEmpty()
         => Assert.Empty(BjjRules.ParsePrinciples([]));
 
+    [Fact]
+    public void ParsePrinciples_OverlongLine_TruncatesInsteadOfDroppingTheLine()
+    {
+        var overlongReading = new string('a', 600);
+        string line = $"Show up. | {overlongReading}";
+        Assert.True(line.Length > BjjRules.MaxLineLength);
+
+        var principles = BjjRules.ParsePrinciples([line]);
+
+        Assert.Single(principles);
+        Assert.Equal("Show up.", principles[0].Maxim);
+        Assert.True(principles[0].Reading.Length < overlongReading.Length);
+    }
+
+    [Fact]
+    public void ParsePrinciples_MoreThanMaxPrinciples_CapsAtTheLimit()
+    {
+        var lines = Enumerable.Range(1, BjjRules.MaxPrinciples + 3).Select(i => $"Line {i} | reading").ToArray();
+
+        var principles = BjjRules.ParsePrinciples(lines);
+
+        // Resolve's leniency backstop (BR-4): Validate is what normally
+        // rejects too many lines at save with a friendly message; this cap
+        // just ensures Resolve itself can never hand the page more than the
+        // section's layout supports.
+        Assert.Equal(BjjRules.MaxPrinciples, principles.Count);
+        Assert.Equal("Line 1", principles[0].Maxim);
+        Assert.Equal($"Line {BjjRules.MaxPrinciples}", principles[^1].Maxim);
+    }
+
     // -- ClampDegrees ----------------------------------------------------
 
     [Theory]
@@ -164,16 +222,16 @@ public class BjjRulesTests
     public void ValidateGamePlan_FourValidLines_ReturnsNull()
         => Assert.Null(BjjRules.ValidateGamePlan(
         [
-            "Guard | Secure the position",
-            "Pass | Improve the position",
-            "Mount | Keep control",
-            "Submit | Finish",
+            "Warm-up | Loosen up",
+            "Drill | Repeat the motion",
+            "Roll | Test it live",
+            "Rest | Recover",
         ]));
 
     [Fact]
     public void ValidateGamePlan_WrongCount_NamesExpectedCount()
     {
-        var error = BjjRules.ValidateGamePlan(["Guard | Secure the position"]);
+        var error = BjjRules.ValidateGamePlan(["Warm-up | Loosen up"]);
 
         Assert.NotNull(error);
         Assert.Contains("exactly 4", error);
@@ -184,10 +242,10 @@ public class BjjRulesTests
     {
         var error = BjjRules.ValidateGamePlan(
         [
-            "Guard | Secure the position",
-            "Pass", // line 2: no '|', malformed
-            "Mount | Keep control",
-            "Submit | Finish",
+            "Warm-up | Loosen up",
+            "Nope", // line 2: no '|', malformed
+            "Roll | Test it live",
+            "Rest | Recover",
         ]);
 
         Assert.NotNull(error);
@@ -200,9 +258,9 @@ public class BjjRulesTests
         string[] lines =
         [
             new string('x', BjjRules.MaxLineLength + 1) + " | reading",
-            "Pass | Improve the position",
-            "Mount | Keep control",
-            "Submit | Finish",
+            "Drill | Repeat the motion",
+            "Roll | Test it live",
+            "Rest | Recover",
         ];
 
         var error = BjjRules.ValidateGamePlan(lines);

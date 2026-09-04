@@ -199,10 +199,10 @@ public class SiteContentRulesTests
             heroEyebrow: "Jane · Engineer",
             gamePlanLines:
             [
-                "Guard | Secure the position",
-                "Pass | Improve the position",
-                "Mount | Keep control",
-                "Submit | Finish",
+                "Warm-up | Loosen up",
+                "Drill | Repeat the motion",
+                "Roll | Test it live",
+                "Rest | Recover",
             ],
             beltCaption: "Test belt · Test gym",
             beltDegrees: 3,
@@ -212,10 +212,41 @@ public class SiteContentRulesTests
 
         Assert.Equal("Jane · Engineer", effective.HeroEyebrow);
         Assert.Equal(4, effective.GamePlan.Count);
-        Assert.Equal("Guard", effective.GamePlan[0].Term);
+        Assert.Equal("Warm-up", effective.GamePlan[0].Term);
         Assert.Equal("Test belt · Test gym", effective.BeltCaption);
         Assert.Equal(3, effective.BeltDegrees);
         Assert.Single(effective.Principles);
+    }
+
+    [Fact]
+    public void Resolve_HeroEyebrowOverlong_TruncatesToMaxLength()
+    {
+        var site = BuildConfig(heroEyebrow: new string('x', SiteContentRules.HeroEyebrowMaxLength + 50));
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        // BR-4/BR-11: bounded leniently at resolve (truncated), never thrown.
+        Assert.Equal(SiteContentRules.HeroEyebrowMaxLength, effective.HeroEyebrow!.Length);
+    }
+
+    [Fact]
+    public void Resolve_BeltCaptionOverlong_TruncatesToMaxLength()
+    {
+        var site = BuildConfig(beltCaption: new string('x', SiteContentRules.BeltCaptionMaxLength + 50));
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal(SiteContentRules.BeltCaptionMaxLength, effective.BeltCaption!.Length);
+    }
+
+    [Fact]
+    public void Resolve_HeroEyebrowWithinLimit_IsUnchanged()
+    {
+        var site = BuildConfig(heroEyebrow: "Jane · Engineer");
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal("Jane · Engineer", effective.HeroEyebrow);
     }
 
     [Fact]
@@ -270,16 +301,16 @@ public class SiteContentRulesTests
         {
             GamePlan =
             [
-                "Guard | Secure the position",
-                "Pass | Improve the position",
-                "Mount | Keep control",
-                "Submit | Finish",
+                "Warm-up | Loosen up",
+                "Drill | Repeat the motion",
+                "Roll | Test it live",
+                "Rest | Recover",
             ],
         };
 
         var effective = SiteContentRules.Resolve(site, overrides);
 
-        Assert.Equal("Guard", effective.GamePlan[0].Term);
+        Assert.Equal("Warm-up", effective.GamePlan[0].Term);
     }
 
     [Fact]
@@ -287,17 +318,17 @@ public class SiteContentRulesTests
     {
         var site = BuildConfig(gamePlanLines:
         [
-            "Guard | Secure the position",
-            "Pass | Improve the position",
-            "Mount | Keep control",
-            "Submit | Finish",
+            "Warm-up | Loosen up",
+            "Drill | Repeat the motion",
+            "Roll | Test it live",
+            "Rest | Recover",
         ]);
         var overrides = new SiteContent { GamePlan = [] };
 
         var effective = SiteContentRules.Resolve(site, overrides);
 
         Assert.Equal(4, effective.GamePlan.Count);
-        Assert.Equal("Guard", effective.GamePlan[0].Term);
+        Assert.Equal("Warm-up", effective.GamePlan[0].Term);
     }
 
     [Fact]
@@ -337,7 +368,7 @@ public class SiteContentRulesTests
             SkillsText = "C#",
             OwnerPhotoAlt = "Alt",
             HeroEyebrow = "Eyebrow",
-            GamePlanText = "Guard | Secure the position\nPass | Improve the position\nMount | Keep control\nSubmit | Finish",
+            GamePlanText = "Warm-up | Loosen up\nDrill | Repeat the motion\nRoll | Test it live\nRest | Recover",
             BeltCaption = "Caption",
             BeltDegreesText = "3",
             PrinciplesText = "Ship small. | reading",
@@ -375,7 +406,7 @@ public class SiteContentRulesTests
     [Fact]
     public void Validate_BadGamePlanCount_ReturnsError()
     {
-        var draft = EmptyDraft() with { GamePlanText = "Guard | Secure the position" };
+        var draft = EmptyDraft() with { GamePlanText = "Warm-up | Loosen up" };
 
         var error = SiteContentRules.Validate(draft);
 
@@ -426,13 +457,69 @@ public class SiteContentRulesTests
         var draft = EmptyDraft() with
         {
             HeroHeading = new string('x', SiteContentRules.HeroHeadingMaxLength + 1),
-            GamePlanText = "Guard | Secure the position",
+            GamePlanText = "Warm-up | Loosen up",
         };
 
         var error = SiteContentRules.Validate(draft);
 
         Assert.NotNull(error);
         Assert.Contains("Hero heading", error);
+    }
+
+    [Fact]
+    public void Validate_ChecksBjjFieldsInEditorOrder()
+    {
+        // Every BJJ field is simultaneously invalid; only the first one in
+        // the editor's own field order — hero eyebrow, game plan, belt
+        // caption, belt degrees, principles — should be named.
+        var draft = EmptyDraft() with
+        {
+            HeroEyebrow = new string('x', SiteContentRules.HeroEyebrowMaxLength + 1),
+            GamePlanText = "Warm-up | Loosen up", // wrong count
+            BeltCaption = new string('x', SiteContentRules.BeltCaptionMaxLength + 1),
+            BeltDegreesText = "9", // out of range
+            PrinciplesText = string.Join('\n', Enumerable.Range(1, 7).Select(i => $"Line {i} | reading")), // too many
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("Hero eyebrow", error);
+    }
+
+    [Fact]
+    public void Validate_ChecksGamePlanBeforeBeltCaption()
+    {
+        // With hero eyebrow valid, game plan (next in editor order) must be
+        // named before belt caption even though both are invalid.
+        var draft = EmptyDraft() with
+        {
+            GamePlanText = "Warm-up | Loosen up", // wrong count
+            BeltCaption = new string('x', SiteContentRules.BeltCaptionMaxLength + 1),
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("exactly 4", error);
+    }
+
+    [Fact]
+    public void Validate_ChecksBeltDegreesBeforePrinciples()
+    {
+        // With hero eyebrow, game plan and belt caption valid, belt degrees
+        // (next in editor order) must be named before principles even
+        // though both are invalid.
+        var draft = EmptyDraft() with
+        {
+            BeltDegreesText = "9", // out of range
+            PrinciplesText = string.Join('\n', Enumerable.Range(1, 7).Select(i => $"Line {i} | reading")), // too many
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("0 and 6", error);
     }
 
     // -- LinesText / ParseLines round trip -------------------------------
@@ -451,7 +538,7 @@ public class SiteContentRulesTests
     [Fact]
     public void LinesText_RoundTripsThroughParseLines()
     {
-        var lines = new List<string> { "Guard | Secure the position", "Pass | Improve the position" };
+        var lines = new List<string> { "Warm-up | Loosen up", "Drill | Repeat the motion" };
 
         Assert.Equal(lines, SiteContentRules.ParseLines(SiteContentRules.LinesText(lines)));
     }

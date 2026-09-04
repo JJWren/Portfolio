@@ -45,6 +45,28 @@ internal static class LandingRenderHarness
         });
     }
 
+    /// <summary>
+    /// Renders <see cref="GamePlan"/> directly (no LandingSections wrapper
+    /// and no SiteConfig/OwnerPhotoService dependency), so a test can drive
+    /// its own defensive Nodes.Count guard independent of the caller's
+    /// Content.GamePlan.Count gate in LandingSections.
+    /// </summary>
+    public static async Task<string> RenderGamePlanAsync(IReadOnlyList<GamePlanNode> nodes)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        await using var provider = services.BuildServiceProvider();
+
+        await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());
+
+        return await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await renderer.RenderComponentAsync<GamePlan>(ParameterView.FromDictionary(
+                new Dictionary<string, object?> { ["Nodes"] = nodes }));
+            return output.ToHtmlString();
+        });
+    }
+
     /// <summary>Builds a SiteConfig with fixed, neutral defaults; pass only what a given test cares about varying.</summary>
     public static SiteConfig BuildConfig(
         string? gitHubUrl = null,
