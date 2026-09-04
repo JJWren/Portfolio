@@ -731,10 +731,11 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("alt=\"Jane on the mat\"", html);
         Assert.Contains("src=\"/owner-photo?v=", html);
         Assert.Contains("src=\"/owner-photo-flip?v=", html);
-        // fetchpriority is on the primary (desk) image only; the hidden mat
-        // image is lazy-loaded instead.
+        // fetchpriority="high" is on the primary (desk) image only; the hidden mat
+        // image sits in the viewport at opacity 0, so loading="lazy" alone would not
+        // defer it, and it is marked low priority as well.
         Assert.Equal(1, CountOccurrences(html, "fetchpriority=\"high\""));
-        Assert.Contains("loading=\"lazy\"", html);
+        Assert.Contains("loading=\"lazy\" fetchpriority=\"low\"", html);
         // The single-image path (used when only one photo resolves) must not
         // also render.
         Assert.DoesNotContain("<img class=\"owner-photo\"", html);

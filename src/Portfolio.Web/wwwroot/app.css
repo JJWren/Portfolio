@@ -1125,6 +1125,10 @@ main {
     margin-top: 3rem;
 }
 
+/* The desk tile's <img> deliberately carries no .owner-photo class: that rule's
+   margin-top: 3rem would stack with .photo-stack's own inside this absolutely
+   positioned, overflow-hidden tile and clip the image; the tile and .photo-tile img
+   supply the radius, sizing and object-fit instead (see LandingSections.razor). */
 .photo-tile {
     position: absolute;
     inset: 0;

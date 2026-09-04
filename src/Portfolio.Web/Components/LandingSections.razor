@@ -36,8 +36,15 @@
         {
             <div class="photo-slot">
                 <div class="photo-stack">
+                    @* The desk tile deliberately carries no owner-photo class: .owner-photo adds
+                       margin-top: 3rem, which would stack with .photo-stack's own margin inside
+                       this absolutely positioned, overflow-hidden tile and clip the image; .photo-tile
+                       and .photo-tile img supply the radius, sizing and object-fit instead (the
+                       design source puts no class on the tile images either). The mat image is in
+                       the viewport at opacity 0, so loading="lazy" alone would not defer it; it is
+                       marked low priority so it never competes with the desk image (the LCP). *@
                     <div class="photo-tile desk"><img src="@_photoUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoAlt)" fetchpriority="high" /></div>
-                    <div class="photo-tile mat"><img src="@_photoFlipUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoFlipAlt)" loading="lazy" /></div>
+                    <div class="photo-tile mat"><img src="@_photoFlipUrl" alt="@SeoRules.NormalizeAltText(Content.OwnerPhotoFlipAlt)" loading="lazy" fetchpriority="low" /></div>
                 </div>
                 <fieldset class="pill-switch photo-switch">
                     <legend class="visually-hidden">Show photo</legend>

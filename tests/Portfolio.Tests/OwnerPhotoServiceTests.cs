@@ -79,7 +79,8 @@ public class OwnerPhotoServiceTests : IDisposable
         // Under the cap: dimensions and aspect are preserved (the CSS frame crops).
         Assert.Equal(1200, saved.Width);
         Assert.Equal(800, saved.Height);
-        Assert.False(File.Exists($"{PhotoPath}.tmp"));
+        // The temp name carries a GUID, so probe the directory rather than one literal name.
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(PhotoPath)!, "*.tmp"));
     }
 
     [Fact]
@@ -199,7 +200,7 @@ public class OwnerPhotoServiceTests : IDisposable
         using var saved = Image.Load(FlipPhotoPath);
         Assert.IsType<WebpFormat>(saved.Metadata.DecodedImageFormat);
         Assert.False(File.Exists(PhotoPath));
-        Assert.False(File.Exists($"{FlipPhotoPath}.tmp"));
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(FlipPhotoPath)!, "*.tmp"));
     }
 
     [Fact]
