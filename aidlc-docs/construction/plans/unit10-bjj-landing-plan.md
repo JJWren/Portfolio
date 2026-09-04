@@ -218,6 +218,6 @@ Phase 4 fields:
 |---|---|
 | Desk photo alt (`OWNER_PHOTO_ALT` / Photo alt text) | `Joshua Mykitta in sunglasses and a tuxedo, looking slightly off to the left with a subtle, pensive smile` |
 | Mat photo alt (`OWNER_PHOTO_FLIP_ALT` / Mat photo alt text) | `Joshua Mykitta, on the left, being promoted to Brazilian jiu-jitsu black belt by Rodney Souza, on the right` |
-| Mat photo file | `aidlc-docs/inception/application-design/landing-directions/josh-mat.jpg` (720px downsample; the original is `C:\Users\joshu\OneDrive\Pictures\BJJ\Promotion-black-belt-solo.jpg`) |
+| Mat photo file | `aidlc-docs/inception/application-design/landing-directions/josh-mat.jpg` (720px downsample of `Promotion-black-belt-solo.jpg`; the full-resolution original stays on the owner's machine) |
 
 For the production `.env` instead of the admin page, join lines with the literal `\n` (for example `SITE_NOW=Teaches | Adult no-gi, ...\nBuilding | CalCrony: ...`).

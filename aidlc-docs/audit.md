@@ -423,3 +423,83 @@
 **User Input**: "Decisions to lock: 1. SITE_FLAVOR=bjj switch (not hardcoded) 2. Yes agreed 3. Yes 4. chart nodes keep pointing at #principles I think => describe this better to me 5. yes agreed 6. yes 7. Championship Mixed Martial Arts"
 **AI Response**: Recorded in the handoff as "Decisions locked with the owner (2026-09-04)": SITE_FLAVOR=bjj env switch; new copy in SiteContent columns edited at /admin/site with env fallbacks; a second OwnerPhotoService slot for the mat portrait; chart nodes link to #principles for v1 (explained: every node is a real keyboard-focusable link that scrolls to the Principles section, the plan in words; per-node sections can follow if the owner writes their copy; a link-free graphic was the other option); hero h1 "Position before submission." with the name in the eyebrow and unchanged title/JSON-LD; the two portrait JPEGs may be committed; the academy is "Championship Mixed Martial Arts". Renamed the academy on every artboard, in the design-system cards, the docs and the memory notes; rebuilt, re-seeded, checked and republished the canvas; aidlc-state.md and requirements.md section 9 updated.
 **Context**: Construction, Unit 10 (pre-planning decisions)
+
+---
+
+## Construction — Unit 10 Kickoff
+**Timestamp**: 2026-09-04T13:02:15Z
+**User Input**: "Start Unit 10 (BJJ-themed landing page) construction for the Portfolio repo.
+
+Read aidlc-docs/construction/plans/unit10-bjj-landing-handoff.md first; it is the complete brief: the approved design section by section, the final content, the seven locked decisions (SITE_FLAVOR=bjj switch, new copy in SiteContent columns edited at /admin/site with env fallbacks, a second OwnerPhotoService slot for the mat portrait, chart nodes linking to #principles, hero h1 \"Position before submission.\" with the name in the eyebrow, portrait JPEGs may be committed, academy is \"Championship Mixed Martial Arts\"), the constraints, and the recommended phases.
+
+Follow the AI-DLC workflow in CLAUDE.md: log my inputs in aidlc-docs/audit.md, keep aidlc-docs/aidlc-state.md current, do a short Functional Design pass for the new data fields, then present the Code Generation plan (unit10-bjj-landing-plan.md with checkboxes) for my approval before writing any code. One PR per phase, conventional-commit titles, dotnet build -warnaserror and dotnet test green, Copilot review gate per CONTRIBUTING.md.
+
+Exact CSS and markup for every new piece is in aidlc-docs/inception/application-design/landing-directions/parts/; copy values from there, not from memory. The approved canvas is https://claude.ai/code/artifact/4e3d73fd-098f-472f-a3c9-0678be44349c and the design-system project is https://claude.ai/design/p/0eace0af-92bf-4fa4-b035-9fa3dd8dab6d.
+
+Non-negotiables: public pages stay static SSR (no InteractiveServer on /), LandingSections must render correctly inside the inert admin theme preview (nothing position: fixed), belt colors are fixed :root constants (ADR 0002), every new animation joins the reduced-motion block and scroll-driven effects are @supports-gated, no CDN or third-party scripts, no emoji, and every owner fact exactly as recorded in the handoff."
+**AI Response**: Entering Construction, Unit 10. Read the handoff, memory notes, aidlc-state.md and the audit tail; next: load the design sources under landing-directions/parts/ and the affected code (SiteConfig, SiteContent, LandingSections, OwnerPhotoService, /admin/site editor, tests), write a minimal Functional Design for the new SiteContent fields, then present the Code Generation plan (construction/plans/unit10-bjj-landing-plan.md) for approval. No code written before approval.
+**Context**: Construction, Unit 10, kickoff (Functional Design + Code Generation Part 1 pending)
+
+---
+
+## Construction — Unit 10 Functional Design
+**Timestamp**: 2026-09-04T13:18:19Z
+**User Input**: (no new input; continuation of the kickoff request logged above)
+**AI Response**: Wrote construction/unit10-bjj-landing/functional-design/domain-entities.md (SiteFlavor, eight SiteContent columns with env fallbacks and limits, EffectiveSiteContent additions and typed records, the second OwnerPhotoService slot, line formats) and business-rules.md (BR-1 to BR-19: flavor gate, blank-hides, precedence, lenient resolve and strict save, counts, rank bar, eras and rungs, degrees consistency, lengths, static SSR, preview safety, motion, fixed constants, accessibility, portrait switch, owner facts, SEO unchanged). Refinements beyond the handoff (text[] line formats, env names incl. SITE_ERAS instead of SITE_TIMELINE, strict counts, index-based scroll timelines, no aria-hidden on table cells, portrait switch moved to Phase 4, rank bar always black in v1) are listed at the top of the plan for approval. Verified beforehand that the test project already reaches the ASP.NET Core shared framework (HtmlRenderer needs no new package).
+**Context**: Construction, Unit 10, Functional Design (minimal depth)
+
+---
+
+## Construction — Unit 10 Code Generation Plan (Part 1) Presented
+**Timestamp**: 2026-09-04T13:18:19Z
+**User Input**: (none yet; approval prompt logged before asking)
+**AI Response**: Wrote construction/plans/unit10-bjj-landing-plan.md: non-negotiables, eight design refinements to confirm, five PR phases with branches and conventional titles (Phase 0 owner actions; Phase 1 test: render safety net with HtmlRenderer; Phase 2 feat: flavor switch, hero game plan, rank bar, principles, admin copy fields, ADR 0002; Phase 3 feat: the road and now; Phase 4 feat: second owner photo slot and portrait switch; Phase 5 perf: font preload, delegated handlers, README, glossary), checkbox steps per phase with files, tests and gates, out-of-scope follow-ups, risks, and the content sheet carrying the owner values verbatim. Updated aidlc-state.md (Unit 10 in construction, stage checklist). Presented the 2-option completion message: A) Request Changes, B) Continue to Next Stage (B approves the functional design and the plan; Phase 1 starts).
+**Context**: Construction, Unit 10, Code Generation Part 1; waiting for the owner
+
+---
+
+## Construction — Unit 10 Plan Question (Phase 0 demo post)
+**Timestamp**: 2026-09-04T13:26:26Z
+**User Input**: "Why do I need to unpublish the \"A quick markdown tour\" blog post?"
+**AI Response**: Explained that nothing in Unit 10 depends on it: the item is content hygiene carried over from the Phase 0 checklist in inception/reverse-engineering/code-quality-assessment.md. Re-verified live: /blog/markdown-tour returns 200, the post is listed on /blog, in /feed.xml and in /sitemap.xml; it is the DemoSeeder sample (slug markdown-tour, summary "Tables, code blocks, and everything else posts support.", tag "demo"), so it reads as placeholder content next to the real posts. Options given: keep it, rewrite it into a real post at the same URL, or unpublish (reversible; deleting would also remove its comments). Offered to drop or mark the item optional in the plan at approval time. Plan approval still pending (A or B).
+**Context**: Construction, Unit 10, Code Generation Part 1 (question during approval)
+
+---
+
+## Construction — Unit 10 Plan Approved; Orchestration Model Set
+**Timestamp**: 2026-09-04T13:36:27Z
+**User Input**: "I'll keep it for now.
+
+I approve of the functional design and the plan.
+
+From here on you will be the orchestrator of agents delegating phases and tasks to subagents. For each phase, spawn a new sub-agent that directs that task so it maintains its own context and session. That subagent should be Sonnet 5 High. The subagents just need to accomplish the plan and tasks that have been created.
+
+When a phase is complete, initiate a code review of it. Spawn a sub agent for each of these code review areas: correctness and bugs (prioritize production-breaking issues, logic bugs, and edge cases over formatting issues), security scanning (hardcoded secrets, injection flaws, OWASP Top 10 risks, etc), framework awareness (validate language specific patterns, etc), maintainability (code readability, structural modularity, adherence to repository standards, etc), performance. They will be in charge of their respective areas.
+
+Begin phase 1 per my guidance."
+**AI Response**: Recorded the decision to keep the demo post (Phase 0 item closed, no action) and the approval of the functional design and the code generation plan (Code Generation Part 1 complete). Adopted the orchestration model: one fresh Sonnet subagent per phase executes that phase's plan tasks on its own branch (build and tests green, committed, not pushed); when it reports done, five review subagents run in parallel (correctness and bugs, security, framework awareness, maintainability, performance); findings are remediated, then the PR is opened and the Copilot review gate and squash-merge follow per CONTRIBUTING.md. Noted to the owner that the Agent tool exposes the model choice (Sonnet) but not a reasoning-effort setting. Spawned the Phase 1 subagent (test: render safety net) with a self-contained brief pointing at the plan, the functional design and the constraints.
+**Context**: Construction, Unit 10, Code Generation Part 2 started; Phase 1 in progress
+
+---
+
+## Construction — Unit 10 Phase 1 Implemented (subagent report)
+**Timestamp**: 2026-09-04T13:52:25Z
+**User Input**: (none; background task notification)
+**AI Response**: The Phase 1 subagent (Sonnet) finished on branch test/landing-render-tests, commit f5e56d8 (parent c29e6bc), not pushed. Created tests/Portfolio.Tests/LandingSectionsRenderTests.cs (14 facts: h1, tagline present/absent, About paragraphs, skills chips, About section absent when empty, GitHub/LinkedIn buttons only when configured, Get in touch always, owner photo with has-photo/alt/versioned src using a real temp file, no photo when unconfigured, no fixed positioning and no script tags) and tests/Portfolio.Tests/AppCssTests.cs (2 facts: the brace-depth scanner finds #blazor-error-ui as the only fixed-position rule; no fixed-position selector names a class or id rendered by LandingSections). Linked app.css into the test project as copied content; deleted UnitTest1.cs; corrected unit-test-instructions.md (36 fixture files, 265 test methods, 435 cases; note that the fixture table is still incomplete pending Phase 5); ticked the Phase 1 plan boxes except the gate. Reported: dotnet build -warnaserror 0 warnings; dotnet test 435/435 passed (420 before). HtmlRenderer resolved through the transitive framework reference, no csproj change beyond the content link. Orchestrator verified branch, commit and diff stat (6 files, +671/-11). Next: five review subagents (correctness, security, framework, maintainability, performance) on the branch diff.
+**Context**: Construction, Unit 10, Phase 1 review pending
+
+---
+
+## Construction — Unit 10 Phase 1 Five-Area Review (subagent reports)
+**Timestamp**: 2026-09-04T14:09:02Z
+**User Input**: (none; background task notifications)
+**AI Response**: Five Sonnet review subagents examined commit f5e56d8 on test/landing-render-tests. Correctness: NEEDS CHANGES, one confirmed major (the fixed-position scanner extracts only class and id tokens, so a rule such as .theme-preview-frame img { position: fixed } or a bare type selector yields no assertion and passes silently; proven with synthetic CSS) plus a nit (quoted strings with braces would desync the brace counter); everything else cleared (comment stripping, nested at-rules, selector lists, HtmlRenderer and dispatcher usage, DI surface, temp-dir isolation, CRLF vs LF). Security: PASS WITH NITS (no fixture with HTML metacharacters so an encoding regression would go unnoticed; the plan carried a local absolute path to the original mat photo). Framework awareness: PASS WITH NITS (Content vs None item type for the linked stylesheet; combinator selectors over-flag, the safe direction); verified the transitive framework reference, the byte-identical stylesheet copy and all 435 tests on Windows and in the pinned Linux SDK image. Maintainability: PASS WITH NITS (major: the render ceremony is duplicated and the CSS fixture hand-builds its own maximal content, which later phases could silently leave incomplete; minor: the scanner should expose a reusable leaf-rule parser for the Phase 2 and 3 invariants); docs and counts verified accurate. Performance: PASS (new tests cost about 160 ms, below run-to-run noise; the linked copy is incremental and safe with --no-build). Orchestrator actions: removed the local path from the plan content sheet; SendMessage is unavailable in this session, so a fresh Sonnet remediation subagent was spawned with the consolidated list (subject-compound token matching incl. type selectors and *, loud failure on token-less subjects, synthetic-CSS facts for the scanner, reusable ParseLeafRules with ancestors and once-per-run parsing, string-literal stripping, shared render harness with one maximal-content builder, encoding fixture fact, None item plus comment and trailing newline). It commits on the branch and does not push.
+**Context**: Construction, Unit 10, Phase 1 remediation in progress
+
+---
+
+## Construction — Unit 10 Phase 1 Remediated and Verified
+**Timestamp**: 2026-09-04T14:26:05Z
+**User Input**: (none; background task notification)
+**AI Response**: The remediation subagent added commit 54a708a (test: harden the landing render safety net after review): new tests/Portfolio.Tests/Support/CssScanner.cs (ParseLeafRules with ancestor at-rules, RulesInside, SubjectSelectorTokens; comments and quoted strings stripped before brace scanning) and Support/LandingRenderHarness.cs (RenderAsync, BuildConfig, BuildContent, MaximalConfig, MaximalContent with a comment that later phases must extend the maximal pair). AppCssTests now matches subject-compound tokens including type selectors and the universal selector, fails loudly on token-less subjects, parses app.css once per run, and carries synthetic-CSS facts; LandingSectionsRenderTests gained the HTML-metacharacter encoding fact; the csproj item is None with a comment and a trailing newline. Orchestrator re-ran dotnet build -warnaserror (0 warnings) and dotnet test (445 passed; 420 on master); refreshed unit-test-instructions.md (445 tests, Support helpers named); committed the Unit 10 docs (functional design, approved plan without the local photo path, state, audit) on the branch. Next: push, open the PR with the plan title, wait for the automatic Copilot review (it posted about two minutes after creation on PRs 83 and 86), remediate, re-request until clean, squash-merge.
+**Context**: Construction, Unit 10, Phase 1 gate (PR)
