@@ -50,25 +50,34 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
             .FirstOrDefaultAsync(c => c.Id == SiteContent.SingletonId);
     }
 
-    /// <summary>Normalizes each field (blank → null → .env fallback) and upserts the single row.</summary>
-    public async Task SaveAsync(string? heroHeading, string? tagline, string? about, string? skillsText, string? ownerPhotoAlt = null)
+    /// <summary>Normalizes every field (blank → null → .env fallback) and upserts the single row.</summary>
+    public async Task SaveAsync(SiteContentDraft draft)
     {
-        var normalizedHeroHeading = SiteContentRules.NormalizeField(heroHeading);
-        var normalizedTagline = SiteContentRules.NormalizeField(tagline);
-        var normalizedAbout = SiteContentRules.NormalizeField(about);
-        var skills = SiteContentRules.ParseSkills(skillsText);
-        var normalizedOwnerPhotoAlt = SiteContentRules.NormalizeField(ownerPhotoAlt);
+        var normalizedHeroHeading = SiteContentRules.NormalizeField(draft.HeroHeading);
+        var normalizedTagline = SiteContentRules.NormalizeField(draft.Tagline);
+        var normalizedAbout = SiteContentRules.NormalizeField(draft.About);
+        var skills = SiteContentRules.ParseSkills(draft.SkillsText);
+        var normalizedOwnerPhotoAlt = SiteContentRules.NormalizeField(draft.OwnerPhotoAlt);
+        var normalizedHeroEyebrow = SiteContentRules.NormalizeField(draft.HeroEyebrow);
+        var gamePlan = SiteContentRules.ParseLines(draft.GamePlanText);
+        var normalizedBeltCaption = SiteContentRules.NormalizeField(draft.BeltCaption);
+        var beltDegrees = SiteContentRules.ParseDegrees(draft.BeltDegreesText);
+        var principles = SiteContentRules.ParseLines(draft.PrinciplesText);
 
         try
         {
-            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt);
+            await UpsertAsync(
+                normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt,
+                normalizedHeroEyebrow, gamePlan, normalizedBeltCaption, beltDegrees, principles);
         }
         catch (DbUpdateException ex) when (
             ex.InnerException is Npgsql.PostgresException { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation })
         {
             // Loser of a concurrent first save: the row exists now, so one
             // retry lands on the update path (last write wins).
-            await UpsertAsync(normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt);
+            await UpsertAsync(
+                normalizedHeroHeading, normalizedTagline, normalizedAbout, skills, normalizedOwnerPhotoAlt,
+                normalizedHeroEyebrow, gamePlan, normalizedBeltCaption, beltDegrees, principles);
         }
 
         // Bump the version before clearing so an in-flight reader can tell its
@@ -77,7 +86,9 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         _cache = null;
     }
 
-    private async Task UpsertAsync(string? heroHeading, string? tagline, string? about, List<string>? skills, string? ownerPhotoAlt)
+    private async Task UpsertAsync(
+        string? heroHeading, string? tagline, string? about, List<string>? skills, string? ownerPhotoAlt,
+        string? heroEyebrow, List<string>? gamePlan, string? beltCaption, int? beltDegrees, List<string>? principles)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         var row = await db.SiteContents
@@ -93,6 +104,11 @@ public class SiteContentService(IDbContextFactory<AppDbContext> dbFactory, SiteC
         row.About = about;
         row.Skills = skills;
         row.OwnerPhotoAlt = ownerPhotoAlt;
+        row.HeroEyebrow = heroEyebrow;
+        row.GamePlan = gamePlan;
+        row.BeltCaption = beltCaption;
+        row.BeltDegrees = beltDegrees;
+        row.Principles = principles;
         row.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }

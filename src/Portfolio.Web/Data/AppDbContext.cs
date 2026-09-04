@@ -153,6 +153,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             content.Property(c => c.Tagline).HasMaxLength(SiteContentRules.TaglineMaxLength);
             content.Property(c => c.About).HasMaxLength(SiteContentRules.AboutMaxLength);
             content.Property(c => c.OwnerPhotoAlt).HasMaxLength(SiteContentRules.OwnerPhotoAltMaxLength);
+            // GamePlan/Principles are text[] like Skills: per-line length is
+            // enforced in SiteContentRules/BjjRules at the app layer, not by
+            // a column max length (arrays don't get one, matching Skills).
+            content.Property(c => c.HeroEyebrow).HasMaxLength(SiteContentRules.HeroEyebrowMaxLength);
+            content.Property(c => c.BeltCaption).HasMaxLength(SiteContentRules.BeltCaptionMaxLength);
         });
 
         builder.Entity<PageView>(view =>

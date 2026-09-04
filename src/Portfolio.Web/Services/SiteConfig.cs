@@ -20,7 +20,14 @@ public record SiteConfig(
     string SponsorText,
     string? ResumeFile = null,
     string? OwnerPhotoFile = null,
-    string? OwnerPhotoAlt = null)
+    string? OwnerPhotoAlt = null,
+    // -- BJJ landing flavor (Unit 10); all optional, blank = null/empty. --
+    SiteFlavor Flavor = SiteFlavor.Default,
+    string? HeroEyebrow = null,
+    IReadOnlyList<string>? GamePlanLines = null,
+    string? BeltCaption = null,
+    int? BeltDegrees = null,
+    IReadOnlyList<string>? PrincipleLines = null)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -68,9 +75,25 @@ public record SiteConfig(
             // Path to the Owner Photo served at /owner-photo and shown on the
             // landing hero; blank = the hero renders photo-less.
             OwnerPhotoFile: NullIfEmpty(config["OWNER_PHOTO_FILE"]),
-            OwnerPhotoAlt: NullIfEmpty(config["OWNER_PHOTO_ALT"]));
+            OwnerPhotoAlt: NullIfEmpty(config["OWNER_PHOTO_ALT"]),
+            Flavor: SiteFlavorRules.Parse(config["SITE_FLAVOR"]),
+            HeroEyebrow: NullIfEmpty(config["SITE_HERO_EYEBROW"]),
+            GamePlanLines: SplitEnvLines(config["SITE_GAME_PLAN"]),
+            BeltCaption: NullIfEmpty(config["SITE_BELT_CAPTION"]),
+            BeltDegrees: ParseDegrees(config["SITE_BELT_DEGREES"]),
+            PrincipleLines: SplitEnvLines(config["SITE_PRINCIPLES"]));
     }
 
     private static string? NullIfEmpty(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    // .env files can't hold real newlines, so — like SITE_ABOUT — a literal
+    // "\n" separates lines; BjjRules.SplitLines then trims and drops blanks.
+    private static IReadOnlyList<string> SplitEnvLines(string? value)
+        => BjjRules.SplitLines(NullIfEmpty(value)?.Replace("\\n", "\n"));
+
+    // Unparsable text is ignored (never throws at startup); range-checking
+    // against MaxDegrees happens later, at resolve (BjjRules.ClampDegrees).
+    private static int? ParseDegrees(string? value)
+        => int.TryParse(value, out var degrees) ? degrees : null;
 }
