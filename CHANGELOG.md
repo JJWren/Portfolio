@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/JJWren/Portfolio/compare/v1.22.0...v1.23.0) (2026-09-04)
+
+
+### Features
+
+* BJJ landing flavor (hero game plan, rank bar, principles, admin copy fields) ([#90](https://github.com/JJWren/Portfolio/issues/90)) ([e6a4a75](https://github.com/JJWren/Portfolio/commit/e6a4a75241ff0ff577ef33b53b81554c365185d8))
+
 ## [1.22.0](https://github.com/JJWren/Portfolio/compare/v1.21.1...v1.22.0) (2026-08-15)
 
 
