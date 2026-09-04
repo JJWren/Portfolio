@@ -46,10 +46,12 @@ public record EffectiveSiteContent(
     /// <summary>Never null — empty means "no Now section" (BR-2).</summary>
     public IReadOnlyList<NowItem> Now { get; init; } = Now ?? [];
 
-    /// <summary>Never null — resolved like <see cref="OwnerPhotoAlt"/>
-    /// (override, then the env value, then "Portrait of {owner}"); the
-    /// nullable constructor parameter only exists so callers that predate
-    /// Phase 4 (tests, other constructors) keep compiling.</summary>
+    /// <summary>Never null. <see cref="SiteContentRules.Resolve"/> fills it
+    /// like <see cref="OwnerPhotoAlt"/> (override, then the env value, then
+    /// "Portrait of {owner}"); a direct construction that omits the parameter
+    /// gets an empty string, not that fallback. The nullable constructor
+    /// parameter only exists so callers that predate Phase 4 (tests, other
+    /// constructors) keep compiling.</summary>
     public string OwnerPhotoFlipAlt { get; init; } = OwnerPhotoFlipAlt ?? string.Empty;
 }
 
