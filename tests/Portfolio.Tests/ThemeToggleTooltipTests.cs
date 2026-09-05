@@ -43,8 +43,8 @@ public class ThemeToggleTooltipTests
         var themeJs = Linked(Path.Combine("js", "theme.js"));
 
         Assert.Contains("document.documentElement.dataset.flavor !== 'bjj'", themeJs, StringComparison.Ordinal);
-        Assert.Equal(1, Regex.Matches(themeJs, Regex.Escape(ShownWhileDark)).Count);
-        Assert.Equal(1, Regex.Matches(themeJs, Regex.Escape(ShownWhileLight)).Count);
+        Assert.Single(Regex.Matches(themeJs, Regex.Escape(ShownWhileDark)));
+        Assert.Single(Regex.Matches(themeJs, Regex.Escape(ShownWhileLight)));
     }
 
     [Fact]
