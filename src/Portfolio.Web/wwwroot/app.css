@@ -69,7 +69,7 @@
     --rank-black: #0c0c0c;
 
     /* Layout constant for the pinned site header: its height plus a small
-       gap. Not a theme token (the 26-token catalog is untouched): html uses
+       gap. Not a theme token (ThemeRules.Tokens is untouched): html uses
        it as scroll-padding-top so anchor jumps and keyboard focus land below
        the bar, and the admin editors' sticky preview panel uses it to clear
        the bar. */
@@ -195,6 +195,8 @@ main {
 .site-header {
     position: sticky;
     top: 0;
+    /* Above page content and .site-nav's own z-index: 50 (which lives inside
+       this stacking context); below #blazor-error-ui's 1000. */
     z-index: 100;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
