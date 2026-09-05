@@ -100,3 +100,5 @@ Text alternative: a single chain. Requirements Analysis (approved) leads to this
 Workflow planning complete. On approval the next step is Unit 10 addendum: Code Generation Part 1 (the checkbox plan).
 
 **Approved by the owner on 2026-09-04: "A", as written.** In the same message the owner asked for a quick change, a pinned site header; it runs first as PR 0 (requirements section 4.4, plan `construction/plans/quick-pinned-header-plan.md`, all design stages skipped, orchestrator-implemented with the five-area review and the Copilot gate), and everything else keeps its order.
+
+**PR 0 done (2026-09-05)**: the pinned site header merged as PR #99 (fc793aa) and shipped in release 1.26.0; next is the Unit 10 addendum code-generation plan.

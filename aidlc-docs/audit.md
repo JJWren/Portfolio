@@ -1149,3 +1149,61 @@ A"
 
 ---
 
+## Pinned header PR #99: missed test fix corrected
+**Timestamp**: 2026-09-05T01:05:02Z
+**User Input**: (none)
+**AI Response**: "The round 1 commit 01b39a2 carried only the state and audit changes: the multi-line replacement of the ZIndex helper matched nothing and the chain did not check for it. Applied the helper change line by line, verified it, build 0 warnings, 698 tests, committed ae01a6a, pushed, corrected the thread reply with the right commit, re-requested Copilot."
+**Context**: Quick change (pinned site header): Copilot gate, correction after round 1
+
+---
+
+## Pinned header PR #99: regex escapes restored
+**Timestamp**: 2026-09-05T01:06:00Z
+**User Input**: (none)
+**AI Response**: "Commit ae01a6a shipped a broken regex (z-indexs*:s*(d+)s*;) and one failing test: the Bash tool collapses doubled backslashes even inside single quotes, so the perl-generated C# lost its escapes; the chain also did not stop on the test failure. Fixed with the editor tool (no shell), CRLF verified, build 0 warnings, 698 tests green, committed 725e9b8, pushed, second correction posted on the thread, Copilot re-requested. Lesson recorded for memory: never generate backslash-bearing code through the shell; use the Write or Edit tools, and make chains stop on a failed test."
+**Context**: Quick change (pinned site header): Copilot gate, second correction after round 1
+
+---
+
+## Pinned header PR #99: Copilot rounds 2 and 3 were on stale commits
+**Timestamp**: 2026-09-05T01:08:45Z
+**User Input**: (none)
+**AI Response**: "CI green on head 725e9b8 (build-test, CodeQL, pr-title, GitGuardian). Copilot rounds 2 (01:03:51Z, on c02ce06) and 3 (01:06:53Z, on 01b39a2) reviewed commits from before the helper fix and repeated the same suppressed note; no new threads. No review request was pending, so Copilot was re-requested on 725e9b8; the watcher waits for a review on the head commit."
+**Context**: Quick change (pinned site header): Copilot gate, round 4 requested
+
+---
+
+## Owner message: merges done
+**Timestamp**: 2026-09-05T01:22:59Z
+**User Input**: "merge complete on feat and chore"
+**AI Response**: "Verifying PR #99 and the release chore on GitHub, then realigning master stash-first, stopping the review watcher and closing out the quick change in the plan, state and memory."
+**Context**: Quick change (pinned site header): merged by the owner
+
+---
+
+## Pinned header merged and released; master realigned
+**Timestamp**: 2026-09-05T01:24:10Z
+**User Input**: (none)
+**AI Response**: "Verified: PR #99 squash-merged by the owner at 01:19:37Z as fc793aa (no Copilot pass had landed on the head commit 725e9b8; rounds 1 to 3 covered earlier commits; owner decision to merge on CI plus the internal review); release 1.26.0 cut as PR #100 (88f3938) at 01:22:22Z. Master realigned stash-first to 88f3938, branch deleted, the audit tail restored. Plan, state, workflow plan and memory updated. Remaining owner step: bump the compose image tag to 1.26.0 in Z:/docker/portfolio and recreate the container. Next stage: Unit 10 addendum, Code Generation Part 1."
+**Context**: Quick change (pinned site header) COMPLETE; workflow continues with the Unit 10 addendum
+
+---
+
+## Unit 10 addendum: Code Generation Part 1 (plan) written; approval prompt
+**Timestamp**: 2026-09-05T01:26:02Z
+**User Input**: (none)
+**AI Response**: "Evidence: App.razor renders html statically with SiteConfig injected; theme.js applies the theme in the head before the button exists and site.js re-applies it after every enhanced load but not at startup; the toggle carries title Switch theme and the functional aria-label; SiteFlavorRules.Parse is tested in SiteConfigTests; theme.js is not linked into the test output yet. Wrote construction/plans/unit10-addendum-tooltip-plan.md: HtmlDataFlavor helper (bjj or null), the data-flavor attribute on html, syncToggleTitle in theme.js called from __applyTheme, __toggleTheme and DOMContentLoaded, theme.js linked into the tests, a Theory for the helper plus a text-scan test for the attribute, the two sentences and the unchanged aria-label, a local DOM check under both flavors, then the review, PR and gate. Orchestrator-implemented like PR 0. Asked for approval."
+**Context**: Unit 10 addendum: Code Generation Part 1 awaiting approval; owner deploy step pending for v1.26.0 (compose tag)
+
+---
+
+## Owner approval: Unit 10 addendum plan, with a wording correction
+**Timestamp**: 2026-09-05T01:33:49Z
+**User Input**: "\"Switch to the black belt (dark theme)\" should be \"gi\" not \"belt\".
+
+Approve and start now."
+**AI Response**: "Wording corrected everywhere: while light the tooltip reads Switch to the black gi (dark theme); while dark, Switch to the white gi (light theme). Plan approved (A): branching feat/theme-toggle-bjj-tooltip, docs commit, then the helper, the html attribute, theme.js, the test link and tests."
+**Context**: Unit 10 addendum: Code Generation Part 2 starting
+
+---
+

@@ -41,7 +41,7 @@ Suggested order: B, C, 12a, 12b. Each unit runs under the orchestration model re
 | Id | Requirement |
 |---|---|
 | FR-B1 | Under `SiteFlavor.Bjj` the server-rendered `<html>` element carries `data-flavor="bjj"`. Under `Default` it carries no such attribute, so the plain page's markup stays byte-for-byte unchanged. |
-| FR-B2 | Under the BJJ flavor the theme toggle's `title` names the theme the click switches to: while the page is dark, "Switch to the white gi (light theme)"; while light, "Switch to the black belt (dark theme)". Under `Default` the title stays the server-rendered "Switch theme" and the script leaves it alone. |
+| FR-B2 | Under the BJJ flavor the theme toggle's `title` names the theme the click switches to: while the page is dark, "Switch to the white gi (light theme)"; while light, "Switch to the black gi (dark theme)" (wording corrected by the owner on 2026-09-05: gi, not belt). Under `Default` the title stays the server-rendered "Switch theme" and the script leaves it alone. |
 | FR-B3 | The title is correct at first paint, after each toggle, and after every Blazor enhanced navigation (the same re-apply hook `site.js` already uses to restore `data-theme`). |
 | FR-B4 | The `aria-label` ("Switch between dark and light theme") is unchanged; the tooltip is a courtesy for pointer users, not the accessible name. |
 | FR-B5 | No new script file, no inline handler (the `NoInlineOnClickTests` pin stays green), no owner fact (BR-18). The two strings are pinned by a test so a wording change is a deliberate edit. |
