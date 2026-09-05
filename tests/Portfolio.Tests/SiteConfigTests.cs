@@ -220,6 +220,12 @@ public class SiteConfigTests
     public void SiteFlavorRules_Parse(string value, SiteFlavor expected)
         => Assert.Equal(expected, SiteFlavorRules.Parse(value));
 
+    [Theory]
+    [InlineData(SiteFlavor.Bjj, "bjj")]
+    [InlineData(SiteFlavor.Default, null)]
+    public void SiteFlavorRules_HtmlDataFlavor(SiteFlavor flavor, string? expected)
+        => Assert.Equal(expected, SiteFlavorRules.HtmlDataFlavor(flavor));
+
     [Fact]
     public void FromConfiguration_HeroEyebrowAndBeltCaption_BlankBecomesNull()
     {

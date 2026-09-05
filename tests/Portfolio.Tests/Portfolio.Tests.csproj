@@ -31,6 +31,9 @@
          CopyToOutputDirectory is the idiom for a copied test fixture. -->
     <!-- The tests scan this exact file, so the link must stay. -->
     <None Include="..\..\src\Portfolio.Web\wwwroot\app.css" Link="app.css" CopyToOutputDirectory="PreserveNewest" />
+    <!-- theme.js, same idiom, so ThemeToggleTooltipTests can pin the BJJ
+         tooltip wording and its data-flavor gate without a JS runtime. -->
+    <None Include="..\..\src\Portfolio.Web\wwwroot\js\theme.js" Link="js\theme.js" CopyToOutputDirectory="PreserveNewest" />
     <!-- Same idiom, applied to every .razor file under Components/ (LinkBase
          preserves the subfolder structure under RazorComponents/) so
          NoInlineOnClickTests can scan them for a stray inline onclick=""

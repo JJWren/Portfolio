@@ -28,4 +28,15 @@ public static class SiteFlavorRules
         => string.Equals(value?.Trim(), "bjj", StringComparison.OrdinalIgnoreCase)
             ? SiteFlavor.Bjj
             : SiteFlavor.Default;
+
+    /// <summary>
+    /// The value of the <c>data-flavor</c> attribute on <c>&lt;html&gt;</c>:
+    /// "bjj" under <see cref="SiteFlavor.Bjj"/>, null under
+    /// <see cref="SiteFlavor.Default"/> so Blazor omits the attribute and the
+    /// plain page's markup stays byte-for-byte unchanged (FR-B1). theme.js
+    /// reads it to decide whether the theme toggle's tooltip uses the BJJ
+    /// wording (FR-B2).
+    /// </summary>
+    public static string? HtmlDataFlavor(SiteFlavor flavor)
+        => flavor == SiteFlavor.Bjj ? "bjj" : null;
 }
