@@ -275,7 +275,7 @@ public class AppCssTests : IDisposable
 
         static int ZIndex(CssRule rule)
         {
-            var match = Regex.Match(rule.Declarations, @"z-indexs*:s*(d+)s*;");
+            var match = Regex.Match(rule.Declarations, @"z-index\s*:\s*(\d+)\s*;");
             Assert.True(match.Success, $"'{rule.Selector}' should declare a numeric z-index.");
             return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
         }
