@@ -1085,3 +1085,51 @@ A"
 
 ---
 
+## Pinned header: code change, build and tests
+**Timestamp**: 2026-09-05T00:45:16Z
+**User Input**: (none)
+**AI Response**: "Branch feat/pinned-site-header; docs commit 0827198 folded the pending aidlc-docs edits. app.css: --header-h 4.75rem on :root with a comment, .site-header sticky top 0 z-index 100 background var(--bg), html scroll-padding-top var(--header-h), .editor-preview top var(--header-h); CRLF preserved. AppCssTests: new Fact SiteHeader_IsStickyAndAnchorTargetsClearIt. dotnet build -warnaserror 0 warnings; dotnet test 698 passed. Ephemeral Postgres container pf-quick-pg on 127.0.0.1:55432; app started on http://127.0.0.1:5590 with invented sample content for the visual check. Five review agents launched in parallel (correctness, security, framework, maintainability, performance), report-only."
+**Context**: Quick change (pinned site header): Code Generation Part 2 in progress
+
+---
+
+## Pinned header: local visual check done
+**Timestamp**: 2026-09-05T00:50:36Z
+**User Input**: (none)
+**AI Response**: "Local app on http://localhost:5072 (launch profile port; the ASPNETCORE_URLS override was ignored by dotnet run) against the throwaway Postgres container. Measured with JavaScript in the Browser pane because the hidden pane did not paint (screenshots timed out or came back black): desktop 1280 wide, header sticky at top 0 while scrolled, opaque in dark and light, z-index 100, height 63.76px; scroll-padding-top 76px; the #principles jump lands 13px below the bar; mobile 375 wide: header 67.78px pinned, burger opens the panel at the header bottom edge, stays attached at scrollY 1200, closes with aria-expanded false, anchor gap 8px; /blog, /blog/welcome with a Prism code block, /projects, /contact and /signin keep the header at top 0 after scrolling. --header-h stays 4.75rem. Pre-existing, unchanged, noted: the mobile panel overlaps the header border by 1px (top: 100% measures the padding box). App process and container stopped; production stack untouched. Plan boxes ticked through the visual check; waiting for the five review reports."
+**Context**: Quick change (pinned site header): visual check complete; review pending
+
+---
+
+## Pinned header: security review finding fixed; code committed
+**Timestamp**: 2026-09-05T00:52:32Z
+**User Input**: (none)
+**AI Response**: "Security review: PASS on BR-18 (no owner facts), no inline style or script, BR-13 intact, no secrets; one minor finding: the new test accepted any z-index, so a future bump could let the header cover the Blazor error bar. Fixed: the test now pins z-index 100 exactly and asserts numerically that #blazor-error-ui stacks above the header. Build 0 warnings; 698 tests. Code committed on feat/pinned-site-header (feat: keep the site header pinned while scrolling). Waiting for the correctness, framework, maintainability and performance reports."
+**Context**: Quick change (pinned site header): review in progress
+
+---
+
+## Pinned header: maintainability and performance reviews
+**Timestamp**: 2026-09-05T00:53:25Z
+**User Input**: (none)
+**AI Response**: "Performance: PASS (opaque sticky layer with no transitions in the header block repaints only on hover; view timelines on the road unaffected; no CLS because fixed-pixel children set the header height; LCP path untouched; the test reuses the once-per-run parsed rules). Maintainability: two minors and a nit: the z-index needed a rationale comment (added: above page content and the nav panel, below the error bar), the test should pin the z-index value and ordering (already fixed after the security review), and the constant comment should not restate the 26-token count (now cites ThemeRules.Tokens). Placement of --header-h, the test placement and tightness, the plan evidence and the editor-preview media variant (position static, so top has no effect) all confirmed fine. Build 0 warnings; 698 tests; committed 5dbad1b. Waiting for the correctness and framework reports."
+**Context**: Quick change (pinned site header): review in progress, three of five reports in
+
+---
+
+## Pinned header: correctness review
+**Timestamp**: 2026-09-05T00:54:24Z
+**User Input**: (none)
+**AI Response**: "Correctness: no ancestor overflow defeats stickiness; the mobile panel z-index 50 now lives inside the header stacking context and still paints above everything else (max 2 elsewhere); scroll padding and smooth scrolling are independent, the reduced-motion block only zeroes scroll-behavior; the editor-preview media variant is position static; the test handles the duplicate html and .editor-preview leaf rules with Where plus a predicate; BR-13 and NFR-6 intact. Findings: minor, the test pinned only the existence of --header-h (fixed: it now pins 4.75rem exactly); nit, the z-index value (already pinned); nit, 4.75rem overshoots the real header by 8 to 12px (by design: height plus a small gap; the mobile header is 67.8px so 4.75rem keeps at least 0.5rem of clearance there). Build 0 warnings; 698 tests; committed. Waiting for the framework report."
+**Context**: Quick change (pinned site header): four of five reports in
+
+---
+
+## Pinned header: framework review; review round complete
+**Timestamp**: 2026-09-05T00:59:33Z
+**User Input**: (none)
+**AI Response**: "Framework: sticky requirements met, the header stays the containing block of the mobile panel, the new stacking context scopes the panel z-index safely, scroll-padding-top covers target navigation, scrollIntoView and focus (Blazor enhanced navigation uses the native scrollIntoView, so it inherits the offset), the theme preview never renders the header, --bg is opaque under every override, the editor-preview media variant is static. One nit applied: --header-h was pure rem while the header mixes rem padding with a 38px burger and a 1px border, so at a root font size under about 13px the constant would shrink below the real header; now calc(2.3rem + 39px), 75.8px at the default root size, and the test pins that text. Five reviews complete; every finding applied; build 0 warnings; 698 tests; branch commits f08b237, 5dbad1b, ecd3bfb, 75f7f98. Next: docs commit, push, PR, Copilot."
+**Context**: Quick change (pinned site header): internal review complete
+
+---
+
