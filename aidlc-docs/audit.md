@@ -1149,3 +1149,109 @@ A"
 
 ---
 
+## Pinned header PR #99: missed test fix corrected
+**Timestamp**: 2026-09-05T01:05:02Z
+**User Input**: (none)
+**AI Response**: "The round 1 commit 01b39a2 carried only the state and audit changes: the multi-line replacement of the ZIndex helper matched nothing and the chain did not check for it. Applied the helper change line by line, verified it, build 0 warnings, 698 tests, committed ae01a6a, pushed, corrected the thread reply with the right commit, re-requested Copilot."
+**Context**: Quick change (pinned site header): Copilot gate, correction after round 1
+
+---
+
+## Pinned header PR #99: regex escapes restored
+**Timestamp**: 2026-09-05T01:06:00Z
+**User Input**: (none)
+**AI Response**: "Commit ae01a6a shipped a broken regex (z-indexs*:s*(d+)s*;) and one failing test: the Bash tool collapses doubled backslashes even inside single quotes, so the perl-generated C# lost its escapes; the chain also did not stop on the test failure. Fixed with the editor tool (no shell), CRLF verified, build 0 warnings, 698 tests green, committed 725e9b8, pushed, second correction posted on the thread, Copilot re-requested. Lesson recorded for memory: never generate backslash-bearing code through the shell; use the Write or Edit tools, and make chains stop on a failed test."
+**Context**: Quick change (pinned site header): Copilot gate, second correction after round 1
+
+---
+
+## Pinned header PR #99: Copilot rounds 2 and 3 were on stale commits
+**Timestamp**: 2026-09-05T01:08:45Z
+**User Input**: (none)
+**AI Response**: "CI green on head 725e9b8 (build-test, CodeQL, pr-title, GitGuardian). Copilot rounds 2 (01:03:51Z, on c02ce06) and 3 (01:06:53Z, on 01b39a2) reviewed commits from before the helper fix and repeated the same suppressed note; no new threads. No review request was pending, so Copilot was re-requested on 725e9b8; the watcher waits for a review on the head commit."
+**Context**: Quick change (pinned site header): Copilot gate, round 4 requested
+
+---
+
+## Owner message: merges done
+**Timestamp**: 2026-09-05T01:22:59Z
+**User Input**: "merge complete on feat and chore"
+**AI Response**: "Verifying PR #99 and the release chore on GitHub, then realigning master stash-first, stopping the review watcher and closing out the quick change in the plan, state and memory."
+**Context**: Quick change (pinned site header): merged by the owner
+
+---
+
+## Pinned header merged and released; master realigned
+**Timestamp**: 2026-09-05T01:24:10Z
+**User Input**: (none)
+**AI Response**: "Verified: PR #99 squash-merged by the owner at 01:19:37Z as fc793aa (no Copilot pass had landed on the head commit 725e9b8; rounds 1 to 3 covered earlier commits; owner decision to merge on CI plus the internal review); release 1.26.0 cut as PR #100 (88f3938) at 01:22:22Z. Master realigned stash-first to 88f3938, branch deleted, the audit tail restored. Plan, state, workflow plan and memory updated. Remaining owner step: bump the compose image tag to 1.26.0 in Z:/docker/portfolio and recreate the container. Next stage: Unit 10 addendum, Code Generation Part 1."
+**Context**: Quick change (pinned site header) COMPLETE; workflow continues with the Unit 10 addendum
+
+---
+
+## Unit 10 addendum: Code Generation Part 1 (plan) written; approval prompt
+**Timestamp**: 2026-09-05T01:26:02Z
+**User Input**: (none)
+**AI Response**: "Evidence: App.razor renders html statically with SiteConfig injected; theme.js applies the theme in the head before the button exists and site.js re-applies it after every enhanced load but not at startup; the toggle carries title Switch theme and the functional aria-label; SiteFlavorRules.Parse is tested in SiteConfigTests; theme.js is not linked into the test output yet. Wrote construction/plans/unit10-addendum-tooltip-plan.md: HtmlDataFlavor helper (bjj or null), the data-flavor attribute on html, syncToggleTitle in theme.js called from __applyTheme, __toggleTheme and DOMContentLoaded, theme.js linked into the tests, a Theory for the helper plus a text-scan test for the attribute, the two sentences and the unchanged aria-label, a local DOM check under both flavors, then the review, PR and gate. Orchestrator-implemented like PR 0. Asked for approval."
+**Context**: Unit 10 addendum: Code Generation Part 1 awaiting approval; owner deploy step pending for v1.26.0 (compose tag)
+
+---
+
+## Owner approval: Unit 10 addendum plan, with a wording correction
+**Timestamp**: 2026-09-05T01:33:49Z
+**User Input**: "\"Switch to the black belt (dark theme)\" should be \"gi\" not \"belt\".
+
+Approve and start now."
+**AI Response**: "Wording corrected everywhere: while light the tooltip reads Switch to the black gi (dark theme); while dark, Switch to the white gi (light theme). Plan approved (A): branching feat/theme-toggle-bjj-tooltip, docs commit, then the helper, the html attribute, theme.js, the test link and tests."
+**Context**: Unit 10 addendum: Code Generation Part 2 starting
+
+---
+
+## Unit 10 addendum: local check under the BJJ flavor
+**Timestamp**: 2026-09-05T01:39:55Z
+**User Input**: (none)
+**AI Response**: "Analyzer fix first: the strict build flagged xUnit2013 on two Assert.Equal count checks (the earlier chain had masked the build exit code behind a grep pipe); replaced with Assert.Single, build exit 0, 703 tests, committed 59a02e7; the gate now tests the build exit code directly. Local app on http://localhost:5590 with SITE_FLAVOR=bjj, measured in the Browser pane DOM: html carries data-flavor bjj; at first paint (dark) the toggle title reads Switch to the white gi (light theme) and the aria-label is unchanged; one click gives light and Switch to the black gi (dark theme); a second click returns to dark and the white-gi sentence; an enhanced navigation to /blog keeps the attribute and the right title; toggling on /blog works both ways. Restarting with the flavor unset for the default check."
+**Context**: Unit 10 addendum: local check, part 1 of 2
+
+---
+
+## Unit 10 addendum: local check under the default flavor; plan ticked
+**Timestamp**: 2026-09-05T01:40:44Z
+**User Input**: (none)
+**AI Response**: "Default run on localhost:5590 with the flavor unset: the served html element is exactly html lang en with no data-flavor anywhere in the page; the toggle title stays Switch theme through two toggles; the aria-label unchanged. Local app and the throwaway container stopped; production stack untouched. Plan ticked through the local check; waiting for the five review reports."
+**Context**: Unit 10 addendum: local check complete; review pending
+
+---
+
+## Unit 10 addendum: security, performance and correctness reviews
+**Timestamp**: 2026-09-05T01:46:36Z
+**User Input**: (none)
+**AI Response**: "Security PASS (attribute value comes only from a two-value enum built once at startup; the script writes a title property from two literals; Razor comment cannot leak; no inline handler; BR-18 clean). Performance PASS with a nit: the head script roughly doubled (about 400 bytes gzipped), no action, split BJJ-only logic out if it keeps growing. Correctness: call-site timing, enhanced navigation, the singleton flavor and the OS-light case all confirmed; a minor: no rendered test proves the null attribute is omitted (the local check proved it on the served page; adding a small HtmlRenderer probe that renders the helper through the same attribute API); a nit: the fully qualified name in App.razor is redundant given _Imports.razor, but App.razor qualifies every service name in full, so it stays and the test pin now tolerates either form; a nit on substring scans accepted as existing precedent."
+**Context**: Unit 10 addendum: review in progress, three of five reports in
+
+---
+
+## Unit 10 addendum: maintainability review
+**Timestamp**: 2026-09-05T01:48:21Z
+**User Input**: (none)
+**AI Response**: "Maintainability: naming, the DOMContentLoaded pattern, the plan evidence and the docs (no README, CONTEXT.md or .env.example change needed) all confirmed. Findings applied: the App.razor comment now says site.js re-applies the theme through theme.js __applyTheme (it had credited theme.js); the App.razor pin now matches the data-flavor attribute on the html tag whatever its other attributes are, tolerant of the namespace prefix; the MainLayout pin is scoped to the toggle button opening tag; the __toggleTheme call site got its one-line comment. Also added, from the correctness review: two rendered HtmlRenderer probes that build an element with the same AddAttribute API the Razor compiler emits, pinning that a null value omits the attribute and bjj writes it."
+**Context**: Unit 10 addendum: four of five reports in; framework pending
+
+---
+
+## Unit 10 addendum: framework review; pinned header deployed
+**Timestamp**: 2026-09-05T01:55:39Z
+**User Input**: (none)
+**AI Response**: "Framework: AddAttribute omits a null value (no data- special case in RenderTreeBuilder), the full-line Razor comment is stripped with its line terminator, enhanced navigation syncs html attributes so the server-rendered data-flavor survives while data-theme and the title are reset and re-applied, the head script cannot race DOMContentLoaded. One plausible blocker applied: the csproj Link js backslash theme.js would not be normalized by MSBuild on the ubuntu runner (no js folder beside the test project), so the file would land under a literal name and the test would fail in CI; now Link js/theme.js, verified copied to bin/Debug/net10.0/js/theme.js on Windows, build exit 0, 705 tests, committed 0a42039. Observed: the owner bumped Z:/docker/portfolio compose to 1.26.0 and recreated the container (running, healthy); PR 0 fully deployed."
+**Context**: Unit 10 addendum: five reviews complete; PR next
+
+---
+
+## Unit 10 addendum: PR #101 opened
+**Timestamp**: 2026-09-05T01:55:45Z
+**User Input**: (none)
+**AI Response**: "Pushed feat/theme-toggle-bjj-tooltip; opened PR #101 (feat: BJJ wording for the theme-toggle tooltip); state file updated with the PR number and the 1.26.0 deploy; Copilot review requested."
+**Context**: Unit 10 addendum: Copilot gate
+
+---
+
