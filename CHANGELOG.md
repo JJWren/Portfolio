@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/JJWren/Portfolio/compare/v1.25.1...v1.26.0) (2026-09-05)
+
+
+### Features
+
+* keep the site header pinned while scrolling ([#99](https://github.com/JJWren/Portfolio/issues/99)) ([fc793aa](https://github.com/JJWren/Portfolio/commit/fc793aade0a6aa6cd8b9918523717aa7dcff2d41))
+
 ## [1.25.1](https://github.com/JJWren/Portfolio/compare/v1.25.0...v1.25.1) (2026-09-04)
 
 
