@@ -1207,3 +1207,43 @@ Approve and start now."
 
 ---
 
+## Unit 10 addendum: local check under the BJJ flavor
+**Timestamp**: 2026-09-05T01:39:55Z
+**User Input**: (none)
+**AI Response**: "Analyzer fix first: the strict build flagged xUnit2013 on two Assert.Equal count checks (the earlier chain had masked the build exit code behind a grep pipe); replaced with Assert.Single, build exit 0, 703 tests, committed 59a02e7; the gate now tests the build exit code directly. Local app on http://localhost:5590 with SITE_FLAVOR=bjj, measured in the Browser pane DOM: html carries data-flavor bjj; at first paint (dark) the toggle title reads Switch to the white gi (light theme) and the aria-label is unchanged; one click gives light and Switch to the black gi (dark theme); a second click returns to dark and the white-gi sentence; an enhanced navigation to /blog keeps the attribute and the right title; toggling on /blog works both ways. Restarting with the flavor unset for the default check."
+**Context**: Unit 10 addendum: local check, part 1 of 2
+
+---
+
+## Unit 10 addendum: local check under the default flavor; plan ticked
+**Timestamp**: 2026-09-05T01:40:44Z
+**User Input**: (none)
+**AI Response**: "Default run on localhost:5590 with the flavor unset: the served html element is exactly html lang en with no data-flavor anywhere in the page; the toggle title stays Switch theme through two toggles; the aria-label unchanged. Local app and the throwaway container stopped; production stack untouched. Plan ticked through the local check; waiting for the five review reports."
+**Context**: Unit 10 addendum: local check complete; review pending
+
+---
+
+## Unit 10 addendum: security, performance and correctness reviews
+**Timestamp**: 2026-09-05T01:46:36Z
+**User Input**: (none)
+**AI Response**: "Security PASS (attribute value comes only from a two-value enum built once at startup; the script writes a title property from two literals; Razor comment cannot leak; no inline handler; BR-18 clean). Performance PASS with a nit: the head script roughly doubled (about 400 bytes gzipped), no action, split BJJ-only logic out if it keeps growing. Correctness: call-site timing, enhanced navigation, the singleton flavor and the OS-light case all confirmed; a minor: no rendered test proves the null attribute is omitted (the local check proved it on the served page; adding a small HtmlRenderer probe that renders the helper through the same attribute API); a nit: the fully qualified name in App.razor is redundant given _Imports.razor, but App.razor qualifies every service name in full, so it stays and the test pin now tolerates either form; a nit on substring scans accepted as existing precedent."
+**Context**: Unit 10 addendum: review in progress, three of five reports in
+
+---
+
+## Unit 10 addendum: maintainability review
+**Timestamp**: 2026-09-05T01:48:21Z
+**User Input**: (none)
+**AI Response**: "Maintainability: naming, the DOMContentLoaded pattern, the plan evidence and the docs (no README, CONTEXT.md or .env.example change needed) all confirmed. Findings applied: the App.razor comment now says site.js re-applies the theme through theme.js __applyTheme (it had credited theme.js); the App.razor pin now matches the data-flavor attribute on the html tag whatever its other attributes are, tolerant of the namespace prefix; the MainLayout pin is scoped to the toggle button opening tag; the __toggleTheme call site got its one-line comment. Also added, from the correctness review: two rendered HtmlRenderer probes that build an element with the same AddAttribute API the Razor compiler emits, pinning that a null value omits the attribute and bjj writes it."
+**Context**: Unit 10 addendum: four of five reports in; framework pending
+
+---
+
+## Unit 10 addendum: framework review; pinned header deployed
+**Timestamp**: 2026-09-05T01:55:39Z
+**User Input**: (none)
+**AI Response**: "Framework: AddAttribute omits a null value (no data- special case in RenderTreeBuilder), the full-line Razor comment is stripped with its line terminator, enhanced navigation syncs html attributes so the server-rendered data-flavor survives while data-theme and the title are reset and re-applied, the head script cannot race DOMContentLoaded. One plausible blocker applied: the csproj Link js backslash theme.js would not be normalized by MSBuild on the ubuntu runner (no js folder beside the test project), so the file would land under a literal name and the test would fail in CI; now Link js/theme.js, verified copied to bin/Debug/net10.0/js/theme.js on Windows, build exit 0, 705 tests, committed 0a42039. Observed: the owner bumped Z:/docker/portfolio compose to 1.26.0 and recreated the container (running, healthy); PR 0 fully deployed."
+**Context**: Unit 10 addendum: five reviews complete; PR next
+
+---
+
