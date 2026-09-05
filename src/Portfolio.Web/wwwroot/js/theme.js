@@ -40,7 +40,7 @@
         var next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
         document.documentElement.dataset.theme = next;
         try { localStorage.setItem('theme', next); } catch (e) { /* storage blocked */ }
-        syncToggleTitle();
+        syncToggleTitle(); // the tooltip names the theme the next click switches to
     };
 
     window.__applyTheme();

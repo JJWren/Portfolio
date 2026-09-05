@@ -7,8 +7,8 @@
 @* data-flavor lets theme.js pick the BJJ wording for the theme toggle's
    tooltip. Null under the default flavor, so the attribute is omitted and
    the plain page's markup is unchanged. Unlike data-theme, which enhanced
-   navigation strips and theme.js re-applies, this attribute survives the
-   merge because the server markup carries it. *@
+   navigation strips and site.js re-applies through theme.js's __applyTheme,
+   this attribute survives the merge because the server markup carries it. *@
 <html lang="en" data-flavor="@Portfolio.Web.Services.SiteFlavorRules.HtmlDataFlavor(Site.Flavor)">
 
 <head>
