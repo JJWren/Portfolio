@@ -959,3 +959,193 @@ Begin phase 1 per my guidance."
 
 ---
 
+## Close-out docs merged; new session handoff
+**Timestamp**: 2026-09-04T22:01:27Z
+**User Input**: (none)
+**AI Response**: "Copilot on PR #98: Approval recommended, zero comments; CI green. Squash-merged as 0e737e2; master realigned; branch deleted. Everything Unit 10 produced is on master, including construction/plans/unit10-closeout-handoff-2026-09-04.md. This entry is the only uncommitted change in the main checkout; the next session folds it into its first docs commit. Starting the new session from the close-out handoff as instructed."
+**Context**: Unit 10 COMPLETE; handoff to a new session
+
+---
+
+## User question: waiting for the release?
+**Timestamp**: 2026-09-04T22:04:29Z
+**User Input**: "Are you waiting for the release to cut to start the new session?"
+**AI Response**: "No: the new-session chip is already available and starts on the owner click; the release is independent. Checked whether release-please has opened the next release PR."
+**Context**: Unit 10 COMPLETE; handoff
+
+---
+
+## Workspace Detection: new session from the close-out handoff
+**Timestamp**: 2026-09-04T22:08:57Z
+**User Input**: "/remote-control" (not available in this environment), followed by the full text of aidlc-docs/construction/plans/unit10-closeout-handoff-2026-09-04.md as committed on master (the new-session chip prompt, pasted verbatim).
+**AI Response**: "Brownfield; aidlc-state.md and the reverse-engineering artifacts exist, so no reverse-engineering pass. Verified on GitHub: PR #96 merged (0a67607), PR #98 merged (0e737e2), release v1.25.1 cut from release PR #97 (66e3317) at 22:02:43Z with CI, release-please and CodeQL green on master; no open PRs. Local master was one commit behind origin (the release commit touches only CHANGELOG.md), fast-forwarded to 66e3317 without a stash; the 16-line audit append from the previous session is still the only uncommitted change and stays for the first docs commit of the next work. Memory updated with the release. Unit 10 has no code work left. The pick-up candidates from the handoff: owner actions after deploy (SITE_FLAVOR=bjj, content sheet at /admin/site, OWNER_PHOTO_FLIP_FILE and the mat portrait, optional local .env alignment, the python3 alias toggle in Windows Settings); the deferred theme-toggle title wording; the recorded follow-ups (current belt field, per-node landing sections, kids and coral belts, security headers and rate limiting, longer cache lifetime for /fonts/*); audit housekeeping. Asked the owner which to start, in the multiple-choice format."
+**Context**: Workspace Detection; Unit 10 COMPLETE and released as v1.25.1; waiting for the owner to choose the next work
+
+---
+
+## Owner answer: next work after Unit 10
+**Timestamp**: 2026-09-04T22:20:35Z
+**User Input**: "A) okay
+B) sure
+C) yes
+D) yes
+E) not sure what you want here... this seems more like a deferment issue"
+**AI Response**: "All four approved: A the owner deploy checklist (docs only), B the BJJ theme-toggle titles with the proposed wording, C a current-belt field for the rank bar, D security headers and rate limiting. E means nothing else now: per-node landing sections, kids and coral belts and the /fonts/* cache lifetime stay deferred. Plan: deliver A now; run one Requirements Analysis covering B, C and D as three units (Unit 10 addendum, Unit 11, Unit 12); then Workflow Planning; construction per unit under the orchestration model (one Sonnet phase agent, five reviewers, PR, Copilot gate, squash-merge)."
+**Context**: Requirements Analysis starting for B, C, D; A delivered as an owner checklist
+
+---
+
+## Requirements Analysis: approval prompt (B, C, D)
+**Timestamp**: 2026-09-04T22:31:22Z
+**User Input**: (none)
+**AI Response**: "Delivered A: construction/unit10-bjj-landing/owner-deploy-checklist.md (six steps plus rollback; values copied from the plan content sheet; sent to the owner as a file). Wrote inception/requirements/requirements-post-unit10-followups.md covering B (Unit 10 addendum, minimal), C (Unit 11, standard) and D (Unit 12, standard, two PRs) with decisions taken by default: blank current belt renders black; env name SITE_CURRENT_BELT; CSP enforced by default with a SECURITY_CSP_MODE switch; HSTS unchanged; no global limiter, targeted endpoint policies plus per-user comment and report limits; TRUSTED_PROXIES blank keeps the current trust-all behaviour; limit numbers as code constants. One open question: CSP image sources for blog posts (same-origin only, or any HTTPS). aidlc-state.md updated with the follow-ups block. Asked: Requirements analysis complete. Do you want to request changes or continue to the next stage?"
+**Context**: Requirements Analysis complete for B, C, D; awaiting owner approval and the image-source answer
+
+---
+
+## Owner answer: requirements approval and D-Q1
+**Timestamp**: 2026-09-04T22:34:14Z
+**User Input**: "D-Q1) B
+
+A"
+**AI Response**: "D-Q1 = B: the CSP allows any HTTPS image (img-src self, blob and https), so hot-linked post images keep working. Approval = A: continue to Workflow Planning with the requirements and the seven default decisions as written. Updated FR-D2 and section 7 of the requirements document, ticked Requirements Analysis in aidlc-state.md, starting Workflow Planning."
+**Context**: Requirements Analysis approved for B, C, D; Workflow Planning starting
+
+---
+
+## Owner question: what is left for the BJJ theming
+**Timestamp**: 2026-09-04T22:36:35Z
+**User Input**: "What is left to work on for the bjj theming design overhaul?"
+**AI Response**: "Unit 10 code is complete and released in v1.25.1. Left: the owner deploy steps in construction/unit10-bjj-landing/owner-deploy-checklist.md (flavor switch, content entry, mat portrait, alt texts); the two approved follow-ups that touch the theming, the theme-toggle tooltip wording (Unit 10 addendum) and the current-belt field (Unit 11), both now in Workflow Planning; and the items the owner deferred on 2026-09-04 (per-node landing sections, kids and coral belts, the fonts cache lifetime), not planned."
+**Context**: Workflow Planning; status question answered in the same message as the plan approval prompt
+
+---
+
+## Workflow Planning: approval prompt
+**Timestamp**: 2026-09-04T22:36:35Z
+**User Input**: (none)
+**AI Response**: "Wrote inception/plans/workflow-planning-post-unit10-followups.md: stage decisions per unit (addendum: code generation only; Unit 11: minimal functional design plus code generation with migration AddCurrentBelt; Unit 12: minimal application design, standard NFR requirements, standard NFR design, two-phase code generation; Build and Test refresh with a new security verification instruction file), twelve approval gates with an optional merge of the three Unit 12 design gates into one, the PR sequence (feat: BJJ wording for the theme-toggle tooltip; feat: current belt for the rank bar; feat: security headers with an enforced content security policy; feat: rate limiting for auth, feeds, comments and reports), the per-PR cycle under the orchestration model, the file map per PR, a Mermaid chain with a text alternative, and the risks. Asked for approval with the override options."
+**Context**: Workflow Planning complete; awaiting owner approval
+
+---
+
+## Owner question: where the checklist is; then an interrupt and a deploy-folder instruction
+**Timestamp**: 2026-09-04T22:43:22Z
+**User Input**: "Where is my checklist at that you sent"
+**AI Response**: "Started to answer (repo path construction/unit10-bjj-landing/owner-deploy-checklist.md, also delivered as a file) and to re-send the file; the owner interrupted before the reply went out."
+**Context**: Workflow Planning awaiting approval; owner deploy steps
+
+---
+
+## Owner instruction: edit the production env and compose files
+**Timestamp**: 2026-09-04T22:43:22Z
+**User Input**: "Edit the .env and docker-compose.yml in Z:\docker\portfolio with the needed changes"
+**AI Response**: "Inspected Z:/docker/portfolio with every env value masked (no secret read or logged): compose already pins ghcr.io/jjwren/portfolio:1.25.1, reads .env through env_file, and bind-mounts ./photo read-write at /app/photo where OWNER_PHOTO_FILE=/app/photo/owner-photo.webp lives; the .env (CRLF) had no BJJ keys yet. Appended to .env: OWNER_PHOTO_FLIP_FILE=/app/photo/owner-photo-mat.webp (WebP because the admin upload re-encodes to WebP), OWNER_PHOTO_FLIP_ALT blank, and SITE_FLAVOR=bjj, with comments in the file style. docker-compose.yml needed no functional change; only the photo-mount comment now names both photo keys. Did not restart the container or copy the mat photo; told the owner the next commands."
+**Context**: Owner deploy steps for Unit 10 (checklist Step 1 done in the deployment folder)
+
+---
+
+## Owner confirmation: deploy checklist complete
+**Timestamp**: 2026-09-04T22:50:28Z
+**User Input**: "My checklist is complete. Everything looks good."
+**AI Response**: "Recorded: the BJJ landing is live in production as of 2026-09-04. Ticked the owner-action boxes in the Unit 10 plan (Phases 2, 3 and 4), the check items in the owner checklist, and the state file; memory updated with the production deployment folder and the completion. Left unticked pending word from the owner: the optional local .env alignment (Phase 0) and the Windows python3 alias toggle. Verified the live page read-only with curl. Re-asked for the workflow plan approval, still open."
+**Context**: Unit 10 owner actions complete; Workflow Planning approval still pending
+
+---
+
+## Live check after the owner deploy; proxy header finding
+**Timestamp**: 2026-09-04T22:51:55Z
+**User Input**: (none)
+**AI Response**: "Read-only curl of https://joshuamykitta.dev/ returned 200 with the game plan, rank bar, road, principles, now, photo switch and /owner-photo-flip present: the BJJ landing is live. Response headers arrive through an openresty proxy that already sends Strict-Transport-Security max-age 2592000, Content-Security-Policy frame-ancestors self and X-Frame-Options SAMEORIGIN, with no nosniff, referrer or permissions policy. Recorded as production evidence in the requirements (FR-D7 gains a coordination rule: no conflicting X-Frame-Options duplicate, every CSP header is enforced) and in memory, together with the production deployment folder facts."
+**Context**: Unit 10 live; evidence for Unit 12 NFR requirements
+
+---
+
+## Owner answer: workflow plan approved; new quick change requested
+**Timestamp**: 2026-09-04T22:56:26Z
+**User Input**: "A. Also, make a quick change to let the navbar at the top stay locked at the top when a user scrolls down/up."
+**AI Response**: "Workflow plan approved as written (A). New request: a pinned site header. Treating it as a quick change ahead of the planned PRs: minimal requirements (intent), a slot in the workflow plan as PR 0, and a short code-generation plan, presented together for one approval because the change is small; the owner can split the gates. Investigating the header markup, CSS, mobile nav, anchor targets and the positioning tests first."
+**Context**: Workflow Planning approved; quick change (pinned navbar) entering Requirements and Code Generation planning
+
+---
+
+## Quick change (pinned header): requirements, slot and code plan; approval prompt
+**Timestamp**: 2026-09-04T22:59:15Z
+**User Input**: (none)
+**AI Response**: "Evidence gathered: .site-header is position relative with no background and a bottom border; the 720px block drops the nav panel from the header at top 100 percent with z-index 50; html has scroll-behavior smooth and no scroll padding; body and main set no overflow; .editor-preview in the admin editor is sticky at top 1rem; #blazor-error-ui is the only fixed rule. Wrote requirements section 4.4 (FR-Q1 to FR-Q6: sticky not fixed, opaque theme background, root scroll padding through a --header-h layout constant that the editor preview also uses, mobile panel unchanged, one AppCssTests pin), added PR 0 to the workflow plan, and wrote construction/plans/quick-pinned-header-plan.md (orchestrator-implemented, five-area review and Copilot gate kept). Presented the three together for one approval because the change is small; the owner can split them."
+**Context**: Quick change (pinned site header); Requirements minimal, Workflow slot PR 0, Code Generation Part 1 awaiting approval
+
+---
+
+## Owner approval: pinned site header (intent, PR 0 slot, code plan)
+**Timestamp**: 2026-09-05T00:39:58Z
+**User Input**: "A"
+**AI Response**: "Approved: intent (requirements 4.4), PR 0 slot and construction/plans/quick-pinned-header-plan.md; orchestrator implements directly with the five-area review and the Copilot gate. Starting: realign check, branch feat/pinned-site-header, docs commit folding the pending aidlc-docs edits, then the CSS and test changes."
+**Context**: Quick change (pinned site header): Code Generation Part 2 starting
+
+---
+
+## Pinned header: code change, build and tests
+**Timestamp**: 2026-09-05T00:45:16Z
+**User Input**: (none)
+**AI Response**: "Branch feat/pinned-site-header; docs commit 0827198 folded the pending aidlc-docs edits. app.css: --header-h 4.75rem on :root with a comment, .site-header sticky top 0 z-index 100 background var(--bg), html scroll-padding-top var(--header-h), .editor-preview top var(--header-h); CRLF preserved. AppCssTests: new Fact SiteHeader_IsStickyAndAnchorTargetsClearIt. dotnet build -warnaserror 0 warnings; dotnet test 698 passed. Ephemeral Postgres container pf-quick-pg on 127.0.0.1:55432; app started on http://127.0.0.1:5590 with invented sample content for the visual check. Five review agents launched in parallel (correctness, security, framework, maintainability, performance), report-only."
+**Context**: Quick change (pinned site header): Code Generation Part 2 in progress
+
+---
+
+## Pinned header: local visual check done
+**Timestamp**: 2026-09-05T00:50:36Z
+**User Input**: (none)
+**AI Response**: "Local app on http://localhost:5072 (launch profile port; the ASPNETCORE_URLS override was ignored by dotnet run) against the throwaway Postgres container. Measured with JavaScript in the Browser pane because the hidden pane did not paint (screenshots timed out or came back black): desktop 1280 wide, header sticky at top 0 while scrolled, opaque in dark and light, z-index 100, height 63.76px; scroll-padding-top 76px; the #principles jump lands 13px below the bar; mobile 375 wide: header 67.78px pinned, burger opens the panel at the header bottom edge, stays attached at scrollY 1200, closes with aria-expanded false, anchor gap 8px; /blog, /blog/welcome with a Prism code block, /projects, /contact and /signin keep the header at top 0 after scrolling. --header-h stays 4.75rem. Pre-existing, unchanged, noted: the mobile panel overlaps the header border by 1px (top: 100% measures the padding box). App process and container stopped; production stack untouched. Plan boxes ticked through the visual check; waiting for the five review reports."
+**Context**: Quick change (pinned site header): visual check complete; review pending
+
+---
+
+## Pinned header: security review finding fixed; code committed
+**Timestamp**: 2026-09-05T00:52:32Z
+**User Input**: (none)
+**AI Response**: "Security review: PASS on BR-18 (no owner facts), no inline style or script, BR-13 intact, no secrets; one minor finding: the new test accepted any z-index, so a future bump could let the header cover the Blazor error bar. Fixed: the test now pins z-index 100 exactly and asserts numerically that #blazor-error-ui stacks above the header. Build 0 warnings; 698 tests. Code committed on feat/pinned-site-header (feat: keep the site header pinned while scrolling). Waiting for the correctness, framework, maintainability and performance reports."
+**Context**: Quick change (pinned site header): review in progress
+
+---
+
+## Pinned header: maintainability and performance reviews
+**Timestamp**: 2026-09-05T00:53:25Z
+**User Input**: (none)
+**AI Response**: "Performance: PASS (opaque sticky layer with no transitions in the header block repaints only on hover; view timelines on the road unaffected; no CLS because fixed-pixel children set the header height; LCP path untouched; the test reuses the once-per-run parsed rules). Maintainability: two minors and a nit: the z-index needed a rationale comment (added: above page content and the nav panel, below the error bar), the test should pin the z-index value and ordering (already fixed after the security review), and the constant comment should not restate the 26-token count (now cites ThemeRules.Tokens). Placement of --header-h, the test placement and tightness, the plan evidence and the editor-preview media variant (position static, so top has no effect) all confirmed fine. Build 0 warnings; 698 tests; committed 5dbad1b. Waiting for the correctness and framework reports."
+**Context**: Quick change (pinned site header): review in progress, three of five reports in
+
+---
+
+## Pinned header: correctness review
+**Timestamp**: 2026-09-05T00:54:24Z
+**User Input**: (none)
+**AI Response**: "Correctness: no ancestor overflow defeats stickiness; the mobile panel z-index 50 now lives inside the header stacking context and still paints above everything else (max 2 elsewhere); scroll padding and smooth scrolling are independent, the reduced-motion block only zeroes scroll-behavior; the editor-preview media variant is position static; the test handles the duplicate html and .editor-preview leaf rules with Where plus a predicate; BR-13 and NFR-6 intact. Findings: minor, the test pinned only the existence of --header-h (fixed: it now pins 4.75rem exactly); nit, the z-index value (already pinned); nit, 4.75rem overshoots the real header by 8 to 12px (by design: height plus a small gap; the mobile header is 67.8px so 4.75rem keeps at least 0.5rem of clearance there). Build 0 warnings; 698 tests; committed. Waiting for the framework report."
+**Context**: Quick change (pinned site header): four of five reports in
+
+---
+
+## Pinned header: framework review; review round complete
+**Timestamp**: 2026-09-05T00:59:33Z
+**User Input**: (none)
+**AI Response**: "Framework: sticky requirements met, the header stays the containing block of the mobile panel, the new stacking context scopes the panel z-index safely, scroll-padding-top covers target navigation, scrollIntoView and focus (Blazor enhanced navigation uses the native scrollIntoView, so it inherits the offset), the theme preview never renders the header, --bg is opaque under every override, the editor-preview media variant is static. One nit applied: --header-h was pure rem while the header mixes rem padding with a 38px burger and a 1px border, so at a root font size under about 13px the constant would shrink below the real header; now calc(2.3rem + 39px), 75.8px at the default root size, and the test pins that text. Five reviews complete; every finding applied; build 0 warnings; 698 tests; branch commits f08b237, 5dbad1b, ecd3bfb, 75f7f98. Next: docs commit, push, PR, Copilot."
+**Context**: Quick change (pinned site header): internal review complete
+
+---
+
+## Pinned header: PR opened
+**Timestamp**: 2026-09-05T01:00:20Z
+**User Input**: (none)
+**AI Response**: "Docs commit c02ce06 (review trail and plan ticks). Pushed feat/pinned-site-header and opened PR #99 (feat: keep the site header pinned while scrolling) with the What, Why, Verification and reviewer notes body; requested the Copilot review. Waiting for CI and the Copilot pass."
+**Context**: Quick change (pinned site header): Copilot gate
+
+---
+
+## Pinned header PR #99: Copilot round 1
+**Timestamp**: 2026-09-05T01:03:46Z
+**User Input**: (none)
+**AI Response**: "CI green (build-test, CodeQL both languages, pr-title, GitGuardian). Copilot round 1: Changes recommended, two comments: the ZIndex test helper would throw a FormatException with no clear message if a rule lost its numeric z-index (fixed: the helper asserts the regex match with a message naming the selector before parsing); aidlc-state.md still said the quick change was awaiting owner approval while audit.md recorded the approval (fixed: the state line now records the approval, the branch and PR #99). Build 0 warnings; 698 tests. Pushed, replied on both threads, re-requested Copilot for round 2."
+**Context**: Quick change (pinned site header): Copilot gate round 1 addressed
+
+---
+

@@ -237,6 +237,51 @@ public class AppCssTests : IDisposable
     }
 
     [Fact]
+    public void SiteHeader_IsStickyAndAnchorTargetsClearIt()
+    {
+        // The pinned site header (quick change, 2026-09-04): sticky, never
+        // fixed, so BR-13 and the fixed-position facts above stay true; an
+        // opaque theme-token background so scrolled content never shows
+        // through; and one layout constant (--header-h) that both the root
+        // scroll padding (anchor jumps and keyboard focus land below the bar)
+        // and the admin editors' sticky preview panel use to clear it.
+        var header = AppCssRules.Where(static r => r.Selector == ".site-header").ToList();
+        Assert.NotEmpty(header);
+        Assert.Contains(header, static r =>
+            r.Declarations.Contains("position: sticky;", StringComparison.Ordinal)
+            && r.Declarations.Contains("top: 0;", StringComparison.Ordinal)
+            && r.Declarations.Contains("z-index: 100;", StringComparison.Ordinal)
+            && r.Declarations.Contains("background: var(--bg);", StringComparison.Ordinal));
+        Assert.DoesNotContain(header, static r =>
+            Regex.IsMatch(r.Declarations, @"position\s*:\s*fixed", RegexOptions.IgnoreCase));
+
+        // FR-Q3: above page content, below the Blazor error bar (the one
+        // fixed-position rule, bottom-anchored). Pinned numerically so a
+        // future bump of either value cannot let the header cover the error
+        // bar's Reload and dismiss controls during a circuit failure.
+        var errorUi = AppCssRules.Single(static r => r.Selector == "#blazor-error-ui");
+        Assert.True(
+            ZIndex(errorUi) > ZIndex(header.Single(static r => r.Declarations.Contains("z-index: 100;", StringComparison.Ordinal))),
+            "#blazor-error-ui must stack above the pinned header.");
+
+        var root = AppCssRules.Single(static r => r.Selector == ":root");
+        Assert.Contains("--header-h: calc(2.3rem + 39px);", root.Declarations);
+
+        Assert.Contains(AppCssRules.Where(static r => r.Selector == "html"),
+            static r => r.Declarations.Contains("scroll-padding-top: var(--header-h);", StringComparison.Ordinal));
+
+        Assert.Contains(AppCssRules.Where(static r => r.Selector == ".editor-preview"),
+            static r => r.Declarations.Contains("top: var(--header-h);", StringComparison.Ordinal));
+
+        static int ZIndex(CssRule rule)
+        {
+            var match = Regex.Match(rule.Declarations, @"z-index\s*:\s*(\d+)\s*;");
+            Assert.True(match.Success, $"'{rule.Selector}' should declare a numeric z-index.");
+            return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    [Fact]
     public void RootConstants_AreNotRedefinedInTheLightThemeBlock()
     {
         // The whole point of ADR 0002 is that they're identical in both

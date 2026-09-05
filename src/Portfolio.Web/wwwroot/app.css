@@ -68,6 +68,15 @@
     --rank-brown: #6b4423;
     --rank-black: #0c0c0c;
 
+    /* Layout constant for the pinned site header: its height plus a small
+       gap, in the header's own unit mix (2 x 0.9rem inner padding + the
+       38px burger + the 1px border, plus a 0.5rem gap) so it tracks the real
+       height at any root font size. Not a theme token (ThemeRules.Tokens is
+       untouched): html uses it as scroll-padding-top so anchor jumps and
+       keyboard focus land below the bar, and the admin editors' sticky
+       preview panel uses it to clear the bar. */
+    --header-h: calc(2.3rem + 39px);
+
     color-scheme: dark;
 }
 
@@ -98,6 +107,7 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--header-h);
 }
 
 body {
@@ -185,7 +195,12 @@ main {
    Header / nav
    ================================================================ */
 .site-header {
-    position: relative;
+    position: sticky;
+    top: 0;
+    /* Above page content and .site-nav's own z-index: 50 (which lives inside
+       this stacking context); below #blazor-error-ui's 1000. */
+    z-index: 100;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
 }
 
@@ -2710,7 +2725,7 @@ select:focus {
 
 .editor-preview {
     position: sticky;
-    top: 1rem;
+    top: var(--header-h);
     padding: 1rem 1.4rem;
     background: var(--surface);
     border: 1px solid var(--border);

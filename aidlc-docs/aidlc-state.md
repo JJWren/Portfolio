@@ -32,7 +32,7 @@
 - [x] Unit 7: Contact form (COMPLETE — see construction/plans/unit7-contact-plan.md)
 - [x] Unit 8: Extras + polish + CI (COMPLETE — repo live at github.com/JJWren/Portfolio; see construction/plans/unit8-extras-plan.md)
 - [x] Build and Test — instruction docs written; CI run 1 SUCCESS (build + 41 tests + GHCR publish); clean-slate compose verified. User-only items listed in build-and-test-summary.md.
-- [x] Unit 10: BJJ-themed landing page — COMPLETE 2026-09-04 with the merge of PR #96 (Phases 1 to 5: PRs #89, #90, #92, #94, #96; 697 tests). Close-out handoff: construction/plans/unit10-closeout-handoff-2026-09-04.md. Owner actions after deploy and one deferred owner-call item are listed there. Brief: construction/plans/unit10-bjj-landing-handoff.md (seven decisions locked 2026-09-04). Design sources: inception/application-design/landing-directions/. Plan: construction/plans/unit10-bjj-landing-plan.md.
+- [x] Unit 10: BJJ-themed landing page — COMPLETE 2026-09-04 with the merge of PR #96 (Phases 1 to 5: PRs #89, #90, #92, #94, #96; 697 tests). Close-out handoff: construction/plans/unit10-closeout-handoff-2026-09-04.md. Owner actions completed 2026-09-04 (checklist confirmed; the BJJ landing is live in production); the deferred owner-call item became the Unit 10 addendum. Brief: construction/plans/unit10-bjj-landing-handoff.md (seven decisions locked 2026-09-04). Design sources: inception/application-design/landing-directions/. Plan: construction/plans/unit10-bjj-landing-plan.md.
   - [x] Functional Design (minimal) — 2026-09-04: construction/unit10-bjj-landing/functional-design/domain-entities.md and business-rules.md (BR-1 to BR-19)
   - [x] NFR Requirements — skipped (constraints fixed in inception/requirements/requirements.md section 5 and the handoff)
   - [x] NFR Design — skipped (no new NFR patterns; same stack)
@@ -40,6 +40,13 @@
   - [x] Code Generation Part 1 (plan) — written and approved 2026-09-04 (functional design approved in the same message); orchestration model: one Sonnet subagent per phase, five-area review after each phase, then PR, Copilot gate, squash-merge
   - [x] Code Generation Part 2 — COMPLETE: Phase 1 merged 2026-09-04 as PR #89 (c1380a2, 445 tests); Phase 2 merged 2026-09-04 as PR #90 (e6a4a75, 567 tests); Phase 3 merged 2026-09-04 as PR #92 (7dddfdf, 666 tests); Phase 4 merged 2026-09-04 as PR #94 (18b1788, 689 tests); Phase 5 PR #96 (perf close-out and docs, 697 tests) merged to complete the unit. Phases: Phase 0 owner actions; Phase 1 test: render safety net; Phase 2 feat: flavor, hero game plan, rank bar, principles, admin fields, ADR 0002; Phase 3 feat: the road and now; Phase 4 feat: second photo slot and portrait switch; Phase 5 perf: preload, delegated handlers, docs
   - [x] Build and Test — construction/build-and-test/unit-test-instructions.md refreshed in Phase 5 (697 tests, 38 fixtures)
+- [ ] Post-Unit 10 follow-ups (started 2026-09-04): owner approved A (deploy checklist), B (theme-toggle titles), C (current belt), D (security headers and rate limiting); E nothing, the other follow-ups stay deferred. Requirements: inception/requirements/requirements-post-unit10-followups.md (B minimal, C standard, D standard). Owner checklist for A: construction/unit10-bjj-landing/owner-deploy-checklist.md (delivered 2026-09-04; the owner completed it the same day: SITE_FLAVOR=bjj live in production).
+  - [x] Requirements Analysis — approved 2026-09-04 (D-Q1 answered B: any HTTPS image in the CSP; the section 6 defaults accepted)
+  - [x] Workflow Planning — approved 2026-09-04 (A, as written): inception/plans/workflow-planning-post-unit10-followups.md; owner insertion the same day: a pinned site header as a quick change ahead of the planned PRs
+  - [ ] Quick change (owner insertion 2026-09-04): pinned site header as PR 0 — requirements section 4.4; plan construction/plans/quick-pinned-header-plan.md; approved 2026-09-05 (A), implemented on feat/pinned-site-header (orchestrator-implemented, five-area review applied), PR #99 in the Copilot gate
+  - [ ] Unit 10 addendum (Phase 6): BJJ wording for the theme-toggle tooltip (feat, XS)
+  - [ ] Unit 11: current belt for the rank bar (feat, S, migration AddCurrentBelt)
+  - [ ] Unit 12: security headers and rate limiting (feat, M; PRs 12a headers, 12b rate limiting)
 
 ## Operations Phase — Post-Launch (2026-07-21 → present)
 - [x] Deployed: live at https://joshuamykitta.dev (HTTP container behind reverse proxy, TLS at proxy; image ghcr.io/jjwren/portfolio)
