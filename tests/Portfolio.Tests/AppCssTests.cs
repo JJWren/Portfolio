@@ -274,9 +274,11 @@ public class AppCssTests : IDisposable
             static r => r.Declarations.Contains("top: var(--header-h);", StringComparison.Ordinal));
 
         static int ZIndex(CssRule rule)
-            => int.Parse(
-                Regex.Match(rule.Declarations, @"z-index\s*:\s*(\d+)").Groups[1].Value,
-                System.Globalization.CultureInfo.InvariantCulture);
+        {
+            var match = Regex.Match(rule.Declarations, @"z-indexs*:s*(d+)s*;");
+            Assert.True(match.Success, $"'{rule.Selector}' should declare a numeric z-index.");
+            return int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        }
     }
 
     [Fact]
