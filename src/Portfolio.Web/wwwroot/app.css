@@ -69,11 +69,13 @@
     --rank-black: #0c0c0c;
 
     /* Layout constant for the pinned site header: its height plus a small
-       gap. Not a theme token (ThemeRules.Tokens is untouched): html uses
-       it as scroll-padding-top so anchor jumps and keyboard focus land below
-       the bar, and the admin editors' sticky preview panel uses it to clear
-       the bar. */
-    --header-h: 4.75rem;
+       gap, in the header's own unit mix (2 x 0.9rem inner padding + the
+       38px burger + the 1px border, plus a 0.5rem gap) so it tracks the real
+       height at any root font size. Not a theme token (ThemeRules.Tokens is
+       untouched): html uses it as scroll-padding-top so anchor jumps and
+       keyboard focus land below the bar, and the admin editors' sticky
+       preview panel uses it to clear the bar. */
+    --header-h: calc(2.3rem + 39px);
 
     color-scheme: dark;
 }

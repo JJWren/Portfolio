@@ -265,7 +265,7 @@ public class AppCssTests : IDisposable
             "#blazor-error-ui must stack above the pinned header.");
 
         var root = AppCssRules.Single(static r => r.Selector == ":root");
-        Assert.Contains("--header-h: 4.75rem;", root.Declarations);
+        Assert.Contains("--header-h: calc(2.3rem + 39px);", root.Declarations);
 
         Assert.Contains(AppCssRules.Where(static r => r.Selector == "html"),
             static r => r.Declarations.Contains("scroll-padding-top: var(--header-h);", StringComparison.Ordinal));
