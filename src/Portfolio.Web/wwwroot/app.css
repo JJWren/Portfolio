@@ -68,6 +68,13 @@
     --rank-brown: #6b4423;
     --rank-black: #0c0c0c;
 
+    /* Layout constant for the pinned site header: its height plus a small
+       gap. Not a theme token (the 26-token catalog is untouched): html uses
+       it as scroll-padding-top so anchor jumps and keyboard focus land below
+       the bar, and the admin editors' sticky preview panel uses it to clear
+       the bar. */
+    --header-h: 4.75rem;
+
     color-scheme: dark;
 }
 
@@ -98,6 +105,7 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--header-h);
 }
 
 body {
@@ -185,7 +193,10 @@ main {
    Header / nav
    ================================================================ */
 .site-header {
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
 }
 
@@ -2710,7 +2721,7 @@ select:focus {
 
 .editor-preview {
     position: sticky;
-    top: 1rem;
+    top: var(--header-h);
     padding: 1rem 1.4rem;
     background: var(--surface);
     border: 1px solid var(--border);
