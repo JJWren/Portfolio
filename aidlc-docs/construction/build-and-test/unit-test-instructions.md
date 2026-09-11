@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (748 tests, 43 fixtures — as of Unit 13, the admin résumé upload)
+## Coverage (753 tests, 44 fixtures — as of Unit 13, the admin résumé upload)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
