@@ -456,6 +456,52 @@ public class AppCssTests : IDisposable
         Assert.Contains($"timeline-scope: {expected};", timelineScopeRule.Declarations);
     }
 
+    // -- Visitors chart (Unit 14) -----------------------------------------
+
+    [Fact]
+    public void VisitorsChart_RulesExist()
+    {
+        string[] expectedSelectors =
+        [
+            ".visitors-chart", ".visitors-chart h2", ".visitors-svg",
+            ".visitors-svg .grid line", ".visitors-svg .line", ".visitors-svg .today",
+            ".visitors-svg .marker", ".visitors-svg .hit", ".visitors-svg .day",
+            ".visitors-svg .day .tip", ".visitors-svg .day:focus-visible .hit",
+            ".visitors-svg .crosshair", ".visitors-svg .tip-box", ".visitors-svg .tip-text",
+            ".visitors-data", ".visitors-data table",
+        ];
+
+        foreach (var selector in expectedSelectors)
+        {
+            Assert.Contains(AppCssRules, r => SplitSelectorList(r.Selector).Contains(selector));
+        }
+    }
+
+    [Fact]
+    public void VisitorsChart_DayTipHiddenByDefaultAndShownOnHoverAndFocus()
+    {
+        var hiddenRule = AppCssRules.Single(r => r.Selector == ".visitors-svg .day .tip");
+        Assert.Contains("display: none;", hiddenRule.Declarations, StringComparison.Ordinal);
+
+        var shownRule = AppCssRules.Single(r =>
+            SplitSelectorList(r.Selector).Contains(".visitors-svg .day:hover .tip")
+            && SplitSelectorList(r.Selector).Contains(".visitors-svg .day:focus .tip"));
+        Assert.Contains("display: block;", shownRule.Declarations, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VisitorsChart_NoRuleDeclaresTransitionOrAnimation()
+    {
+        // NFR-6 / FR-V11: no motion anywhere in the chart.
+        var offenders = AppCssRules
+            .Where(r => SplitSelectorList(r.Selector).Any(s => s.StartsWith(".visitors-", StringComparison.Ordinal)))
+            .Where(r => Regex.IsMatch(r.Declarations, @"\b(transition|animation)\s*:", RegexOptions.IgnoreCase))
+            .Select(r => r.Selector)
+            .ToList();
+
+        Assert.True(offenders.Count == 0, "Chart rule(s) declare transition/animation: " + string.Join(", ", offenders));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDir))

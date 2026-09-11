@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Portfolio.Web.Components;
+using Portfolio.Web.Components.Admin;
 using Portfolio.Web.Services;
 
 namespace Portfolio.Tests.Support;
@@ -63,6 +64,29 @@ internal static class LandingRenderHarness
         {
             var output = await renderer.RenderComponentAsync<GamePlan>(ParameterView.FromDictionary(
                 new Dictionary<string, object?> { ["Nodes"] = nodes }));
+            return output.ToHtmlString();
+        });
+    }
+
+    /// <summary>
+    /// Renders <see cref="Portfolio.Web.Components.Admin.VisitorsChart"/>
+    /// directly (no LandingSections wrapper): the component injects no
+    /// service, so — unlike <see cref="RenderAsync"/> — the service
+    /// collection carries only logging.
+    /// </summary>
+    public static async Task<string> RenderVisitorsChartAsync(IReadOnlyList<DailyVisitorPoint> points)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        await using var provider = services.BuildServiceProvider();
+
+        await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());
+
+        return await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await renderer.RenderComponentAsync<VisitorsChart>(
+                ParameterView.FromDictionary(
+                    new Dictionary<string, object?> { ["Points"] = points }));
             return output.ToHtmlString();
         });
     }
