@@ -38,8 +38,8 @@ public class ResumeService(SiteConfig site)
     /// Writes the upload over the configured path atomically so a failed or
     /// oversized upload never touches the current file: buffers with the
     /// shared size guard, rejects anything that isn't a PDF by its leading
-    /// bytes, then writes a per-call temp file beside the target and moves it
-    /// over with overwrite, cleaning up a stranded temp file either way.
+    /// bytes, then hands the bytes to the shared atomic write (a per-call temp
+    /// file beside the target, moved over it with overwrite).
     /// </summary>
     public async Task SaveAsync(Stream source, CancellationToken cancellationToken = default)
     {
@@ -57,37 +57,14 @@ public class ResumeService(SiteConfig site)
         }
 
         buffered.Position = 0;
-        if (Path.GetDirectoryName(target) is { Length: > 0 } directory)
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        // Per-call temp name so overlapping saves can't clobber each other's
-        // half-written file; last Move wins either way.
-        var temp = $"{target}.{Guid.NewGuid():N}.tmp";
-        try
-        {
-            await using (var file = File.Create(temp))
+        await FileWrites.WriteAtomicallyAsync(
+            target,
+            async (temp, ct) =>
             {
-                await buffered.CopyToAsync(file, cancellationToken);
-            }
-
-            File.Move(temp, target, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temp))
-            {
-                try
-                {
-                    File.Delete(temp);
-                }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-                {
-                    // A stranded temp file is harmless clutter.
-                }
-            }
-        }
+                await using var file = File.Create(temp);
+                await buffered.CopyToAsync(file, ct);
+            },
+            cancellationToken);
     }
 
     /// <summary>Best-effort removal of the file; the endpoint and links fall
@@ -99,13 +76,6 @@ public class ResumeService(SiteConfig site)
             return;
         }
 
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            // A stuck file just keeps serving the old résumé; the next replace retries.
-        }
+        FileWrites.DeleteBestEffort(path);
     }
 }

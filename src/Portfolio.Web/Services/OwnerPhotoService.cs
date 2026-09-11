@@ -102,11 +102,6 @@ public class OwnerPhotoService(SiteConfig site)
         ImageGuards.EnsureDecodedSizeAllowed(info, MaxSourceDimension);
 
         buffered.Position = 0;
-        if (Path.GetDirectoryName(target) is { Length: > 0 } directory)
-        {
-            Directory.CreateDirectory(directory);
-        }
-
         using var image = await Image.LoadAsync(buffered, cancellationToken);
         image.Mutate(x => x.AutoOrient());
         if (image.Width > MaxStoredDimension || image.Height > MaxStoredDimension)
@@ -119,28 +114,8 @@ public class OwnerPhotoService(SiteConfig site)
             }));
         }
 
-        // Per-call temp name so overlapping saves can't clobber each other's
-        // half-written file; last Move wins either way.
-        var temp = $"{target}.{Guid.NewGuid():N}.tmp";
-        try
-        {
-            await image.SaveAsync(temp, new WebpEncoder(), cancellationToken);
-            File.Move(temp, target, overwrite: true);
-        }
-        finally
-        {
-            if (File.Exists(temp))
-            {
-                try
-                {
-                    File.Delete(temp);
-                }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-                {
-                    // A stranded temp file is harmless clutter.
-                }
-            }
-        }
+        await FileWrites.WriteAtomicallyAsync(
+            target, (temp, ct) => image.SaveAsync(temp, new WebpEncoder(), ct), cancellationToken);
     }
 
     /// <summary>Best-effort removal of a slot's file; the hero and endpoint
@@ -153,14 +128,7 @@ public class OwnerPhotoService(SiteConfig site)
             return;
         }
 
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            // A stuck file just keeps serving the old photo; the next replace retries.
-        }
+        FileWrites.DeleteBestEffort(path);
     }
 
     /// <summary>
