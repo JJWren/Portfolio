@@ -56,6 +56,8 @@
                 </div>
             </div>
 
+            <VisitorsChart Points="_dailyVisitors" />
+
             <h2>Top pages</h2>
             @if (_routes is null || _routes.TotalCount == 0)
             {
@@ -138,6 +140,7 @@
     private PagedResult<RouteStatRow>? _routes;
     private IReadOnlyList<ReferrerStatRow>? _referrers;
     private IReadOnlyList<EventStatRow>? _events;
+    private IReadOnlyList<DailyVisitorPoint> _dailyVisitors = [];
     private int _page = 1;
     private RouteStatSortColumn _sortColumn = RouteStatSortColumn.Views;
     private SortDirection _sortDirection = SortDirection.Descending;
@@ -155,6 +158,8 @@
     {
         var (from, to) = await PeriodRangeAsync();
         _summary = await Analytics.GetSummaryAsync(from, to);
+        _dailyVisitors = await Analytics.GetDailyVisitorsAsync(
+            VisitorsChartRules.RangeStart(from, await Analytics.FirstDayAsync()), to);
         _routes = await Analytics.GetTopRoutesAsync(from, to, _page, _sortColumn, _sortDirection);
         _page = _routes.Page;
         _referrers = await Analytics.GetTopReferrersAsync(from, to);

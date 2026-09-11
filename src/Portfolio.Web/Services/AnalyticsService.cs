@@ -15,6 +15,11 @@ public record ReferrerStatRow(string ReferrerHost, int Views);
 
 public record EventStatRow(string Name, string? Target, int Count);
 
+/// <summary>One UTC day's point on the admin stats daily-visitors chart
+/// (Unit 14). <see cref="IsToday"/> is true only for the live, not-yet-rolled-up
+/// day.</summary>
+public record DailyVisitorPoint(DateOnly Day, int Visitors, bool IsToday);
+
 /// <summary>
 /// Records anonymous page views and named events, excluding admin sessions
 /// from both (AnalyticsRules.IsExcludedUser). Recording is best-effort:
@@ -192,6 +197,52 @@ public class AnalyticsService(
             events.GetValueOrDefault(AnalyticsRules.ContactSubmitEvent),
             events.GetValueOrDefault(AnalyticsRules.ProjectClickEvent),
             events.GetValueOrDefault(AnalyticsRules.ResumeDownloadEvent));
+    }
+
+    /// <summary>
+    /// One point per UTC day in [<paramref name="from"/>, <paramref name="to"/>]
+    /// for the admin stats daily-visitors chart: the rolled-up row's Visitors
+    /// for each past day (0 when no row exists — the same blind spot
+    /// <see cref="GetSummaryAsync"/> has for a day not yet rolled up), and
+    /// today's value computed live exactly as <see cref="GetSummaryAsync"/>
+    /// does. Summed over the same range, these points equal the tile's Daily
+    /// visitors figure for that Period (FR-V2) — both read the same rolled-up
+    /// rows and the same live-today computation.
+    /// </summary>
+    public async Task<IReadOnlyList<DailyVisitorPoint>> GetDailyVisitorsAsync(DateOnly from, DateOnly to)
+    {
+        if (from > to)
+        {
+            return [];
+        }
+
+        await using var db = await dbFactory.CreateDbContextAsync();
+        var today = Today;
+
+        var rolledUp = await db.DailySiteStats.AsNoTracking()
+            .Where(s => s.Day >= from && s.Day <= to)
+            .Select(s => new { s.Day, s.Visitors })
+            .ToDictionaryAsync(s => s.Day, s => s.Visitors);
+
+        var todayVisitors = 0;
+        if (to >= today && from <= today)
+        {
+            var start = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            todayVisitors = await db.PageViews
+                .Where(v => v.OccurredAt >= start)
+                .Select(v => v.VisitorKey)
+                .Distinct()
+                .CountAsync();
+        }
+
+        var points = new List<DailyVisitorPoint>();
+        for (var day = from; day <= to; day = day.AddDays(1))
+        {
+            var isToday = day == today;
+            points.Add(new DailyVisitorPoint(day, isToday ? todayVisitors : rolledUp.GetValueOrDefault(day), isToday));
+        }
+
+        return points;
     }
 
     public async Task<PagedResult<RouteStatRow>> GetTopRoutesAsync(
