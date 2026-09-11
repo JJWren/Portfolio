@@ -7,6 +7,7 @@
 @inject DisposableEmailDomains DisposableDomains
 @inject AnalyticsService Analytics
 @inject SiteConfig Site
+@inject ResumeService Resume
 
 <PageTitle>Contact — @Site.SiteTitle</PageTitle>
 <SocialMeta Title="@($"Contact — {Site.SiteTitle}")"
@@ -84,9 +85,9 @@
             <p class="eyebrow">Elsewhere</p>
             <ul class="contact-links">
                 <li><a href="mailto:@Site.ContactEmail"><Icon Kind="email" />@Site.ContactEmail</a></li>
-                @if (Site.ResumeFile is not null)
+                @if (Resume.IsAvailable)
                 {
-                    <li><a href="/resume" data-enhance-nav="false"><Icon Kind="file" />Résumé</a></li>
+                    <li><a href="/resume?from=contact" data-enhance-nav="false"><Icon Kind="file" />Résumé</a></li>
                 }
                 @if (Site.ContactPhone is not null)
                 {

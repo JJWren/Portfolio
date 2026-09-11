@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Diagnostics;
-using Portfolio.Web.Endpoints;
 
 namespace Portfolio.Web.Services;
 
 /// <summary>
-/// Server-side, cookieless page-view recording. Sits after auth (so the
-/// Admin-role exclusion works) and records only successful public HTML GETs.
+/// Server-side, cookieless page-view recording. Sits after auth (so
+/// AnalyticsRules.IsExcludedUser can see the signed-in role) and records only
+/// successful public HTML GETs; admin sessions are excluded, the same rule
+/// AnalyticsService.TryRecordEventAsync uses for Named Events.
 /// </summary>
 public class AnalyticsMiddleware(RequestDelegate next, AnalyticsService analytics)
 {
@@ -45,5 +46,5 @@ public class AnalyticsMiddleware(RequestDelegate next, AnalyticsService analytic
             && AnalyticsRules.IsCountablePath(context.Request.Path)
             && !AnalyticsRules.IsBot(context.Request.Headers.UserAgent)
             && !AnalyticsRules.OptedOut(context.Request.Headers)
-            && !context.User.IsInRole(AuthEndpoints.AdminRole);
+            && !AnalyticsRules.IsExcludedUser(context.User);
 }

@@ -1255,3 +1255,173 @@ Approve and start now."
 
 ---
 
+## Unit 10 addendum merged; master realigned
+**Timestamp**: 2026-09-05T02:13:07Z
+**User Input**: (none)
+**AI Response**: "Copilot on head 32cbd74: approval recommended, zero comments; all checks green (build-test, CodeQL both languages, pr-title, GitGuardian). Squash-merged PR #101 as 9d97fd1 with the conventional title; master realigned (no pending docs, so no stash needed); branch deleted. Ticked the Unit 10 plan deferred box, the addendum plan, the state file and the workflow plan; memory updated. Release-please will propose the next minor; the owner merges it and bumps the compose tag. The watcher had polled with a standalone jq that is not installed here, so it timed out before printing the state; recorded in the tooling memory. Presented the code-generation completion message for the addendum."
+**Context**: Unit 10 addendum COMPLETE (PR #101); Code Generation completion prompt; next stage Unit 11 functional design
+
+---
+
+## Grilling session: résumé upload from the admin area
+**Timestamp**: 2026-09-11T19:13:58Z
+**User Input**: "/mattpocock-skills:grill-with-docs I need the ability to be able to upload a new resume from the admin dashboard."
+**AI Response**: "Workspace detection: brownfield; reverse-engineering artifacts exist (v1.22.0 pass); aidlc-state.md shows Unit 11 (current belt) and Unit 12 (security headers, rate limiting) still pending and the Unit 10 addendum merged as PR #101 awaiting release. Facts gathered before the first grilling round: RESUME_FILE is a config-gated container path served at /resume as application/pdf with the resume-download Named Event; production mounts ./resume read-only while ./photo is read-write; the Owner Photo write-through upload on /admin/site (OwnerPhotoService, atomic temp-then-move, IsConfigured gate) is the closest precedent; the Contact page renders the résumé link whenever RESUME_FILE is set even when the file is missing, while /resume returns 404. Opening round 1 of the design-tree grill as the requirements-analysis clarification round."
+**Context**: Requirements Analysis (new post-Unit 10 request): admin résumé upload; grilling round 1
+
+---
+
+## Grilling round 1 answered
+**Timestamp**: 2026-09-11T19:53:21Z
+**User Input**: "Q8 - add link in footer next to socials/email
+
+everything else is good"
+**AI Response**: "Settled: Q1 A (Résumé block on /admin/site after the photo blocks; dashboard card text mentions it), Q2 A (write-through over RESUME_FILE; production resume mount becomes read-write; docs updated), Q3 A (PDF only by magic bytes, 5 MB cap), Q4 A (Remove deletes the file), Q5 A (Contact link and endpoint share one file-exists check), Q6 A (single slot, atomic replace, no history), Q7 A (filename, size, last-updated and an open link; event recording skips admin sessions), Q8 B (owner override: a résumé link in the footer next to the socials and email), Q9 A (glossary term Résumé written to CONTEXT.md), Q10 A (next unit, ahead of Units 11 and 12). Round 2 follows on the download filename, the footer link details, the admin open link, the block copy and the production compose edit."
+**Context**: Requirements Analysis: admin résumé upload; grilling round 1 settled, round 2 opening
+
+---
+
+## Grilling round 2 answered; frontier empty
+**Timestamp**: 2026-09-11T20:05:43Z
+**User Input**: "all recommended answers are good"
+**AI Response**: "Settled: Q11 A (download name stays the configured path filename), Q12 A (footer link after Email, before the sponsor link, only when the file exists; nav label Social becomes Links), Q13 A (event target footer or contact from an allowlisted query value; old rows stay plain), Q14 A (admin link Download current, same route), Q15 A (block copy as proposed), Q16 A (I edit the production compose now: resume mount read-write plus comment). Consequence accepted: admin sessions skip all three Named Events. Design tree complete; writing the requirements document and the production compose edit, then asking for confirmation of shared understanding."
+**Context**: Requirements Analysis: admin résumé upload; grilling complete
+
+---
+
+## Requirements Analysis: approval prompt (Unit 13, admin résumé upload)
+**Timestamp**: 2026-09-11T20:08:55Z
+**User Input**: (none)
+**AI Response**: "Wrote inception/requirements/requirements-admin-resume-upload.md (FR-R1 to FR-R14, NFR-16 to NFR-21, the sixteen settled decisions, owner actions, out of scope); added the Unit 13 line to aidlc-state.md ahead of Unit 11; wrote the Résumé term into CONTEXT.md; edited the production compose file so the résumé bind mount is read-write (inert until the next container recreate). Asking: Requirements analysis complete. Do you want to request changes or continue to the next stage? A) Continue to Workflow Planning B) Request changes."
+**Context**: Requirements Analysis gate for Unit 13; grilling session closed with an empty frontier
+
+---
+
+## New request during the Requirements Analysis gate: daily-visitors line graph on /admin/stats
+**Timestamp**: 2026-09-11T20:09:56Z
+**User Input**: "I would like to create one more add request. In the admin/stats view, above Top Pages but below the stat blocks, I would like a graph that changes based on the dropdown (7 days, 30 days, 90 days, 365 days) that is a line graph which shows the daily visitors."
+**AI Response**: "Unit 13 approval left pending; gathering facts on Stats.razor (period dropdown values, section order, render mode), the analytics daily queries and the no-CDN constraint before grilling the chart as a second design tree."
+**Context**: Requirements Analysis; second request (admin stats visitors chart); grilling round 3 preparation
+
+---
+
+## Grilling round 3 answered (chart)
+**Timestamp**: 2026-09-11T20:17:05Z
+**User Input**: "Q23) resume first, then this one, then unit 11 and 12"
+**AI Response**: "Q23 = A (Unit 13, then Unit 14, then Units 11 and 12). Q17 to Q22 and Q24 not answered; taken as the recommended answers (inline SVG with no script; daily visitors only; today included as a hollow marker on a dashed segment; axis starts at the later of period start and first recorded day; All time unbucketed; CSS-only hover and focus tooltip plus a collapsible data table; glossary term Period) and flagged as assumptions for the approval gate. Writing requirements-admin-stats-visitors-chart.md, the Period term in CONTEXT.md and the Unit 14 state line."
+**Context**: Requirements Analysis; Unit 14 (admin stats visitors chart); round 3 settled with assumptions
+
+---
+
+## Requirements Analysis: approval prompt (Units 13 and 14)
+**Timestamp**: 2026-09-11T20:18:08Z
+**User Input**: (none)
+**AI Response**: "Wrote inception/requirements/requirements-admin-stats-visitors-chart.md (FR-V1 to FR-V13, NFR-22 to NFR-26, eight round-3 decisions with their status, six defaults); appended the Period term to CONTEXT.md; added the Unit 14 state line after Unit 13. Asking for one approval covering both units: Requirements analysis complete. Do you want to request changes or continue to the next stage? A) Continue to Workflow Planning B) Request changes."
+**Context**: Requirements Analysis gate for Units 13 and 14
+
+---
+
+## Requirements Analysis approved (Units 13 and 14)
+**Timestamp**: 2026-09-11T20:30:28Z
+**User Input**: "A"
+**AI Response**: "Requirements approved as written, assumptions included. User Stories skipped: single owner-stakeholder, requirements fully enumerated (same assessment as every earlier unit). Entering Workflow Planning for Units 13 and 14 with the re-sequencing ahead of Units 11 and 12."
+**Context**: Requirements Analysis gate passed; User Stories skipped; Workflow Planning starting
+
+---
+
+## Workflow Planning: approval prompt (Units 13 and 14)
+**Timestamp**: 2026-09-11T20:33:08Z
+**User Input**: (none)
+**AI Response**: "Wrote inception/plans/workflow-planning-units-13-14.md: stage decisions per unit (User Stories, Functional Design, NFR and Infrastructure skipped; Application Design minimal inside each code-generation plan; Code Generation one phase and one PR each; Build and Test refreshed in each PR with one gate after Unit 14), six approval gates (override: eight with separate design gates), PR A feat: admin resume upload and footer link, PR B feat: daily-visitors chart on the admin stats page, then PR 2 to 4 of the post-Unit 10 plan; per-PR cycle by reference with unit-specific local verification; change map per PR; Mermaid chain with a text alternative; risks. Recorded the owner approval inside both requirements documents, marked them approved in aidlc-state.md and appended the insertion note to the post-Unit 10 plan. Asking: Workflow planning complete. A) Approve as written B) Request changes."
+**Context**: Workflow Planning gate for Units 13 and 14
+
+---
+
+## Workflow Planning approved (Units 13 and 14)
+**Timestamp**: 2026-09-11T20:35:00Z
+**User Input**: "approved"
+**AI Response**: "Workflow plan approved as written (six gates, PR A then PR B, then the post-Unit 10 PRs). Entering Construction: Unit 13 Code Generation Part 1, the checkbox plan with its Components section (Application Design, minimal)."
+**Context**: Workflow Planning gate passed; Construction, Unit 13, Code Generation Part 1 starting
+
+---
+
+## Unit 13: Code Generation Part 1 approval prompt
+**Timestamp**: 2026-09-11T20:37:12Z
+**User Input**: (none)
+**AI Response**: "Wrote construction/plans/unit13-admin-resume-upload-plan.md: non-negotiables; the Components section (Application Design, minimal: ResumeRules, ResumeService, the AnalyticsRules user exclusion, the endpoint, Contact, MainLayout, SiteContentEditor, Dashboard, Program); evidence; fifteen checkbox steps from branch to post-merge; definition of done. Fact recorded: no development sign-in exists, so the admin block is verified by pins, service tests and the owner post-deploy check. Asking: Unit 13 code-generation plan complete. A) Approve and start Part 2 B) Request changes."
+**Context**: Construction, Unit 13, Code Generation Part 1 gate
+
+---
+
+## Unit 13: Code Generation Part 1 approved
+**Timestamp**: 2026-09-11T21:44:26Z
+**User Input**: "A"
+**AI Response**: "Plan approved. Starting Part 2 under the execution model: stash-first realign of master, branch feat/admin-resume-upload, docs: commit folding the pending aidlc-docs and CONTEXT.md edits, then one fresh Sonnet phase agent briefed from the plan (brief file construction/plans/unit13-brief.md), five review agents, remediation, PR, Copilot gate."
+**Context**: Construction, Unit 13, Code Generation Part 2 starting
+
+---
+
+## Unit 13: branch, docs commit and phase agent launched
+**Timestamp**: 2026-09-11T21:47:59Z
+**User Input**: (none)
+**AI Response**: "origin/master had moved to 559a468 (release 1.27.0, PR #102); realigned master stash-first (untracked docs included), branched feat/admin-resume-upload, wrote the phase brief construction/plans/unit13-brief.md and committed every pending doc as 4e48b95 (docs: Units 13 and 14 requirements, workflow plan and the Unit 13 code-generation plan). Launched one fresh Sonnet general-purpose phase agent in the background, briefed from the brief file; it commits on the branch by explicit path and never pushes. Next: its report, then the five review agents."
+**Context**: Construction, Unit 13, Code Generation Part 2: phase agent running
+
+---
+
+## Unit 13: phase agent report
+**Timestamp**: 2026-09-11T22:11:33Z
+**User Input**: (none)
+**AI Response**: "The Sonnet phase agent finished on feat/admin-resume-upload with three commits on top of 4e48b95: 3a2bfe5 feat (ResumeRules, ResumeService and its registration, AnalyticsRules.IsExcludedUser used by the middleware and TryRecordEventAsync, the /resume availability gate and origin target, the Contact and footer links with the nav relabelled Links, the Résumé block on /admin/site, the dashboard card text); bec9168 test (ResumeRulesTests 14, ResumeServiceTests 17, ResumeLinksTests 5, AnalyticsRulesTests plus 3); b5c67b8 docs (README row, .env.example comment, unit-test-instructions 744 tests and 41 fixtures, plan ticks). Reported: build 0 warnings; dotnet test Passed 744 (705 before). Local check done against an ephemeral Postgres with a hand-written sample PDF: both anchors present with their origins, aria-label Links, 200 with the attachment filename for footer, contact and other origins, AnalyticsEvents rows with targets footer, contact and NULL, links gone and 404 after deleting the file; app stopped by PID, container removed. Deviations: plan said two new fixtures where three were added (brief was right); temp file written with File.WriteAllBytesAsync; two extra IsConfigured tests; local run under the Production environment to avoid the HTTPS redirect. Flagged: ThemeToggleTooltipTests was never added to the fixtures table (pre-existing). Next: orchestrator verification, then five review agents."
+**Context**: Construction, Unit 13, Code Generation Part 2: phase complete, review pending
+
+---
+
+## Unit 13: orchestrator verification and review launch
+**Timestamp**: 2026-09-11T22:13:12Z
+**User Input**: (none)
+**AI Response**: "Verified on the branch: three commits after 4e48b95 (3a2bfe5, bec9168, b5c67b8), 19 files, +649/-32; dotnet build -warnaserror 0 warnings, 0 errors; dotnet test Passed 744, Failed 0. Launched five report-only Sonnet review agents in parallel on git diff 4e48b95..HEAD: correctness and bugs, security (with the BR-18 grep), framework awareness (eight framework questions including the download-attribute interception and the StringValues conversion), maintainability (docs accuracy and the fixtures table), performance (the per-render File.Exists in MainLayout, the 5 MB buffering). Remediation follows their reports."
+**Context**: Construction, Unit 13, Code Generation Part 2: five-area review running
+
+---
+
+## Unit 13: security review
+**Timestamp**: 2026-09-11T22:16:53Z
+**User Input**: (none)
+**AI Response**: "Security PASS: the upload page is Admin-only; the service writes only to the configured path, never a user-supplied path or filename; magic bytes are checked before any byte reaches disk (pinned by SaveAsync_NonPdfStream_LeavesTheExistingFileUntouched); the 5 MB cap is enforced server-side through ImageGuards.BufferWithLimitAsync independent of the InputFile limit (pinned); temp file beside the target with a GUID suffix, atomic move, try/finally cleanup; the origin reaches the database only as footer or contact; Content-Disposition attachment with the filename from the configured path; the admin exclusion keys on the server-side role claim; no unescaped interpolation. BR-18 grep clean over the diff and the new files (fixture name Jane Developer); the one match is a pre-existing sponsor link line in README.md outside the diff."
+**Context**: Construction, Unit 13, review: one of five reports in
+
+---
+
+## Unit 13: performance review
+**Timestamp**: 2026-09-11T22:18:01Z
+**User Input**: (none)
+**AI Response**: "Performance: one minor (MainLayout now calls ResumeService.IsAvailable, one File.Exists stat, on every page render site-wide; suggested a 5 to 10 second TimeProvider-keyed cache invalidated by SaveAsync and Delete), one nit (SaveAsync copies the 5 MB buffer with ToArray before File.WriteAllBytesAsync; CopyToAsync into a FileStream avoids the second copy). Answers: the upload buffering is acceptable at this frequency; the second stat in Results.File is immaterial; IsInRole is negligible; ParseOrigin allocates nothing; tests are fast. Decision deferred to the consolidated remediation pass."
+**Context**: Construction, Unit 13, review: two of five reports in
+
+---
+
+## Unit 13: correctness review
+**Timestamp**: 2026-09-11T22:21:11Z
+**User Input**: (none)
+**AI Response**: "Correctness: one MAJOR. UploadResumeAsync catches IOException and InvalidOperationException but not UnauthorizedAccessException; on Linux a permission-denied write (EACCES, the classic bind-mount UID mismatch) throws UnauthorizedAccessException while a read-only filesystem (EROFS) throws IOException, so the exception would escape the handler and tear down the InteractiveServer circuit of /admin/site, losing every unsaved field on the page. Fix: add UnauthorizedAccessException to the catch filter, matching ResumeService.Delete. The same gap pre-exists in UploadPhotoAsync and UploadPhotoFlipAsync in the same file; to be fixed alongside as a one-line hardening each. Everything else verified: availability gate, StringValues to origin (repeated keys join to a comma string and fall to null), the atomic save and the sub-five-byte header, Delete, the size pre-check and busy flag, the admin exclusion in both call paths and for anonymous principals, both links gated, no remaining Site.ResumeFile use in components."
+**Context**: Construction, Unit 13, review: three of five reports in
+
+---
+
+## Unit 13: framework review
+**Timestamp**: 2026-09-11T22:25:35Z
+**User Input**: (none)
+**AI Response**: "Framework PASS with three observations: (minor, no fix) MainLayout renders statically, so after an admin upload the footer link appears on the next navigation, as the photo hero already behaves; (nit, pre-existing) a delete between IsAvailable and Results.File would surface as a 500 rather than 404, unchanged from the old inline check; (nit, pre-existing) the photo handlers show the raw IOException text for an oversized file while the new handler shows the friendly message. Confirmed empirically: Blazor click interception bails out for an anchor with the download attribute even inside an interactive circuit; StringValues converts missing to null and repeated keys to a comma-joined string, so ParseOrigin falls to null; Results.File recomputes Last-Modified per request with no ETag or Cache-Control, so the in-place swap needs no cache busting; singleton-into-singleton is fine; temp beside target gives an atomic rename on Linux; the Razor text scans are Linux-safe. Build 0 warnings, 744 tests."
+**Context**: Construction, Unit 13, review: four of five reports in
+
+---
+
+## Unit 13: maintainability review and consolidated remediation
+**Timestamp**: 2026-09-11T22:28:12Z
+**User Input**: (none)
+**AI Response**: "Maintainability: one major (ThemeToggleTooltipTests missing from the fixtures table; 42 fixtures, not 41), two minors (the oversize pre-check hardcoded 5 MB; the app.css comment above .photo-upload described photo controls only), one nit (the atomic write and best-effort delete duplicated between OwnerPhotoService and ResumeService). Remediation applied by the orchestrator: UnauthorizedAccessException added to the résumé and both photo upload catch filters (correctness major); ResumeRules gains MaxMegabytes and TooLargeMessage derived from it, the handler uses it, one new test pins both; the temp file is written with CopyToAsync into a FileStream instead of ToArray plus WriteAllBytesAsync (performance nit); the CSS comment reworded; the fixtures table row and count fixed. Declined with reasons: the per-render stat cache (a stat costs microseconds; the framework reviewer judged it negligible; write-through forbids a permanent cache; the reasoning now sits in the IsAvailable summary); the shared-helper refactor (its own change, offered to the owner as a follow-up task chip). Build 0 warnings, 745 tests. Committed as the fix commit on the branch; next: final docs commit, push, PR A, Copilot gate."
+**Context**: Construction, Unit 13, review complete, remediation committed
+
+---
+

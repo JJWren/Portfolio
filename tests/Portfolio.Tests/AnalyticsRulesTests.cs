@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Portfolio.Web.Endpoints;
 using Portfolio.Web.Services;
 
 namespace Portfolio.Tests;
@@ -63,5 +65,25 @@ public class AnalyticsRulesTests
     {
         Assert.Equal("abc", AnalyticsRules.Truncate("abc", 5));
         Assert.Equal("abcde", AnalyticsRules.Truncate("abcdefgh", 5));
+    }
+
+    [Fact]
+    public void IsExcludedUser_AdminRole_ReturnsTrue()
+    {
+        var identity = new ClaimsIdentity([new Claim(ClaimTypes.Role, AuthEndpoints.AdminRole)], "test");
+
+        Assert.True(AnalyticsRules.IsExcludedUser(new ClaimsPrincipal(identity)));
+    }
+
+    [Fact]
+    public void IsExcludedUser_Anonymous_ReturnsFalse()
+        => Assert.False(AnalyticsRules.IsExcludedUser(new ClaimsPrincipal(new ClaimsIdentity())));
+
+    [Fact]
+    public void IsExcludedUser_PlainUserRole_ReturnsFalse()
+    {
+        var identity = new ClaimsIdentity([new Claim(ClaimTypes.Role, "User")], "test");
+
+        Assert.False(AnalyticsRules.IsExcludedUser(new ClaimsPrincipal(identity)));
     }
 }

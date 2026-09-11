@@ -102,3 +102,7 @@ Workflow planning complete. On approval the next step is Unit 10 addendum: Code 
 **Approved by the owner on 2026-09-04: "A", as written.** In the same message the owner asked for a quick change, a pinned site header; it runs first as PR 0 (requirements section 4.4, plan `construction/plans/quick-pinned-header-plan.md`, all design stages skipped, orchestrator-implemented with the five-area review and the Copilot gate), and everything else keeps its order.
 
 **PR 0 done (2026-09-05)**: the pinned site header merged as PR #99 (fc793aa) and shipped in release 1.26.0; next is the Unit 10 addendum code-generation plan.
+
+**PR 1 done (2026-09-05)**: the BJJ tooltip wording merged as PR #101 (9d97fd1) after a Copilot pass with zero comments; next is Unit 11, functional design (minimal).
+
+**Insertion (2026-09-11)**: two owner requests grilled and approved in one session run ahead of PR 2: Unit 13 (admin résumé upload and footer link) and Unit 14 (daily-visitors chart on the admin stats page), planned in `inception/plans/workflow-planning-units-13-14.md`. PR 2 to PR 4 keep their order after them.

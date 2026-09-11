@@ -4,6 +4,7 @@
 @inject MessageService MessageStore
 @inject ReportService Reports
 @inject ContactService Contacts
+@inject ResumeService Resume
 
 <header class="site-header">
     <div class="container inner">
@@ -84,7 +85,7 @@
     <div class="footer-strip" aria-hidden="true"></div>
     <div class="container inner">
         <span>© @DateTime.UtcNow.Year @Site.OwnerName</span>
-        <nav class="footer-links" aria-label="Social">
+        <nav class="footer-links" aria-label="Links">
             @if (Site.GitHubUrl is not null)
             {
                 <a href="@Site.GitHubUrl" rel="me noopener" target="_blank"><Icon Kind="github" />GitHub</a>
@@ -94,6 +95,10 @@
                 <a href="@Site.LinkedInUrl" rel="me noopener" target="_blank"><Icon Kind="linkedin" />LinkedIn</a>
             }
             <a href="mailto:@Site.ContactEmail"><Icon Kind="email" />Email</a>
+            @if (Resume.IsAvailable)
+            {
+                <a href="/resume?from=footer" data-enhance-nav="false"><Icon Kind="file" />Résumé</a>
+            }
             @if (Site.SponsorUrl is not null)
             {
                 <a class="sponsor-link" href="@Site.SponsorUrl" rel="noopener" target="_blank">
