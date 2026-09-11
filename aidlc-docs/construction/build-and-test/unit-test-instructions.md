@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (745 tests, 42 fixtures — as of Unit 13, the admin résumé upload)
+## Coverage (748 tests, 43 fixtures — as of Unit 13, the admin résumé upload)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
@@ -19,7 +19,7 @@ dotnet test --filter SlugHelperTests # one fixture
 | List views (paging & sorting) | PagedResultTests, PagerWindowTests, QuerySortTests, SortStateTests, SortDefaultsTests |
 | UI plumbing | JsModuleUrlTests (asset-path module import), IconKindTests, NoInlineOnClickTests (no inline `onclick=""` outside the site.js `data-action` pattern) |
 | Contact & spam defense | ContactRateLimiterTests, ContactSpamRulesTests, ContactFormTimestampTests, DisposableEmailDomainsTests, MailDomainCheckerTests, EmailTemplatesTests |
-| Analytics | AnalyticsRulesTests (includes the admin-session Named Event exclusion), AnalyticsRollupTests, VisitorKeyTests |
+| Analytics | AnalyticsRulesTests (includes the admin-session Named Event exclusion), AnalyticsServiceTests (the shared event entry point skips admin sessions before any database access), AnalyticsRollupTests, VisitorKeyTests |
 | SEO | SeoRulesTests |
 | Theming | ThemeRulesTests, ThemeToggleTooltipTests (BJJ tooltip wording, scanned from the linked Razor and JS sources) |
 

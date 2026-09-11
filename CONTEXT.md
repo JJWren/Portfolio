@@ -20,10 +20,11 @@ renders nothing; nothing takes its place.
 _Avoid_: profile picture, avatar (those belong to user Profiles)
 
 **Résumé**:
-The owner's one downloadable PDF, served at `/resume` with each download
-counted as the `resume-download` Named Event. Supplied by placing the file at
-the configured path or by uploading it from the admin site-content page (both
-end at the same file); with no file, no résumé link renders anywhere.
+The owner's one downloadable PDF, served at `/resume`, where every visitor
+download counts as the `resume-download` Named Event (an admin session's own
+downloads never count). Supplied by placing the file at the configured path
+or by uploading it from the admin site-content page (both end at the same
+file); with no file, no résumé link renders anywhere.
 _Avoid_: CV, curriculum vitae, resume file
 
 ### Landing page (BJJ flavor)
