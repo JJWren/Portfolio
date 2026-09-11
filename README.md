@@ -95,7 +95,7 @@ back to the built-in colors).
 | `OAUTH__<P>__CLIENTID` / `CLIENTSECRET` | | Enable sign-in per provider (`GITHUB`, `GOOGLE`, `DISCORD`) |
 | `SMTP__HOST/PORT/USER/PASSWORD/FROM` | | Email notifications; blank host = DB-only mode |
 | `PUBLIC_BASE_URL` | | Canonical origin for canonical/og URLs, social cards, the feed, and the sitemap (e.g. `https://you.example`) |
-| `RESUME_FILE` | | Path to a PDF served at `/resume` (with download counting); unset = no résumé link |
+| `RESUME_FILE` | | Path to a PDF served at `/resume` (with download counting); mount its folder read-write so the admin site-content page can replace it; unset = no résumé link |
 | `OWNER_PHOTO_FILE` | | Path to the owner photo on the landing hero, served at `/owner-photo` (see also `OWNER_PHOTO_FLIP_FILE` below); mount its folder read-write so the admin site-content page can replace it; unset = photo-less hero |
 | `OWNER_PHOTO_ALT` | | Alt text for the owner photo; defaults to `Portrait of {SITE_OWNER_NAME}`, admin-overridable |
 | `OWNER_PHOTO_FLIP_FILE` | | Path to a second, "mat" portrait for the hero's two-photo switch, served at `/owner-photo-flip`; BJJ flavor only, and only once `OWNER_PHOTO_FILE` is also set; unset = the hero shows just the primary photo |

@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (697 tests, 38 fixtures — as of Unit 10 Phase 5, the BJJ landing close-out)
+## Coverage (744 tests, 41 fixtures — as of Unit 13, the admin résumé upload)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
@@ -15,10 +15,11 @@ dotnet test --filter SlugHelperTests # one fixture
 | Comments, profiles & moderation | CommentRulesTests, ProfileRulesTests, AvatarServiceTests, ReportRulesTests, BadgeLabelTests |
 | Projects | ProjectRulesTests, ProjectUrlRulesTests |
 | Images & uploads | ImageUploadServiceTests, OwnerPhotoServiceTests (both photo slots) |
+| Résumé | ResumeRulesTests (magic bytes, origin allowlist, size formatting), ResumeServiceTests (temp-directory write-through), ResumeLinksTests (footer/Contact link gating and admin block copy, scanned from linked Razor sources) |
 | List views (paging & sorting) | PagedResultTests, PagerWindowTests, QuerySortTests, SortStateTests, SortDefaultsTests |
 | UI plumbing | JsModuleUrlTests (asset-path module import), IconKindTests, NoInlineOnClickTests (no inline `onclick=""` outside the site.js `data-action` pattern) |
 | Contact & spam defense | ContactRateLimiterTests, ContactSpamRulesTests, ContactFormTimestampTests, DisposableEmailDomainsTests, MailDomainCheckerTests, EmailTemplatesTests |
-| Analytics | AnalyticsRulesTests, AnalyticsRollupTests, VisitorKeyTests |
+| Analytics | AnalyticsRulesTests (includes the admin-session Named Event exclusion), AnalyticsRollupTests, VisitorKeyTests |
 | SEO | SeoRulesTests |
 | Theming | ThemeRulesTests |
 
