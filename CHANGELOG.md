@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/JJWren/Portfolio/compare/v1.26.0...v1.27.0) (2026-09-05)
+
+
+### Features
+
+* BJJ wording for the theme-toggle tooltip ([#101](https://github.com/JJWren/Portfolio/issues/101)) ([9d97fd1](https://github.com/JJWren/Portfolio/commit/9d97fd120847a3099d60bc1c3848e85608fe5b7e))
+
 ## [1.26.0](https://github.com/JJWren/Portfolio/compare/v1.25.1...v1.26.0) (2026-09-05)
 
 
