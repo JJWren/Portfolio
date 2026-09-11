@@ -16,7 +16,8 @@ public record ReferrerStatRow(string ReferrerHost, int Views);
 public record EventStatRow(string Name, string? Target, int Count);
 
 /// <summary>
-/// Records anonymous page views and named events. Recording is best-effort:
+/// Records anonymous page views and named events, excluding admin sessions
+/// from both (AnalyticsRules.IsExcludedUser). Recording is best-effort:
 /// failures are logged, never thrown into a request.
 /// </summary>
 public class AnalyticsService(
@@ -114,11 +115,12 @@ public class AnalyticsService(
     }
 
     /// <summary>Convenience for endpoint/page call sites: applies the standard
-    /// bot and opt-out exclusions, then records.</summary>
+    /// bot, opt-out and admin-session exclusions, then records.</summary>
     public async Task TryRecordEventAsync(HttpContext context, string name, string? target)
     {
         if (AnalyticsRules.IsBot(context.Request.Headers.UserAgent)
-            || AnalyticsRules.OptedOut(context.Request.Headers))
+            || AnalyticsRules.OptedOut(context.Request.Headers)
+            || AnalyticsRules.IsExcludedUser(context.User))
         {
             return;
         }

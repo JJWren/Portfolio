@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using Portfolio.Web.Endpoints;
+
 namespace Portfolio.Web.Services;
 
 /// <summary>Pure rules for what gets counted and how values are normalized.</summary>
@@ -67,6 +70,10 @@ public static class AnalyticsRules
     /// <summary>Do Not Track / Global Privacy Control: honored by not recording at all.</summary>
     public static bool OptedOut(IHeaderDictionary headers)
         => headers["DNT"] == "1" || headers["Sec-GPC"] == "1";
+
+    /// <summary>An admin session counts neither page views nor Named Events —
+    /// the same role check the page-view middleware uses.</summary>
+    public static bool IsExcludedUser(ClaimsPrincipal user) => user.IsInRole(AuthEndpoints.AdminRole);
 
     /// <summary>Reduces a Referer header to its host; null for direct visits,
     /// internal navigation, or anything unparsable.</summary>

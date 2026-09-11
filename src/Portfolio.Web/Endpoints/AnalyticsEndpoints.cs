@@ -36,18 +36,22 @@ public static class AnalyticsEndpoints
             return Results.Redirect(url!);
         });
 
-        // Config-gated: no RESUME_FILE, no endpoint (and no link renders).
+        // Availability-gated through ResumeService.IsAvailable, the one rule
+        // shared with the Contact and footer links. The origin is
+        // allowlisted (ResumeRules.ParseOrigin) so only "footer" or "contact"
+        // ever reach the database as the event's target.
         app.MapGet("/resume", async (
-            HttpContext ctx, SiteConfig site, AnalyticsService analytics) =>
+            HttpContext ctx, SiteConfig site, ResumeService resume, AnalyticsService analytics) =>
         {
-            if (site.ResumeFile is null || !File.Exists(site.ResumeFile))
+            if (!resume.IsAvailable)
             {
                 return Results.NotFound();
             }
 
-            await analytics.TryRecordEventAsync(ctx, AnalyticsRules.ResumeDownloadEvent, null);
+            var origin = ResumeRules.ParseOrigin(ctx.Request.Query[ResumeRules.OriginQueryKey]);
+            await analytics.TryRecordEventAsync(ctx, AnalyticsRules.ResumeDownloadEvent, origin);
             return Results.File(
-                site.ResumeFile, "application/pdf",
+                site.ResumeFile!, "application/pdf",
                 fileDownloadName: Path.GetFileName(site.ResumeFile));
         });
     }

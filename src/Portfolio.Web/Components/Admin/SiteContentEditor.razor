@@ -2,9 +2,11 @@
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
+@using System.Globalization
 @inject SiteContentService ContentStore
 @inject SiteConfig Site
 @inject OwnerPhotoService Photo
+@inject ResumeService Resume
 
 <PageTitle>Site content — Admin — @Site.SiteTitle</PageTitle>
 
@@ -198,6 +200,50 @@
                 </label>
             }
 
+            <div class="field">
+                <span>Résumé <span class="muted">the PDF served at /resume and linked from the footer and Contact page</span></span>
+                @if (!Resume.IsConfigured)
+                {
+                    <p class="muted">
+                        Set RESUME_FILE in .env (and mount its folder read-write)
+                        to enable the résumé.
+                    </p>
+                }
+                else
+                {
+                    @if (_resumeInfo is { } info)
+                    {
+                        <p class="muted">
+                            @info.FileName · @ResumeRules.FormatSize(info.Bytes) ·
+                            updated @info.LastWriteUtc.ToString("d MMM yyyy", CultureInfo.InvariantCulture)
+                        </p>
+                        @* This page is InteractiveServer, and Blazor's navigation
+                           interception skips anchors that carry the download
+                           attribute, so this click reaches the /resume endpoint as
+                           a plain request instead of going through the interactive
+                           router. *@
+                        <p><a href="/resume" download data-enhance-nav="false">Download current</a></p>
+                    }
+                    else
+                    {
+                        <p class="muted">
+                            No résumé yet. Upload a PDF here, or copy one onto
+                            the RESUME_FILE path.
+                        </p>
+                    }
+                    <div class="editor-actions">
+                        <label class="btn btn-ghost photo-upload">
+                            @(_resumeBusy ? "Uploading…" : "Upload PDF")
+                            <InputFile OnChange="UploadResumeAsync" accept="application/pdf,.pdf" disabled="@_resumeBusy" />
+                        </label>
+                        @if (_resumeInfo is not null)
+                        {
+                            <button class="btn btn-ghost" @onclick="RemoveResume" disabled="@_resumeBusy">Remove</button>
+                        }
+                    </div>
+                }
+            </div>
+
             <div class="editor-actions">
                 <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
                     @(_busy ? "Saving…" : "Save")
@@ -237,10 +283,16 @@
     private string? _photoFlipUrl;
     private bool _photoFlipBusy;
 
+    // Résumé (Unit 13); shown whenever RESUME_FILE is set, independent of
+    // the photo slots above.
+    private ResumeInfo? _resumeInfo;
+    private bool _resumeBusy;
+
     protected override async Task OnInitializedAsync()
     {
         _photoUrl = Photo.GetVersionedUrl();
         _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
+        _resumeInfo = Resume.GetInfo();
         try
         {
             SeedForm(await ContentStore.GetOverridesAsync());
@@ -339,6 +391,48 @@
     {
         Photo.Delete(OwnerPhotoSlot.Flip);
         _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
+    }
+
+    private async Task UploadResumeAsync(InputFileChangeEventArgs e)
+    {
+        if (_resumeBusy)
+        {
+            return;
+        }
+
+        _resumeBusy = true;
+        _error = null;
+        try
+        {
+            if (e.File.Size > ResumeRules.MaxBytes)
+            {
+                _error = "That file is over 5 MB.";
+                return;
+            }
+
+            await using var stream = e.File.OpenReadStream(ResumeRules.MaxBytes);
+            await Resume.SaveAsync(stream);
+            _resumeInfo = Resume.GetInfo();
+        }
+        catch (InvalidDataException)
+        {
+            _error = "That file isn't a PDF.";
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        {
+            // A read-only mount surfaces as the write error, by design.
+            _error = ex.Message;
+        }
+        finally
+        {
+            _resumeBusy = false;
+        }
+    }
+
+    private void RemoveResume()
+    {
+        Resume.Delete();
+        _resumeInfo = Resume.GetInfo();
     }
 
     private async Task SaveAsync()
