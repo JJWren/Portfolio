@@ -81,3 +81,5 @@ Text alternative: a single chain. Requirements Analysis (approved) leads to this
 Workflow planning complete. On approval the next step is Unit 13: Code Generation Part 1 (the checkbox plan with its Components section).
 
 **Approved by the owner on 2026-09-11: "approved", as written.** Next: Unit 13 code-generation plan (`construction/plans/unit13-admin-resume-upload-plan.md`).
+
+**PR A done (2026-09-11)**: the admin résumé upload merged as PR #103 (b45f1f0) after two Copilot rounds (748 tests, 43 fixtures); next is the Unit 14 code-generation plan. Owner instruction the same day: continue through Unit 14 without per-gate stops, then release and deploy.

@@ -64,3 +64,5 @@ Run the site locally as earlier units did: an ephemeral, isolated Postgres conta
 ## Final report (the orchestrator reads this; the user does not see your transcript)
 
 Reply with: (a) files created, modified, deleted, grouped by area; (b) the exact build and test summary lines and the final test total; (c) the public surface you added (service and rules members, the endpoint's new behaviour, the link markup); (d) what the README, `.env.example` and the test instructions now say; (e) every deviation from the plan and why; (f) the result of the local check or "not done", with the event rows you observed; (g) anything unsure or left undone; (h) the commit hashes.
+
+**Addendum (2026-09-11, after Copilot round 1 on PR #103)**: a fourth fixture, `tests/Portfolio.Tests/AnalyticsServiceTests.cs` (three facts: the shared event entry point returns before any database context is created for an admin session, and reaches the context factory for anonymous and signed-in visitors), was added by the orchestrator; final totals 748 tests and 43 fixtures.

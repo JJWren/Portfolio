@@ -1425,3 +1425,59 @@ everything else is good"
 
 ---
 
+## Unit 13: PR #103 opened
+**Timestamp**: 2026-09-11T22:29:22Z
+**User Input**: (none)
+**AI Response**: "Committed the audit trail as e9f9a93, pushed feat/admin-resume-upload and opened PR #103 (feat: admin resume upload and footer link) with the What, Tests and Deploy note body; Copilot review requested through the API. Branch: 4e48b95 docs, 3a2bfe5 feat, bec9168 test, b5c67b8 docs, 4b0f8ac fix, e9f9a93 docs. Next: CI and the Copilot gate, then squash-merge."
+**Context**: Construction, Unit 13, Copilot gate
+
+---
+
+## Unit 13: Copilot gate in progress
+**Timestamp**: 2026-09-11T22:29:57Z
+**User Input**: (none)
+**AI Response**: "PR #103 head e9f9a93: pr-title and GitGuardian green; build-test and both CodeQL analyses in progress; mergeable, merge state clean. The PR timeline shows review_requested for Copilot at 22:29:10Z and copilot_work_started at 22:29:39Z, so the first request registered (a re-request was a no-op). Waiting for CI and the review before acting."
+**Context**: Construction, Unit 13, Copilot gate
+
+---
+
+## Unit 13: Copilot round 1 on PR #103
+**Timestamp**: 2026-09-11T22:36:23Z
+**User Input**: (none)
+**AI Response**: "CI on e9f9a93: build-test, CodeQL (both languages), pr-title and GitGuardian all green. Copilot round 1 (22:33Z): Needs a closer look, zero generated comments, two suppressed notes, both applied: (1) the CONTEXT.md Résumé entry promised that each download is counted while admin sessions are excluded; reworded so every visitor download counts and an admin session never does; (2) the added tests only covered IsExcludedUser; new AnalyticsServiceTests (three facts) uses a context factory that throws on first use to prove TryRecordEventAsync returns before any database access for an admin session and reaches the factory for anonymous and signed-in visitors. Fixtures table: AnalyticsServiceTests row, 748 tests, 43 fixtures. Build 0 warnings, 748 tests. Committed and pushed; Copilot re-requested for round 2."
+**Context**: Construction, Unit 13, Copilot gate round 2
+
+---
+
+## Unit 13: Copilot round 2 on PR #103 (clean pass)
+**Timestamp**: 2026-09-11T22:54:26Z
+**User Input**: (none)
+**AI Response**: "Round 2 on c5c242d (22:53Z): Needs a closer look, zero new comments, all six checks green (build-test, CodeQL both languages, pr-title, GitGuardian, CodeQL summary). Four suppressed notes, all documentation bookkeeping: the audit entry, the plan tick, the state line and the brief still quote 745 tests and 42 or 43 fixtures from before the round-1 follow-up added AnalyticsServiceTests; the verified totals are 748 tests and 43 fixtures, reconciled in the post-merge bookkeeping (the audit trail keeps its earlier entries as recorded at the time). Clean pass under CONTRIBUTING.md; squash-merging."
+**Context**: Construction, Unit 13, Copilot gate passed
+
+---
+
+## Owner instruction during the Unit 13 merge: continue through and deploy
+**Timestamp**: 2026-09-11T22:55:05Z
+**User Input**: "Continue through with the requests from this session until complete and then deploy the changes to the docker container"
+**AI Response**: "Read as pre-approval of the remaining gates: Unit 13 is merged (PR #103, b45f1f0); Unit 14 (the daily-visitors chart) proceeds through its code-generation plan, phase agent, five-area review, PR B and the Copilot gate without per-gate stops, each gate still recorded here; then the release-please release PR is merged, the image publish awaited, the production compose tag bumped and the container recreated, with the live site checked afterwards."
+**Context**: Construction; owner pre-approval for Unit 14 gates and the deploy
+
+---
+
+## Unit 13 merged (PR #103)
+**Timestamp**: 2026-09-11T22:55:46Z
+**User Input**: (none)
+**AI Response**: "Squash-merged PR #103 as b45f1f0 (feat: admin resume upload and footer link); remote and local branches deleted; master realigned stash-first with the pending audit and state edits restored. Ticked the plan PR and post-merge boxes, added the brief addendum (AnalyticsServiceTests; 748 tests, 43 fixtures), the workflow plan PR A note and the state line (Unit 13 COMPLETE). Release-please will propose the next minor; per the owner instruction the release is cut after Unit 14 and deployed by the session. Next: Unit 14 code-generation plan."
+**Context**: Construction, Unit 13 COMPLETE; Unit 14 starting
+
+---
+
+## Unit 14: Code Generation Part 1 (plan written; gate pre-approved)
+**Timestamp**: 2026-09-11T22:59:17Z
+**User Input**: (none; the owner pre-approved the remaining gates at 2026-09-11 with "Continue through with the requests from this session until complete and then deploy the changes to the docker container")
+**AI Response**: "Wrote construction/plans/unit14-visitors-chart-plan.md (non-negotiables; the Components section as the minimal Application Design: DailyVisitorPoint and GetDailyVisitorsAsync on AnalyticsService, the pure VisitorsChartRules geometry, the VisitorsChart component, the Stats.razor wiring, the app.css block, three test fixtures; evidence; ten steps; definition of done) and the phase brief unit14-brief.md (the dataviz skill and validator step with both candidate tokens and both surfaces, the no-style-attribute rule for Unit 12, the render-and-look method through HtmlRenderer and the Browser pane). Recorded as approved under the owner instruction; branching and launching the phase agent."
+**Context**: Construction, Unit 14, Code Generation Part 1 recorded; Part 2 starting
+
+---
+
