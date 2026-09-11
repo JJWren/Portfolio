@@ -1361,3 +1361,67 @@ everything else is good"
 
 ---
 
+## Unit 13: branch, docs commit and phase agent launched
+**Timestamp**: 2026-09-11T21:47:59Z
+**User Input**: (none)
+**AI Response**: "origin/master had moved to 559a468 (release 1.27.0, PR #102); realigned master stash-first (untracked docs included), branched feat/admin-resume-upload, wrote the phase brief construction/plans/unit13-brief.md and committed every pending doc as 4e48b95 (docs: Units 13 and 14 requirements, workflow plan and the Unit 13 code-generation plan). Launched one fresh Sonnet general-purpose phase agent in the background, briefed from the brief file; it commits on the branch by explicit path and never pushes. Next: its report, then the five review agents."
+**Context**: Construction, Unit 13, Code Generation Part 2: phase agent running
+
+---
+
+## Unit 13: phase agent report
+**Timestamp**: 2026-09-11T22:11:33Z
+**User Input**: (none)
+**AI Response**: "The Sonnet phase agent finished on feat/admin-resume-upload with three commits on top of 4e48b95: 3a2bfe5 feat (ResumeRules, ResumeService and its registration, AnalyticsRules.IsExcludedUser used by the middleware and TryRecordEventAsync, the /resume availability gate and origin target, the Contact and footer links with the nav relabelled Links, the Résumé block on /admin/site, the dashboard card text); bec9168 test (ResumeRulesTests 14, ResumeServiceTests 17, ResumeLinksTests 5, AnalyticsRulesTests plus 3); b5c67b8 docs (README row, .env.example comment, unit-test-instructions 744 tests and 41 fixtures, plan ticks). Reported: build 0 warnings; dotnet test Passed 744 (705 before). Local check done against an ephemeral Postgres with a hand-written sample PDF: both anchors present with their origins, aria-label Links, 200 with the attachment filename for footer, contact and other origins, AnalyticsEvents rows with targets footer, contact and NULL, links gone and 404 after deleting the file; app stopped by PID, container removed. Deviations: plan said two new fixtures where three were added (brief was right); temp file written with File.WriteAllBytesAsync; two extra IsConfigured tests; local run under the Production environment to avoid the HTTPS redirect. Flagged: ThemeToggleTooltipTests was never added to the fixtures table (pre-existing). Next: orchestrator verification, then five review agents."
+**Context**: Construction, Unit 13, Code Generation Part 2: phase complete, review pending
+
+---
+
+## Unit 13: orchestrator verification and review launch
+**Timestamp**: 2026-09-11T22:13:12Z
+**User Input**: (none)
+**AI Response**: "Verified on the branch: three commits after 4e48b95 (3a2bfe5, bec9168, b5c67b8), 19 files, +649/-32; dotnet build -warnaserror 0 warnings, 0 errors; dotnet test Passed 744, Failed 0. Launched five report-only Sonnet review agents in parallel on git diff 4e48b95..HEAD: correctness and bugs, security (with the BR-18 grep), framework awareness (eight framework questions including the download-attribute interception and the StringValues conversion), maintainability (docs accuracy and the fixtures table), performance (the per-render File.Exists in MainLayout, the 5 MB buffering). Remediation follows their reports."
+**Context**: Construction, Unit 13, Code Generation Part 2: five-area review running
+
+---
+
+## Unit 13: security review
+**Timestamp**: 2026-09-11T22:16:53Z
+**User Input**: (none)
+**AI Response**: "Security PASS: the upload page is Admin-only; the service writes only to the configured path, never a user-supplied path or filename; magic bytes are checked before any byte reaches disk (pinned by SaveAsync_NonPdfStream_LeavesTheExistingFileUntouched); the 5 MB cap is enforced server-side through ImageGuards.BufferWithLimitAsync independent of the InputFile limit (pinned); temp file beside the target with a GUID suffix, atomic move, try/finally cleanup; the origin reaches the database only as footer or contact; Content-Disposition attachment with the filename from the configured path; the admin exclusion keys on the server-side role claim; no unescaped interpolation. BR-18 grep clean over the diff and the new files (fixture name Jane Developer); the one match is a pre-existing sponsor link line in README.md outside the diff."
+**Context**: Construction, Unit 13, review: one of five reports in
+
+---
+
+## Unit 13: performance review
+**Timestamp**: 2026-09-11T22:18:01Z
+**User Input**: (none)
+**AI Response**: "Performance: one minor (MainLayout now calls ResumeService.IsAvailable, one File.Exists stat, on every page render site-wide; suggested a 5 to 10 second TimeProvider-keyed cache invalidated by SaveAsync and Delete), one nit (SaveAsync copies the 5 MB buffer with ToArray before File.WriteAllBytesAsync; CopyToAsync into a FileStream avoids the second copy). Answers: the upload buffering is acceptable at this frequency; the second stat in Results.File is immaterial; IsInRole is negligible; ParseOrigin allocates nothing; tests are fast. Decision deferred to the consolidated remediation pass."
+**Context**: Construction, Unit 13, review: two of five reports in
+
+---
+
+## Unit 13: correctness review
+**Timestamp**: 2026-09-11T22:21:11Z
+**User Input**: (none)
+**AI Response**: "Correctness: one MAJOR. UploadResumeAsync catches IOException and InvalidOperationException but not UnauthorizedAccessException; on Linux a permission-denied write (EACCES, the classic bind-mount UID mismatch) throws UnauthorizedAccessException while a read-only filesystem (EROFS) throws IOException, so the exception would escape the handler and tear down the InteractiveServer circuit of /admin/site, losing every unsaved field on the page. Fix: add UnauthorizedAccessException to the catch filter, matching ResumeService.Delete. The same gap pre-exists in UploadPhotoAsync and UploadPhotoFlipAsync in the same file; to be fixed alongside as a one-line hardening each. Everything else verified: availability gate, StringValues to origin (repeated keys join to a comma string and fall to null), the atomic save and the sub-five-byte header, Delete, the size pre-check and busy flag, the admin exclusion in both call paths and for anonymous principals, both links gated, no remaining Site.ResumeFile use in components."
+**Context**: Construction, Unit 13, review: three of five reports in
+
+---
+
+## Unit 13: framework review
+**Timestamp**: 2026-09-11T22:25:35Z
+**User Input**: (none)
+**AI Response**: "Framework PASS with three observations: (minor, no fix) MainLayout renders statically, so after an admin upload the footer link appears on the next navigation, as the photo hero already behaves; (nit, pre-existing) a delete between IsAvailable and Results.File would surface as a 500 rather than 404, unchanged from the old inline check; (nit, pre-existing) the photo handlers show the raw IOException text for an oversized file while the new handler shows the friendly message. Confirmed empirically: Blazor click interception bails out for an anchor with the download attribute even inside an interactive circuit; StringValues converts missing to null and repeated keys to a comma-joined string, so ParseOrigin falls to null; Results.File recomputes Last-Modified per request with no ETag or Cache-Control, so the in-place swap needs no cache busting; singleton-into-singleton is fine; temp beside target gives an atomic rename on Linux; the Razor text scans are Linux-safe. Build 0 warnings, 744 tests."
+**Context**: Construction, Unit 13, review: four of five reports in
+
+---
+
+## Unit 13: maintainability review and consolidated remediation
+**Timestamp**: 2026-09-11T22:28:12Z
+**User Input**: (none)
+**AI Response**: "Maintainability: one major (ThemeToggleTooltipTests missing from the fixtures table; 42 fixtures, not 41), two minors (the oversize pre-check hardcoded 5 MB; the app.css comment above .photo-upload described photo controls only), one nit (the atomic write and best-effort delete duplicated between OwnerPhotoService and ResumeService). Remediation applied by the orchestrator: UnauthorizedAccessException added to the résumé and both photo upload catch filters (correctness major); ResumeRules gains MaxMegabytes and TooLargeMessage derived from it, the handler uses it, one new test pins both; the temp file is written with CopyToAsync into a FileStream instead of ToArray plus WriteAllBytesAsync (performance nit); the CSS comment reworded; the fixtures table row and count fixed. Declined with reasons: the per-render stat cache (a stat costs microseconds; the framework reviewer judged it negligible; write-through forbids a permanent cache; the reasoning now sits in the IsAvailable summary); the shared-helper refactor (its own change, offered to the owner as a follow-up task chip). Build 0 warnings, 745 tests. Committed as the fix commit on the branch; next: final docs commit, push, PR A, Copilot gate."
+**Context**: Construction, Unit 13, review complete, remediation committed
+
+---
+
