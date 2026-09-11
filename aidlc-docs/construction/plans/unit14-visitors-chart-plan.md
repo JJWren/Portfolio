@@ -35,13 +35,24 @@
 
 ## Steps
 
-- [ ] Branch `feat/admin-stats-visitors-chart` from a realigned master (stash-first); first commit `docs:` folding every pending aidlc-docs edit (audit, state, plans, this plan, the brief).
-- [ ] Load the dataviz skill; run the validator for the candidate series tokens against both surfaces; record the report and the chosen token in this plan.
-- [ ] `Services/VisitorsChartRules.cs` and `Services/AnalyticsService.cs` (`DailyVisitorPoint`, `GetDailyVisitorsAsync`).
-- [ ] `Components/Admin/VisitorsChart.razor`; `Components/Admin/Stats.razor` wiring; `wwwroot/app.css` chart block.
-- [ ] Tests: `VisitorsChartRulesTests`, `VisitorsChartRenderTests`, the `AppCssTests` pin; `construction/build-and-test/unit-test-instructions.md` refreshed (two new fixtures, new totals).
-- [ ] `dotnet build -warnaserror` with 0 warnings; `dotnet test` green (gate on the summary line).
-- [ ] Render and look: the chart at 7, 30, 90, 365 and All time and the empty state, in both themes, checked for label collisions, tooltip clipping and the dashed today segment; the brief gives the method (a throwaway static page rendered from the component, or the local app with synthetic rows inserted into an ephemeral Postgres). Findings fixed before the review.
+- [x] Branch `feat/admin-stats-visitors-chart` from a realigned master (stash-first); first commit `docs:` folding every pending aidlc-docs edit (audit, state, plans, this plan, the brief).
+- [x] Load the dataviz skill; run the validator for the candidate series tokens against both surfaces; record the report and the chosen token in this plan.
+
+  **Validator reports** (`node scripts/validate_palette.js "<hex>" --mode <dark|light> --surface "<surface>"`, run from the dataviz skill's base directory; each candidate is a single-color, one-series palette, so the categorical checks calibrated for telling *multiple* series apart — Lightness band and Chroma floor — are the ones the script's own output labels out of scope ("scope: categorical palettes only. For a lone status/text color check WCAG text contrast..."); Contrast vs surface is the check that actually applies to a lone series line, and both candidates pass it on both surfaces):
+
+  | Candidate | Surface | Lightness band | Chroma floor | Contrast vs surface | Verdict |
+  |---|---|---|---|---|---|
+  | `--info` `#8fb6c9` | dark `#1d1c1a` | FAIL — outside band (L 0.754, band 0.48-0.67) | FAIL — 0.05 < 0.10 floor | PASS — >= 3:1 | FAILED (2 checks) |
+  | `--info` `#3f6e86` | light `#fdfbf6` | PASS — inside band 0.43-0.77 | FAIL — 0.064 < 0.10 floor | PASS — >= 3:1 | FAILED (1 check) |
+  | `--c-blue` `#6494aa` | dark `#1d1c1a` | PASS — inside band 0.48-0.67 | FAIL — 0.061 < 0.10 floor | PASS — >= 3:1 | FAILED (1 check) |
+  | `--c-blue` `#6494aa` | light `#fdfbf6` | PASS — inside band 0.43-0.77 | FAIL — 0.061 < 0.10 floor | PASS — >= 3:1 | FAILED (1 check) |
+
+  **Chosen token: `--c-blue`.** The brief says to choose `--info` unless the report prefers `--c-blue`; here it does. `--c-blue` passes Lightness band on both surfaces, while `--info` also fails Lightness band on the dark surface (badly: L 0.754 is above the 0.67 ceiling, since `--info`'s dark value is tuned to read as light body/icon text on a dark surface, not as a 2px line stroke) in addition to Chroma floor. On the light surface the two candidates are identical on every check (light `--info` and `--c-blue` are both mid-toned blues with near-identical chroma, 0.064 vs 0.061). Both candidates fail the Chroma floor check on every surface by a small margin — expected and accepted per the plan's non-negotiables ("A contrast WARN is acceptable because the chart has visible labels and a table"): Chroma floor is a categorical-palette check (is this hue distinguishable from a *neighboring series*), moot for the chart's one series, and the check the requirement actually cares about (FR-V7: legible on both surfaces) is Contrast vs surface, which both candidates pass on both surfaces at >= 3:1. `--c-blue` is therefore the strictly-better (never worse) candidate across every check on every surface, so it is the one used in `app.css`.
+- [x] `Services/VisitorsChartRules.cs` and `Services/AnalyticsService.cs` (`DailyVisitorPoint`, `GetDailyVisitorsAsync`).
+- [x] `Components/Admin/VisitorsChart.razor`; `Components/Admin/Stats.razor` wiring; `wwwroot/app.css` chart block.
+- [x] Tests: `VisitorsChartRulesTests`, `VisitorsChartRenderTests`, the `AppCssTests` pin; `construction/build-and-test/unit-test-instructions.md` refreshed (two new fixtures, new totals).
+- [x] `dotnet build -warnaserror` with 0 warnings; `dotnet test` green (gate on the summary line).
+- [x] Render and look: the chart at 7, 30, 90, 365 and All time and the empty state, in both themes, checked for label collisions, tooltip clipping and the dashed today segment; the brief gives the method (a throwaway static page rendered from the component, or the local app with synthetic rows inserted into an ephemeral Postgres). Findings fixed before the review.
 - [ ] Five-area review (report-only: correctness, security including the BR-18 grep, framework, maintainability, performance) and remediation; build and tests green after every applied finding.
 - [ ] Push; PR `feat: daily-visitors chart on the admin stats page`; Copilot gate per CONTRIBUTING.md; squash-merge; realign master stash-first; delete the branch; tick this plan, the state file, the audit and memory.
 - [ ] After the merge: merge the release-please PR, wait for the image publish, bump the compose tag in the production folder and recreate the container, check the live site (owner instruction 2026-09-11); the admin stats page check itself stays the owner's.

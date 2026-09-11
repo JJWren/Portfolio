@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (748 tests, 43 fixtures — as of Unit 13, the admin résumé upload)
+## Coverage (819 tests, 45 fixtures — as of Unit 14, the admin stats daily-visitors chart)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
@@ -20,6 +20,7 @@ dotnet test --filter SlugHelperTests # one fixture
 | UI plumbing | JsModuleUrlTests (asset-path module import), IconKindTests, NoInlineOnClickTests (no inline `onclick=""` outside the site.js `data-action` pattern) |
 | Contact & spam defense | ContactRateLimiterTests, ContactSpamRulesTests, ContactFormTimestampTests, DisposableEmailDomainsTests, MailDomainCheckerTests, EmailTemplatesTests |
 | Analytics | AnalyticsRulesTests (includes the admin-session Named Event exclusion), AnalyticsServiceTests (the shared event entry point skips admin sessions before any database access), AnalyticsRollupTests, VisitorKeyTests |
+| Admin stats chart | VisitorsChartRulesTests (nice-max scale, gridline ticks, point coordinates, line/today-segment paths, date-label spread, tooltip anchor side — all pure), VisitorsChartRenderTests (HtmlRenderer render of VisitorsChart with fixed points: heading/caption, the empty state, day-group and table-row counts, the today row and dashed segment, per-day aria-labels, no script/style/external URL) |
 | SEO | SeoRulesTests |
 | Theming | ThemeRulesTests, ThemeToggleTooltipTests (BJJ tooltip wording, scanned from the linked Razor and JS sources) |
 
