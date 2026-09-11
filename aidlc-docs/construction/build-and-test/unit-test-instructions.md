@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (744 tests, 41 fixtures — as of Unit 13, the admin résumé upload)
+## Coverage (745 tests, 42 fixtures — as of Unit 13, the admin résumé upload)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
@@ -21,7 +21,7 @@ dotnet test --filter SlugHelperTests # one fixture
 | Contact & spam defense | ContactRateLimiterTests, ContactSpamRulesTests, ContactFormTimestampTests, DisposableEmailDomainsTests, MailDomainCheckerTests, EmailTemplatesTests |
 | Analytics | AnalyticsRulesTests (includes the admin-session Named Event exclusion), AnalyticsRollupTests, VisitorKeyTests |
 | SEO | SeoRulesTests |
-| Theming | ThemeRulesTests |
+| Theming | ThemeRulesTests, ThemeToggleTooltipTests (BJJ tooltip wording, scanned from the linked Razor and JS sources) |
 
 This reconciles the table against `ls tests/Portfolio.Tests/*.cs` (still the source of
 truth if the two ever drift again) — every fixture file has a row, and the total above

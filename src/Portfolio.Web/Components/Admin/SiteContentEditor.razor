@@ -342,7 +342,7 @@
             await Photo.SaveAsync(stream);
             _photoUrl = Photo.GetVersionedUrl();
         }
-        catch (Exception ex) when (ex is IOException or InvalidOperationException or SixLabors.ImageSharp.ImageFormatException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or SixLabors.ImageSharp.ImageFormatException)
         {
             _error = ex is SixLabors.ImageSharp.ImageFormatException
                 ? "That file isn't a readable image — use a PNG, JPEG, WebP, or GIF."
@@ -375,7 +375,7 @@
             await Photo.SaveAsync(stream, OwnerPhotoSlot.Flip);
             _photoFlipUrl = Photo.GetVersionedUrl(OwnerPhotoSlot.Flip);
         }
-        catch (Exception ex) when (ex is IOException or InvalidOperationException or SixLabors.ImageSharp.ImageFormatException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException or SixLabors.ImageSharp.ImageFormatException)
         {
             _error = ex is SixLabors.ImageSharp.ImageFormatException
                 ? "That file isn't a readable image — use a PNG, JPEG, WebP, or GIF."
@@ -404,9 +404,11 @@
         _error = null;
         try
         {
+            // Checked before the stream opens so an oversized file gets the
+            // approved copy rather than the framework's own byte-count text.
             if (e.File.Size > ResumeRules.MaxBytes)
             {
-                _error = "That file is over 5 MB.";
+                _error = ResumeRules.TooLargeMessage;
                 return;
             }
 
@@ -418,9 +420,11 @@
         {
             _error = "That file isn't a PDF.";
         }
-        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or UnauthorizedAccessException)
         {
-            // A read-only mount surfaces as the write error, by design.
+            // A read-only mount (IOException) or a folder the container may not
+            // write to (UnauthorizedAccessException) surfaces as the write
+            // error, by design; either one must not escape the circuit.
             _error = ex.Message;
         }
         finally

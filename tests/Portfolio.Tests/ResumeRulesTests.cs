@@ -32,4 +32,11 @@ public class ResumeRulesTests
     [InlineData(1_572_864, "1.5 MB")]
     public void FormatSize_FormatsByMagnitude(long bytes, string expected)
         => Assert.Equal(expected, ResumeRules.FormatSize(bytes));
+
+    [Fact]
+    public void TooLargeMessage_NamesTheCapInMegabytes()
+    {
+        Assert.Equal(5 * 1024L * 1024L, ResumeRules.MaxBytes);
+        Assert.Equal("That file is over 5 MB.", ResumeRules.TooLargeMessage);
+    }
 }

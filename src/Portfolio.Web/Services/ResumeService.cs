@@ -17,7 +17,9 @@ public class ResumeService(SiteConfig site)
     public bool IsConfigured => site.ResumeFile is not null;
 
     /// <summary>Whether the configured path is set and the file exists — the
-    /// one availability rule shared by the endpoint and both links.</summary>
+    /// one availability rule shared by the endpoint and both links. One stat
+    /// call per render, deliberately uncached: the file may be replaced on the
+    /// host at any moment (write-through), and a stat costs microseconds.</summary>
     public bool IsAvailable => site.ResumeFile is { } path && File.Exists(path);
 
     /// <summary>The current file's name, size and write time, or null when unavailable.</summary>
@@ -65,7 +67,11 @@ public class ResumeService(SiteConfig site)
         var temp = $"{target}.{Guid.NewGuid():N}.tmp";
         try
         {
-            await File.WriteAllBytesAsync(temp, buffered.ToArray(), cancellationToken);
+            await using (var file = File.Create(temp))
+            {
+                await buffered.CopyToAsync(file, cancellationToken);
+            }
+
             File.Move(temp, target, overwrite: true);
         }
         finally

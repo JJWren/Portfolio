@@ -8,7 +8,13 @@ namespace Portfolio.Web.Services;
 /// </summary>
 public static class ResumeRules
 {
-    public const long MaxBytes = 5 * 1024 * 1024;
+    /// <summary>Upload cap, the same figure as the photo and image caps.</summary>
+    public const int MaxMegabytes = 5;
+    public const long MaxBytes = MaxMegabytes * 1024L * 1024L;
+
+    /// <summary>The admin editor's message for an upload over the cap, derived
+    /// from the constant so the wording can't drift from the limit.</summary>
+    public static string TooLargeMessage { get; } = $"That file is over {MaxMegabytes} MB.";
 
     /// <summary>Query string key the Contact and footer links use to name
     /// where a download started.</summary>

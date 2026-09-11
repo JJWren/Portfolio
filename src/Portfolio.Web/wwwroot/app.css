@@ -2135,8 +2135,8 @@ button.pager-link:not(:disabled):hover {
     cursor: pointer;
 }
 
-/* Owner-photo controls on the admin site-content page; same hidden-input
-   trick as .avatar-upload. */
+/* Hidden-input trick (as .avatar-upload) shared by the admin site-content
+   page's photo and résumé upload controls. */
 .photo-upload {
     position: relative;
     overflow: hidden;
