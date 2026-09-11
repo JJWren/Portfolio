@@ -19,6 +19,13 @@ in a switch the visitor can toggle, served at `/owner-photo` and
 renders nothing; nothing takes its place.
 _Avoid_: profile picture, avatar (those belong to user Profiles)
 
+**Résumé**:
+The owner's one downloadable PDF, served at `/resume` with each download
+counted as the `resume-download` Named Event. Supplied by placing the file at
+the configured path or by uploading it from the admin site-content page (both
+end at the same file); with no file, no résumé link renders anywhere.
+_Avoid_: CV, curriculum vitae, resume file
+
 ### Landing page (BJJ flavor)
 
 **Flavor**:
@@ -144,3 +151,10 @@ deleted.
 **Watermark**:
 The latest day present in the daily site stats — every day up to it has been
 rolled up (zero-traffic days included), and the next rollup resumes after it.
+
+**Period**:
+The window the admin stats page reports on: the last N UTC days ending with
+today (today's partial day included), or, for all time, every day since the
+first recorded day. The tiles, the tables and the chart always share one
+Period.
+_Avoid_: range, window, timeframe
