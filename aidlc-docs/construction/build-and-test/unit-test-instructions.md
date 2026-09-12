@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (814 tests, 45 fixtures — as of Unit 14, the admin stats daily-visitors chart)
+## Coverage (819 tests, 46 fixtures — as of Unit 14, the admin stats daily-visitors chart, on top of the shared atomic-write refactor)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |
@@ -14,7 +14,7 @@ dotnet test --filter SlugHelperTests # one fixture
 | Blog | SlugHelperTests, MarkdownServiceTests, PostRulesTests, BlogFiltersTests |
 | Comments, profiles & moderation | CommentRulesTests, ProfileRulesTests, AvatarServiceTests, ReportRulesTests, BadgeLabelTests |
 | Projects | ProjectRulesTests, ProjectUrlRulesTests |
-| Images & uploads | ImageUploadServiceTests, OwnerPhotoServiceTests (both photo slots) |
+| Images & uploads | ImageUploadServiceTests, OwnerPhotoServiceTests (both photo slots), FileWritesTests (the shared atomic write and best-effort delete behind the photos and the résumé) |
 | Résumé | ResumeRulesTests (magic bytes, origin allowlist, size formatting), ResumeServiceTests (temp-directory write-through), ResumeLinksTests (footer/Contact link gating and admin block copy, scanned from linked Razor sources) |
 | List views (paging & sorting) | PagedResultTests, PagerWindowTests, QuerySortTests, SortStateTests, SortDefaultsTests |
 | UI plumbing | JsModuleUrlTests (asset-path module import), IconKindTests, NoInlineOnClickTests (no inline `onclick=""` outside the site.js `data-action` pattern) |
