@@ -29,19 +29,6 @@ public class LandingSectionsRenderTests : IDisposable
     /// hero's two-photo switch (Unit 10 Phase 4).</summary>
     private string CreatePhotoFlipFile() => CreatePhotoFile("owner-photo-flip.webp");
 
-    private static int CountOccurrences(string haystack, string needle)
-    {
-        var count = 0;
-        var index = 0;
-        while ((index = haystack.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
-        {
-            count++;
-            index += needle.Length;
-        }
-
-        return count;
-    }
-
     /// <summary>Extracts the first `&lt;li class="{liClass}"&gt;...&lt;/li&gt;`
     /// block from rendered HTML, so a test can assert on what is nested
     /// inside one specific game-plan node rather than on the page as a
@@ -101,7 +88,7 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("<p>First paragraph.</p>", html);
         Assert.Contains("<p>Second paragraph.</p>", html);
         // The blank line between the two must not become a third, empty <p>.
-        Assert.Equal(2, CountOccurrences(html, "<p>"));
+        Assert.Equal(2, LandingRenderHarness.CountOccurrences(html, "<p>"));
     }
 
     [Fact]
@@ -115,7 +102,7 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("<li>C#</li>", html);
         Assert.Contains("<li>ASP.NET Core</li>", html);
         Assert.Contains("<li>Docker</li>", html);
-        Assert.Equal(3, CountOccurrences(html, "<li>"));
+        Assert.Equal(3, LandingRenderHarness.CountOccurrences(html, "<li>"));
     }
 
     [Fact]
@@ -334,14 +321,14 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("class=\"gp-node gp-gold\"", html);
         Assert.Contains("class=\"gp-node gp-green\"", html);
         Assert.Contains("class=\"gp-node gp-blue\"", html);
-        Assert.Equal(4, CountOccurrences(html, "href=\"#principles\""));
+        Assert.Equal(4, LandingRenderHarness.CountOccurrences(html, "href=\"#principles\""));
         Assert.Contains("<span class=\"term\">Warm-up</span>", html);
         Assert.Contains("<span class=\"read\">Loosen up</span>", html);
         Assert.Contains("<span class=\"how\">Stretch first.</span>", html);
         Assert.Contains("<span class=\"term\">Rest</span>", html);
         Assert.Contains("<span class=\"read\">Recover</span>", html);
         // Rest's How is blank: three nodes carry a .how span, not four.
-        Assert.Equal(3, CountOccurrences(html, "class=\"how\""));
+        Assert.Equal(3, LandingRenderHarness.CountOccurrences(html, "class=\"how\""));
 
         // Pin the color-to-term pairing, not just that all four gp-* classes
         // and all four terms appear somewhere in the page: the first node
@@ -456,9 +443,9 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.Contains("<h3>Ship small.</h3>", html);
         Assert.Contains("<p>Small changes are safe.</p>", html);
         Assert.Contains("<h3>Write it down.</h3>", html);
-        Assert.Equal(2, CountOccurrences(html, "class=\"principle\""));
+        Assert.Equal(2, LandingRenderHarness.CountOccurrences(html, "class=\"principle\""));
         // Only the first principle has a non-blank reading, so exactly one <p>.
-        Assert.Equal(1, CountOccurrences(html, "<p>"));
+        Assert.Equal(1, LandingRenderHarness.CountOccurrences(html, "<p>"));
     }
 
     [Fact]
@@ -566,7 +553,7 @@ public class LandingSectionsRenderTests : IDisposable
 
         Assert.Contains("<p class=\"eyebrow\">The road</p>", html);
         Assert.Contains("<h2>Two ladders, one clock</h2>", html);
-        Assert.Equal(5, CountOccurrences(html, "class=\"row era-"));
+        Assert.Equal(5, LandingRenderHarness.CountOccurrences(html, "class=\"row era-"));
         Assert.Contains("class=\"row era-1\" data-belt=\"white\"", html);
         Assert.Contains("class=\"row era-2\" data-belt=\"blue\"", html);
         Assert.Contains("class=\"row era-3\" data-belt=\"purple\"", html);
@@ -587,7 +574,7 @@ public class LandingSectionsRenderTests : IDisposable
         // th, so a screen reader sees a consistent column count) plus one
         // <td class="rowbelt"> per row, its BeltBand aria-hidden inside.
         Assert.Contains("<th class=\"rowbelt\"></th>", html);
-        Assert.Equal(1, CountOccurrences(html, "<td class=\"rowbelt\">"));
+        Assert.Equal(1, LandingRenderHarness.CountOccurrences(html, "<td class=\"rowbelt\">"));
         Assert.Contains("<time datetime=\"2013-04-05\">2013-04-05</time>", html);
         Assert.Contains("<td class=\"belt\" data-label=\"Belt\"><i class=\"swatch\" aria-hidden=\"true\"></i>Brown</td>", html);
         Assert.Contains("<td class=\"gym\" data-label=\"Gym\">Sample Gym</td>", html);
@@ -618,7 +605,7 @@ public class LandingSectionsRenderTests : IDisposable
         {
             Assert.Contains($"belt-band {expected[i].CssClass}", rungs[i]);
             Assert.Contains($"<span class=\"name\">{expected[i].Name}</span>", rungs[i]);
-            Assert.Equal(expected[i].Stripes, CountOccurrences(rungs[i], "<i></i>"));
+            Assert.Equal(expected[i].Stripes, LandingRenderHarness.CountOccurrences(rungs[i], "<i></i>"));
         }
     }
 
@@ -639,7 +626,7 @@ public class LandingSectionsRenderTests : IDisposable
             LandingRenderHarness.BuildContent(eras: eras));
 
         Assert.Equal(4, ExtractRungBlocks(html).Count);
-        Assert.Equal(5, CountOccurrences(html, "class=\"row era-"));
+        Assert.Equal(5, LandingRenderHarness.CountOccurrences(html, "class=\"row era-"));
     }
 
     [Fact]
@@ -672,8 +659,8 @@ public class LandingSectionsRenderTests : IDisposable
 
         Assert.Contains("<p class=\"eyebrow\">Now</p>", html);
         Assert.Contains("<dl class=\"now\">", html);
-        Assert.Equal(4, CountOccurrences(html, "<dt>"));
-        Assert.Equal(4, CountOccurrences(html, "<dd>"));
+        Assert.Equal(4, LandingRenderHarness.CountOccurrences(html, "<dt>"));
+        Assert.Equal(4, LandingRenderHarness.CountOccurrences(html, "<dd>"));
         Assert.Contains("<dt>Training</dt>", html);
         Assert.Contains("<dd>Evening classes.</dd>", html);
         Assert.Contains("<dt>Travel</dt>", html);
@@ -734,7 +721,7 @@ public class LandingSectionsRenderTests : IDisposable
         // fetchpriority="high" is on the primary (desk) image only; the hidden mat
         // image sits in the viewport at opacity 0, so loading="lazy" alone would not
         // defer it, and it is marked low priority as well.
-        Assert.Equal(1, CountOccurrences(html, "fetchpriority=\"high\""));
+        Assert.Equal(1, LandingRenderHarness.CountOccurrences(html, "fetchpriority=\"high\""));
         Assert.Contains("loading=\"lazy\" fetchpriority=\"low\"", html);
         // The single-image path (used when only one photo resolves) must not
         // also render.
@@ -805,7 +792,7 @@ public class LandingSectionsRenderTests : IDisposable
         Assert.True(openTagStart >= 0, "Expected a .belt-bar span in the rendered HTML.");
         var contentStart = html.IndexOf('>', openTagStart) + 1;
         var closeTag = html.IndexOf("</span>", contentStart, StringComparison.Ordinal);
-        return CountOccurrences(html[contentStart..closeTag], "<i></i>");
+        return LandingRenderHarness.CountOccurrences(html[contentStart..closeTag], "<i></i>");
     }
 
     public void Dispose()

@@ -1,0 +1,219 @@
+@using System.Globalization
+
+@* No-script chart: this SVG is plain markup computed from Points on every
+   render — a period change re-renders the whole thing through the existing
+   InteractiveServer circuit, nothing here calls into JS. Reading a value
+   works two ways without a script: a CSS-only hover/focus rule in app.css
+   reveals each day's tooltip (.day .tip), and the <details> table below the
+   chart carries every value in plain text as the assistive-tech reading
+   (FR-V9). *@
+
+<section class="card visitors-chart">
+    <h2 id="visitors-chart-title">Daily visitors</h2>
+    <p class="muted">one point per UTC day</p>
+    @if (Points.Count < VisitorsChartRules.MinPoints)
+    {
+        <p class="muted">Not enough data to chart yet.</p>
+    }
+    else
+    {
+        <a class="skip-link" href="#visitors-data-summary">Skip the daily detail</a>
+        <svg viewBox="0 0 @Layout.Width @Layout.Height" role="group" aria-labelledby="visitors-chart-title" class="visitors-svg">
+            <g class="grid">
+                @foreach (var tick in Ticks)
+                {
+                    var y = VisitorsChartRules.Y(tick, _niceMax);
+                    <line x1="@Coord(Layout.Left)" y1="@Coord(y)" x2="@Coord(Layout.Width - Layout.Right)" y2="@Coord(y)" />
+                    @SvgText("axis", Layout.Left - 6, y + 3.5, "end", VisitorsChartRules.FormatCount(tick))
+                }
+            </g>
+            <g class="axis-x">
+                @for (var i = 0; i < LabelIndexesValue.Count; i++)
+                {
+                    var index = LabelIndexesValue[i];
+                    var anchor = i == 0 ? "start" : i == LabelIndexesValue.Count - 1 ? "end" : "middle";
+                    @SvgText(null, VisitorsChartRules.X(index, Points.Count), Layout.Height - Layout.Bottom + 16, anchor, VisitorsChartRules.FormatDay(Points[index].Day))
+                }
+            </g>
+            <path class="line" d="@LinePathValue" />
+            @if (LastIsToday)
+            {
+                <path class="today" d="@TodayPathValue" />
+                <circle class="marker" cx="@Coord(LastX)" cy="@Coord(LastY)" r="@MarkerRadius" />
+            }
+            <g class="days">
+                @for (var i = 0; i < Points.Count; i++)
+                {
+                    var point = Points[i];
+                    var x = VisitorsChartRules.X(i, Points.Count);
+                    var y = VisitorsChartRules.Y(point.Visitors, _niceMax);
+                    var half = ColumnWidth / 2.0;
+                    // Clamped to the plot so an endpoint's column (a full
+                    // spacing wide, centred on the edge) cannot reach across
+                    // and cover its neighbour's; the columns then tile the
+                    // plot exactly.
+                    var hitX0 = Math.Max(Layout.Left, x - half);
+                    var hitX1 = Math.Min(Layout.Left + Layout.PlotWidth, x + half);
+                    var anchor = VisitorsChartRules.TooltipAnchor(i, Points.Count);
+                    var tipText = TipText(point);
+                    var boxWidth = TipBoxWidthFor(tipText);
+                    var boxX = TipBoxX(x, anchor, boxWidth);
+                    var boxY = TipBoxY(y);
+                    <g class="day" tabindex="0" role="group" aria-label="@AriaLabel(point)">
+                        <rect class="hit" x="@Coord(hitX0)" y="@Coord(Layout.Top)" width="@Coord(hitX1 - hitX0)" height="@Coord(Layout.PlotHeight)" />
+                        <g class="tip">
+                            <line class="crosshair" x1="@Coord(x)" y1="@Coord(Layout.Top)" x2="@Coord(x)" y2="@Coord(Layout.Height - Layout.Bottom)" />
+                            <circle class="marker" cx="@Coord(x)" cy="@Coord(y)" r="@MarkerRadius" />
+                            <rect class="tip-box" x="@Coord(boxX)" y="@Coord(boxY)" width="@Coord(boxWidth)" height="@Coord(TipBoxHeight)" />
+                            @SvgText("tip-text", boxX + TipTextPadding, boxY + (TipBoxHeight / 2.0) + 4, "start", tipText)
+                        </g>
+                    </g>
+                }
+            </g>
+        </svg>
+        <details class="visitors-data">
+            <summary id="visitors-data-summary">Data table</summary>
+            <table>
+                <thead>
+                    <tr><th>Day</th><th>Visitors</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var point in Points)
+                    {
+                        <tr>
+                            <td>@point.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)@(point.IsToday ? " today so far" : "")</td>
+                            <td>@VisitorsChartRules.FormatCount(point.Visitors)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </details>
+    }
+</section>
+
+@code {
+    /// <summary>Advance width of one tooltip character in viewBox units: the
+    /// tooltip text is set in the site's monospace font at 12px, whose glyphs
+    /// advance 0.6em (7.2 units), with a little slack for the fallbacks.</summary>
+    private const double TipCharWidth = 7.4;
+    private const double TipBoxHeight = 28;
+    private const double TipGap = 8;
+    private const double TipTextPadding = 8;
+    private const double ViewboxMargin = 2;
+    private const double MarkerRadius = 4;
+
+    private static readonly VisitorsChartRules.ChartLayout Layout = VisitorsChartRules.Layout;
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<DailyVisitorPoint> Points { get; set; }
+
+    private IReadOnlyList<int> _values = [];
+
+    /// <summary>The axis top, computed once per render in
+    /// <see cref="OnParametersSet"/> rather than rescanning the points on
+    /// every read (the day loop reads it once per point).</summary>
+    private int _niceMax = 1;
+
+    private IReadOnlyList<int> Ticks => VisitorsChartRules.Ticks(_niceMax);
+
+    private IReadOnlyList<int> LabelIndexesValue => VisitorsChartRules.LabelIndexes(Points.Count);
+
+    private bool LastIsToday => Points.Count > 0 && Points[^1].IsToday;
+
+    private string LinePathValue => VisitorsChartRules.LinePath(_values, _niceMax, LastIsToday);
+
+    private string TodayPathValue => VisitorsChartRules.TodayPath(_values, _niceMax);
+
+    private double LastX => VisitorsChartRules.X(Points.Count - 1, Points.Count);
+
+    private double LastY => VisitorsChartRules.Y(Points[^1].Visitors, _niceMax);
+
+    /// <summary>The hit column's width: exactly the gap between neighboring
+    /// points, so the columns tile the plot without overlapping and every day
+    /// owns the pointer over its own half-way boundaries. A wider minimum
+    /// would let later columns steal hover from earlier days once a long
+    /// period packs points closer together than that (365 days sit about
+    /// 1.8 units apart).</summary>
+    private double ColumnWidth => Points.Count > 1
+        ? Layout.PlotWidth / (double)(Points.Count - 1)
+        : Layout.PlotWidth;
+
+    /// <summary>The tooltip box's width, sized from its own text so a large
+    /// count never runs past the box (or the frame): padding on both sides
+    /// plus one monospace advance per character.</summary>
+    private static double TipBoxWidthFor(string text)
+        => (TipTextPadding * 2) + (text.Length * TipCharWidth);
+
+    /// <summary>Recomputes the shared visitors array once per render (instead
+    /// of once per consumer) so <see cref="LinePathValue"/> and
+    /// <see cref="TodayPathValue"/> read the same materialized list.</summary>
+    protected override void OnParametersSet()
+    {
+        _values = [.. Points.Select(p => p.Visitors)];
+        _niceMax = VisitorsChartRules.NiceMax(_values.Count == 0 ? 0 : _values.Max());
+    }
+
+    private static string Coord(double value) => VisitorsChartRules.FormatCoordinate(value);
+
+    private static string Coord(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Builds one SVG &lt;text&gt; element. Razor reserves the
+    /// <c>&lt;text&gt;</c> tag as a markup-transition construct that can
+    /// never carry attributes (RZ1023), so a literal
+    /// <c>&lt;text x="..." y="..."&gt;</c> in this file's markup won't
+    /// compile — every text label is built here instead, through the render
+    /// tree, the same namespace-safe path the literal <c>&lt;g&gt;</c> and
+    /// <c>&lt;path&gt;</c> elements take, so it keeps the SVG namespace on
+    /// every live re-render. <paramref name="content"/> is always a
+    /// formatted number or <see cref="VisitorsChartRules.FormatDay"/>/
+    /// <see cref="TipText"/> output — never admin-editable copy — and it is
+    /// still encoded the same way any other Razor content is, so this stays
+    /// safe even if that ever changes.
+    /// </summary>
+    private static RenderFragment SvgText(string? cssClass, double x, double y, string textAnchor, string content) => builder =>
+    {
+        builder.OpenElement(0, "text");
+        if (cssClass is not null)
+        {
+            builder.AddAttribute(1, "class", cssClass);
+        }
+
+        builder.AddAttribute(2, "x", VisitorsChartRules.FormatCoordinate(x));
+        builder.AddAttribute(3, "y", VisitorsChartRules.FormatCoordinate(y));
+        builder.AddAttribute(4, "text-anchor", textAnchor);
+        builder.AddContent(5, content);
+        builder.CloseElement();
+    };
+
+    /// <summary>The tooltip box's left edge: grown out from the crosshair on
+    /// the side <see cref="VisitorsChartRules.TooltipAnchor"/> gives, then
+    /// clamped so the box never leaves the viewBox even for a day right at
+    /// the chart's edge.</summary>
+    private double TipBoxX(double pointX, string anchor, double boxWidth)
+    {
+        var raw = anchor == "start" ? pointX + TipGap : pointX - TipGap - boxWidth;
+        return Math.Clamp(raw, ViewboxMargin, Layout.Width - boxWidth - ViewboxMargin);
+    }
+
+    /// <summary>The tooltip box's top edge: centred on the point, then
+    /// clamped to stay inside the plot band (never over the axis labels).</summary>
+    private double TipBoxY(double pointY)
+        => Math.Clamp(
+            pointY - (TipBoxHeight / 2.0),
+            Layout.Top,
+            Layout.Height - Layout.Bottom - TipBoxHeight);
+
+    /// <summary>A full sentence for assistive technology, kept separate from
+    /// <see cref="TipText"/>'s shorter visual tooltip wording.</summary>
+    private static string AriaLabel(DailyVisitorPoint point)
+        => point.IsToday
+            ? $"{VisitorsChartRules.FormatDay(point.Day)}, today so far: {VisitorsChartRules.FormatCount(point.Visitors)} visitors"
+            : $"{VisitorsChartRules.FormatDay(point.Day)}: {VisitorsChartRules.FormatCount(point.Visitors)} visitors";
+
+    /// <summary>The middle-dot-joined visual chip shown in the hover/focus tooltip.</summary>
+    private static string TipText(DailyVisitorPoint point)
+        => point.IsToday
+            ? $"{VisitorsChartRules.FormatDay(point.Day)} · today so far · {VisitorsChartRules.FormatCount(point.Visitors)}"
+            : $"{VisitorsChartRules.FormatDay(point.Day)} · {VisitorsChartRules.FormatCount(point.Visitors)}";
+}

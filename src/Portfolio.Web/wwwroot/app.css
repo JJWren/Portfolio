@@ -2710,6 +2710,138 @@ select:focus {
     grid-template-columns: 1fr 6rem;
 }
 
+/* Visitors chart */
+.visitors-chart {
+    margin: 0 0 2rem;
+    padding: 1rem 1.25rem;
+    position: relative;
+}
+
+.visitors-chart h2 {
+    margin-top: 0;
+}
+
+/* Off-screen until focused: escapes the day-group tab-stop run (up to 365
+   of them) straight to the data table below, without a visible layout
+   change for a sighted mouse user. */
+.visitors-chart .skip-link {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.visitors-chart .skip-link:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+}
+
+.visitors-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 160px;
+}
+
+.visitors-svg .grid line {
+    stroke: var(--border);
+    stroke-width: 1;
+}
+
+.visitors-svg .axis,
+.visitors-svg .axis-x text {
+    fill: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--font-body);
+}
+
+.visitors-svg .line {
+    fill: none;
+    stroke: var(--c-blue);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.visitors-svg .today {
+    fill: none;
+    stroke: var(--c-blue);
+    stroke-width: 2;
+    stroke-dasharray: 4 4;
+    stroke-linecap: round;
+}
+
+.visitors-svg .marker {
+    fill: var(--surface);
+    stroke: var(--c-blue);
+    stroke-width: 2;
+}
+
+.visitors-svg .hit {
+    fill: transparent;
+}
+
+.visitors-svg .day {
+    outline: none;
+}
+
+.visitors-svg .day .tip {
+    display: none;
+}
+
+.visitors-svg .day:hover .tip,
+.visitors-svg .day:focus .tip {
+    display: block;
+}
+
+.visitors-svg .day:focus-visible .hit {
+    stroke: var(--accent);
+    stroke-width: 1;
+}
+
+.visitors-svg .crosshair {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+}
+
+.visitors-svg .tip-box {
+    fill: var(--surface);
+    stroke: var(--border);
+}
+
+.visitors-svg .tip-text {
+    fill: var(--text);
+    font-size: 12px;
+    font-family: var(--font-mono);
+}
+
+.visitors-data {
+    margin-top: 0.75rem;
+}
+
+.visitors-data table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.visitors-data th,
+.visitors-data td {
+    text-align: left;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.visitors-data td:last-child,
+.visitors-data th:last-child {
+    text-align: right;
+}
+
 .editor-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Portfolio.Web.Components;
+using Portfolio.Web.Components.Admin;
 using Portfolio.Web.Services;
 
 namespace Portfolio.Tests.Support;
@@ -65,6 +66,46 @@ internal static class LandingRenderHarness
                 new Dictionary<string, object?> { ["Nodes"] = nodes }));
             return output.ToHtmlString();
         });
+    }
+
+    /// <summary>
+    /// Renders <see cref="Portfolio.Web.Components.Admin.VisitorsChart"/>
+    /// directly (no LandingSections wrapper): the component injects no
+    /// service, so — unlike <see cref="RenderAsync"/> — the service
+    /// collection carries only logging.
+    /// </summary>
+    public static async Task<string> RenderVisitorsChartAsync(IReadOnlyList<DailyVisitorPoint> points)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        await using var provider = services.BuildServiceProvider();
+
+        await using var renderer = new HtmlRenderer(provider, provider.GetRequiredService<ILoggerFactory>());
+
+        return await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var output = await renderer.RenderComponentAsync<VisitorsChart>(
+                ParameterView.FromDictionary(
+                    new Dictionary<string, object?> { ["Points"] = points }));
+            return output.ToHtmlString();
+        });
+    }
+
+    /// <summary>Counts non-overlapping occurrences of <paramref name="needle"/>
+    /// in <paramref name="haystack"/> (ordinal); shared by
+    /// <see cref="LandingSectionsRenderTests"/> and
+    /// <see cref="VisitorsChartRenderTests"/> so neither keeps its own copy.</summary>
+    internal static int CountOccurrences(string haystack, string needle)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = haystack.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += needle.Length;
+        }
+
+        return count;
     }
 
     /// <summary>Builds a SiteConfig with fixed, neutral defaults; pass only what a given test cares about varying.</summary>

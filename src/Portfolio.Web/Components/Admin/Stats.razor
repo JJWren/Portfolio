@@ -56,6 +56,8 @@
                 </div>
             </div>
 
+            <VisitorsChart Points="_dailyVisitors" />
+
             <h2>Top pages</h2>
             @if (_routes is null || _routes.TotalCount == 0)
             {
@@ -138,9 +140,13 @@
     private PagedResult<RouteStatRow>? _routes;
     private IReadOnlyList<ReferrerStatRow>? _referrers;
     private IReadOnlyList<EventStatRow>? _events;
+    private IReadOnlyList<DailyVisitorPoint> _dailyVisitors = [];
     private int _page = 1;
     private RouteStatSortColumn _sortColumn = RouteStatSortColumn.Views;
     private SortDirection _sortDirection = SortDirection.Descending;
+    private DateOnly _firstDay;
+    private DateOnly _rangeFrom;
+    private DateOnly _rangeTo;
 
     protected override async Task OnInitializedAsync()
         => await ReloadAsync();
@@ -148,24 +154,50 @@
     private async Task ReloadAsync()
     {
         _page = 1;
+        await RefreshRangeAndSeriesAsync();
         await LoadAsync();
     }
 
-    private async Task LoadAsync()
+    /// <summary>The Period's range, the first recorded day and the chart
+    /// series: fetched together, since all three change only with the period
+    /// or with the UTC date.</summary>
+    private async Task RefreshRangeAndSeriesAsync()
     {
-        var (from, to) = await PeriodRangeAsync();
-        _summary = await Analytics.GetSummaryAsync(from, to);
-        _routes = await Analytics.GetTopRoutesAsync(from, to, _page, _sortColumn, _sortDirection);
-        _page = _routes.Page;
-        _referrers = await Analytics.GetTopReferrersAsync(from, to);
-        _events = await Analytics.GetEventBreakdownAsync(from, to);
+        _firstDay = await Analytics.FirstDayAsync();
+        (_rangeFrom, _rangeTo) = PeriodRange(_firstDay);
+        _dailyVisitors = await Analytics.GetDailyVisitorsAsync(
+            VisitorsChartRules.RangeStart(_rangeFrom, _firstDay), _rangeTo);
     }
 
-    private async Task<(DateOnly From, DateOnly To)> PeriodRangeAsync()
+    // The chart series and the first recorded day only ever change with the
+    // period (or on first load), so LoadAsync — re-run on every sort and
+    // pager click — normally reuses the range ReloadAsync already stored.
+    // The one exception is a circuit kept open across UTC midnight: the
+    // stored range would then end on yesterday, so it is refreshed whenever
+    // the current UTC date has moved past it.
+    private async Task LoadAsync()
+    {
+        if (_rangeTo != DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            await RefreshRangeAndSeriesAsync();
+        }
+
+        _summary = await Analytics.GetSummaryAsync(_rangeFrom, _rangeTo);
+        // The tile just reloaded but the series may be older (a sort or pager
+        // click), and today's count moves all day: re-derive today's point
+        // from the tile so the chart keeps summing to it (FR-V2).
+        _dailyVisitors = VisitorsChartRules.WithTodayFromTotal(_dailyVisitors, _summary.DailyVisitors);
+        _routes = await Analytics.GetTopRoutesAsync(_rangeFrom, _rangeTo, _page, _sortColumn, _sortDirection);
+        _page = _routes.Page;
+        _referrers = await Analytics.GetTopReferrersAsync(_rangeFrom, _rangeTo);
+        _events = await Analytics.GetEventBreakdownAsync(_rangeFrom, _rangeTo);
+    }
+
+    private (DateOnly From, DateOnly To) PeriodRange(DateOnly firstDay)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var from = _period == "all"
-            ? await Analytics.FirstDayAsync()
+            ? firstDay
             : today.AddDays(1 - int.Parse(_period));
         return (from, today);
     }
