@@ -63,7 +63,7 @@ Runs under the orchestration model recorded on 2026-09-04. Before any chart code
 |---|---|
 | NFR-22 | No new NuGet package, no script, no CDN, no font or image request added by the chart. |
 | NFR-23 | Accessibility (NFR-7): the heading names the chart, the hit columns are focusable in date order, the tooltip is visible on focus as well as hover, and the data table gives screen-reader users every value; contrast for axis text follows the text tokens. |
-| NFR-24 | At most a few hundred points: one path element for the line, one hit column per day, nothing else per point. |
+| NFR-24 | At most a few hundred points: one path element for the line, one hit column per day, nothing else per point. Addendum (2026-09-11, Copilot round 3 on PR #106): under All time the series grows one point per calendar day without bound, by decision 21 (no bucketing); a site several years old would exceed a few hundred points, at which time weekly bucketing beyond a length becomes a follow-up. |
 | NFR-25 | Public pages are untouched; only the admin stats page changes. |
 | NFR-26 | `dotnet build -warnaserror` with 0 warnings; `dotnet test` green plus the new tests; one PR sized for the Copilot gate with a title from the CI allow-list. |
 

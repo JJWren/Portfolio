@@ -41,8 +41,50 @@ public class VisitorsChartRulesTests
     [InlineData(49, 50)]
     [InlineData(120, 200)]
     [InlineData(1000, 1000)]
+    // Near the int limit the 1-2-5 progression runs past int.MaxValue; the
+    // axis top clamps there instead of overflowing.
+    [InlineData(2_000_000_000, 2_000_000_000)]
+    [InlineData(2_000_000_001, int.MaxValue)]
+    [InlineData(int.MaxValue, int.MaxValue)]
     public void NiceMax_SmallestRoundNumberAtLeastMax(int max, int expected)
         => Assert.Equal(expected, VisitorsChartRules.NiceMax(max));
+
+    [Fact]
+    public void WithTodayFromTotal_RederivesTodayFromTheTileTotal()
+    {
+        DailyVisitorPoint[] points =
+        [
+            new(new DateOnly(2025, 3, 1), 5, false),
+            new(new DateOnly(2025, 3, 2), 12, false),
+            new(new DateOnly(2025, 3, 3), 7, true),
+        ];
+
+        // The tile says 30 over the same days: today must be 30 - 5 - 12.
+        var updated = VisitorsChartRules.WithTodayFromTotal(points, 30);
+        Assert.Equal(13, updated[^1].Visitors);
+        Assert.True(updated[^1].IsToday);
+        Assert.Equal(5, updated[0].Visitors);
+        Assert.Equal(12, updated[1].Visitors);
+
+        // A total that cannot cover the earlier days clamps today at zero.
+        Assert.Equal(0, VisitorsChartRules.WithTodayFromTotal(points, 10)[^1].Visitors);
+
+        // Already consistent: the same list comes back untouched.
+        Assert.Same(points, VisitorsChartRules.WithTodayFromTotal(points, 24));
+    }
+
+    [Fact]
+    public void WithTodayFromTotal_NoTodayPoint_ReturnsThePointsUnchanged()
+    {
+        DailyVisitorPoint[] points =
+        [
+            new(new DateOnly(2025, 3, 1), 5, false),
+            new(new DateOnly(2025, 3, 2), 12, false),
+        ];
+
+        Assert.Same(points, VisitorsChartRules.WithTodayFromTotal(points, 999));
+        Assert.Empty(VisitorsChartRules.WithTodayFromTotal([], 5));
+    }
 
     [Theory]
     [InlineData(2, new[] { 0, 1, 2 })]

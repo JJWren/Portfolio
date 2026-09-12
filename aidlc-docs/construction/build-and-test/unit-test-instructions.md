@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (819 tests, 46 fixtures — as of Unit 14, the admin stats daily-visitors chart, on top of the shared atomic-write refactor)
+## Coverage (825 tests, 46 fixtures — as of Unit 14, the admin stats daily-visitors chart, on top of the shared atomic-write refactor)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests, AdminEmailsTests, SiteContentRulesTests |

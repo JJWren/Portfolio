@@ -54,6 +54,38 @@ public static class VisitorsChartRules
     public static DateOnly RangeStart(DateOnly periodStart, DateOnly firstRecordedDay)
         => periodStart > firstRecordedDay ? periodStart : firstRecordedDay;
 
+    /// <summary>
+    /// Re-derives today's point from the Daily visitors tile's total so the
+    /// chart always sums to the tile (FR-V2) even when the tile was reloaded
+    /// later than the series (a sort or pager click) and new visitors arrived
+    /// in between: today = total minus every earlier day. Points without a
+    /// today point are returned unchanged.
+    /// </summary>
+    public static IReadOnlyList<DailyVisitorPoint> WithTodayFromTotal(
+        IReadOnlyList<DailyVisitorPoint> points, int tileTotal)
+    {
+        if (points.Count == 0 || !points[^1].IsToday)
+        {
+            return points;
+        }
+
+        var earlier = 0;
+        for (var i = 0; i < points.Count - 1; i++)
+        {
+            earlier += points[i].Visitors;
+        }
+
+        var today = Math.Max(0, tileTotal - earlier);
+        if (today == points[^1].Visitors)
+        {
+            return points;
+        }
+
+        var updated = new List<DailyVisitorPoint>(points);
+        updated[^1] = points[^1] with { Visitors = today };
+        return updated;
+    }
+
     // -- Geometry and formatting --
 
     /// <summary>
@@ -70,17 +102,23 @@ public static class VisitorsChartRules
             return 1;
         }
 
-        for (var scale = 1; ; scale *= 10)
+        // Long arithmetic: a count near int.MaxValue would overflow the
+        // candidate (and eventually the scale) as an int, and the loop would
+        // never find a value at least max. Past the int range the axis top is
+        // simply the largest int, which is still at least max.
+        for (long scale = 1; scale <= int.MaxValue; scale *= 10)
         {
             foreach (var step in StepMultipliers)
             {
                 var candidate = step * scale;
                 if (candidate >= max)
                 {
-                    return candidate;
+                    return candidate > int.MaxValue ? int.MaxValue : (int)candidate;
                 }
             }
         }
+
+        return int.MaxValue;
     }
 
     /// <summary>

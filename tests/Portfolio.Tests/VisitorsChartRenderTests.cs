@@ -69,6 +69,25 @@ public class VisitorsChartRenderTests
     }
 
     [Fact]
+    public async Task Render_TwoPoints_HitColumnsTileThePlotWithoutOverlapping()
+    {
+        DailyVisitorPoint[] two =
+        [
+            new(new DateOnly(2025, 3, 1), 5, false),
+            new(new DateOnly(2025, 3, 2), 12, false),
+        ];
+
+        var html = await LandingRenderHarness.RenderVisitorsChartAsync(two);
+
+        // Each endpoint's column is a full spacing wide (664) centred on its
+        // point, then clamped to the plot: the first covers 44..376 and the
+        // second 376..708, so the later group never paints over the first
+        // day's hit area.
+        Assert.Contains("class=\"hit\" x=\"44.0\" y=\"12\" width=\"332.0\"", html, StringComparison.Ordinal);
+        Assert.Contains("class=\"hit\" x=\"376.0\" y=\"12\" width=\"332.0\"", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Render_OnePoint_ShowsEmptyStateWithNoSvgOrTable()
     {
         DailyVisitorPoint[] points = [new(new DateOnly(2025, 3, 1), 5, false)];

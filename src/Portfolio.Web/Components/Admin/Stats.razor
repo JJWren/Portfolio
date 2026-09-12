@@ -183,6 +183,10 @@
         }
 
         _summary = await Analytics.GetSummaryAsync(_rangeFrom, _rangeTo);
+        // The tile just reloaded but the series may be older (a sort or pager
+        // click), and today's count moves all day: re-derive today's point
+        // from the tile so the chart keeps summing to it (FR-V2).
+        _dailyVisitors = VisitorsChartRules.WithTodayFromTotal(_dailyVisitors, _summary.DailyVisitors);
         _routes = await Analytics.GetTopRoutesAsync(_rangeFrom, _rangeTo, _page, _sortColumn, _sortDirection);
         _page = _routes.Page;
         _referrers = await Analytics.GetTopReferrersAsync(_rangeFrom, _rangeTo);

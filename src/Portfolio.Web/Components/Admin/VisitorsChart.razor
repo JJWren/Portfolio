@@ -22,7 +22,7 @@
             <g class="grid">
                 @foreach (var tick in Ticks)
                 {
-                    var y = VisitorsChartRules.Y(tick, NiceMaxValue);
+                    var y = VisitorsChartRules.Y(tick, _niceMax);
                     <line x1="@Coord(Layout.Left)" y1="@Coord(y)" x2="@Coord(Layout.Width - Layout.Right)" y2="@Coord(y)" />
                     @SvgText("axis", Layout.Left - 6, y + 3.5, "end", VisitorsChartRules.FormatCount(tick))
                 }
@@ -46,15 +46,21 @@
                 {
                     var point = Points[i];
                     var x = VisitorsChartRules.X(i, Points.Count);
-                    var y = VisitorsChartRules.Y(point.Visitors, NiceMaxValue);
+                    var y = VisitorsChartRules.Y(point.Visitors, _niceMax);
                     var half = ColumnWidth / 2.0;
+                    // Clamped to the plot so an endpoint's column (a full
+                    // spacing wide, centred on the edge) cannot reach across
+                    // and cover its neighbour's; the columns then tile the
+                    // plot exactly.
+                    var hitX0 = Math.Max(Layout.Left, x - half);
+                    var hitX1 = Math.Min(Layout.Left + Layout.PlotWidth, x + half);
                     var anchor = VisitorsChartRules.TooltipAnchor(i, Points.Count);
                     var tipText = TipText(point);
                     var boxWidth = TipBoxWidthFor(tipText);
                     var boxX = TipBoxX(x, anchor, boxWidth);
                     var boxY = TipBoxY(y);
                     <g class="day" tabindex="0" role="group" aria-label="@AriaLabel(point)">
-                        <rect class="hit" x="@Coord(x - half)" y="@Coord(Layout.Top)" width="@Coord(ColumnWidth)" height="@Coord(Layout.PlotHeight)" />
+                        <rect class="hit" x="@Coord(hitX0)" y="@Coord(Layout.Top)" width="@Coord(hitX1 - hitX0)" height="@Coord(Layout.PlotHeight)" />
                         <g class="tip">
                             <line class="crosshair" x1="@Coord(x)" y1="@Coord(Layout.Top)" x2="@Coord(x)" y2="@Coord(Layout.Height - Layout.Bottom)" />
                             <circle class="marker" cx="@Coord(x)" cy="@Coord(y)" r="@MarkerRadius" />
@@ -103,21 +109,24 @@
 
     private IReadOnlyList<int> _values = [];
 
-    private int NiceMaxValue => VisitorsChartRules.NiceMax(Points.Count == 0 ? 0 : Points.Max(p => p.Visitors));
+    /// <summary>The axis top, computed once per render in
+    /// <see cref="OnParametersSet"/> rather than rescanning the points on
+    /// every read (the day loop reads it once per point).</summary>
+    private int _niceMax = 1;
 
-    private IReadOnlyList<int> Ticks => VisitorsChartRules.Ticks(NiceMaxValue);
+    private IReadOnlyList<int> Ticks => VisitorsChartRules.Ticks(_niceMax);
 
     private IReadOnlyList<int> LabelIndexesValue => VisitorsChartRules.LabelIndexes(Points.Count);
 
     private bool LastIsToday => Points.Count > 0 && Points[^1].IsToday;
 
-    private string LinePathValue => VisitorsChartRules.LinePath(_values, NiceMaxValue, LastIsToday);
+    private string LinePathValue => VisitorsChartRules.LinePath(_values, _niceMax, LastIsToday);
 
-    private string TodayPathValue => VisitorsChartRules.TodayPath(_values, NiceMaxValue);
+    private string TodayPathValue => VisitorsChartRules.TodayPath(_values, _niceMax);
 
     private double LastX => VisitorsChartRules.X(Points.Count - 1, Points.Count);
 
-    private double LastY => VisitorsChartRules.Y(Points[^1].Visitors, NiceMaxValue);
+    private double LastY => VisitorsChartRules.Y(Points[^1].Visitors, _niceMax);
 
     /// <summary>The hit column's width: exactly the gap between neighboring
     /// points, so the columns tile the plot without overlapping and every day
@@ -141,6 +150,7 @@
     protected override void OnParametersSet()
     {
         _values = [.. Points.Select(p => p.Visitors)];
+        _niceMax = VisitorsChartRules.NiceMax(_values.Count == 0 ? 0 : _values.Max());
     }
 
     private static string Coord(double value) => VisitorsChartRules.FormatCoordinate(value);
