@@ -1481,3 +1481,107 @@ everything else is good"
 
 ---
 
+## Unit 14: branch, docs commit and phase agent launched
+**Timestamp**: 2026-09-11T22:59:38Z
+**User Input**: (none)
+**AI Response**: "Branched feat/admin-stats-visitors-chart from master at b45f1f0 (verified equal to origin/master) and committed the pending docs as e02d9fd (docs: Unit 13 close-out and the Unit 14 code-generation plan and brief). Launched one fresh Sonnet general-purpose phase agent in the background, briefed from unit14-brief.md (dataviz skill and validator first, then the rules, the query, the component, the page wiring, the CSS, the tests, the render-and-look check); it commits on the branch by explicit path and never pushes. Next: its report, then the five review agents."
+**Context**: Construction, Unit 14, Code Generation Part 2: phase agent running
+
+---
+
+## Deploy preparation (while the Unit 14 phase agent runs)
+**Timestamp**: 2026-09-11T23:01:17Z
+**User Input**: (none)
+**AI Response**: "Facts for the deploy: release-please opened PR #104 (chore(master): release 1.28.0) after the Unit 13 merge and will fold Unit 14 in; its workflow publish-image job builds and pushes ghcr.io/jjwren/portfolio:<version> and :latest when the release PR merges. Production runs on this machine: Docker Desktop (desktop-linux) has portfolio-web on 1.26.0 (up 26 hours, healthy) and portfolio-db; Z: is a local NTFS disk, so Z:/docker/portfolio is the live compose project. Plan after PR B merges: merge #104, wait for publish-image, bump the compose tag 1.26.0 to 1.28.0, docker compose pull web and up -d web, then check /healthz, the footer link, /contact and /resume on joshuamykitta.dev; the admin pages stay the owner check. Release 1.27.0 (tooltip) was never deployed, so 1.28.0 carries it too."
+**Context**: Operations preparation; Unit 14 phase agent running
+
+---
+
+## Owner request: shared atomic file write refactor (the follow-up chip, run in this session)
+**Timestamp**: 2026-09-11T23:02:52Z
+**User Input**: "In the Portfolio repository (C:\Users\joshu\source\repos\Portfolio, Blazor .NET 10), `src/Portfolio.Web/Services/OwnerPhotoService.cs` (SaveAsync and Delete) and `src/Portfolio.Web/Services/ResumeService.cs` (SaveAsync and Delete) duplicate the same two mechanisms: an atomic write (a per-call temp file named `{target}.{guid:N}.tmp` beside the target, `File.Move(temp, target, overwrite: true)`, and a `finally` that deletes a stranded temp file, swallowing IOException and UnauthorizedAccessException) and a best-effort delete with the same exception filter. Extract both into shared static helpers next to the existing upload guards in `src/Portfolio.Web/Services/ImageGuards.cs` (for example `WriteAtomicallyAsync(string target, Func<Stream, CancellationToken, Task> writeToTemp, CancellationToken ct)` and `DeleteBestEffort(string path)`), or into a new small `FileWrites` static class if ImageGuards' name no longer fits, and make both services call them. Keep behaviour identical: same temp naming, same overwrite move, same swallowed exceptions, same comments explaining why. Constraints: no new NuGet package; use the Write and Edit tools for code (the Bash tool on this machine collapses doubled backslashes); repository files are CRLF; `dotnet build -warnaserror` must report 0 warnings and `dotnet test` must stay fully green (`tests/Portfolio.Tests/OwnerPhotoServiceTests.cs` and `ResumeServiceTests.cs` already pin the write, replace, reject, remove and no-stranded-temp behaviours, so they are the safety net). Follow CONTRIBUTING.md for the branch, a `refactor:` PR title from the CI allow-list, and the Copilot review gate. This is a pure refactor with no functional change; do not touch `aidlc-docs/audit.md` or `aidlc-docs/aidlc-state.md`."
+**AI Response**: "The prompt is the follow-up chip text written for a fresh session; the owner pasted it here while the Unit 14 phase agent works on the shared working tree. Running it in a separate git worktree on branch refactor/shared-atomic-file-write from origin/master (b45f1f0) so the agent is undisturbed; the refactor commits touch no aidlc-docs file (this audit entry lives in the main working tree, uncommitted, as all bookkeeping does). Design: a new static FileWrites class (WriteAtomicallyAsync with a path-based temp-write callback so the photo keeps its path-based ImageSharp save, and DeleteBestEffort) used by both services; a small FileWritesTests fixture; existing photo and résumé tests as the safety net. Then PR, Copilot gate, squash-merge; the chip withdrawn."
+**Context**: Quick change (refactor) alongside Unit 14 construction
+
+---
+
+## Refactor: shared atomic file write implemented in the worktree
+**Timestamp**: 2026-09-11T23:05:49Z
+**User Input**: (none)
+**AI Response**: "In the worktree C:/Users/joshu/source/repos/Portfolio-wt-refactor on refactor/shared-atomic-file-write (from b45f1f0): new Services/FileWrites.cs (WriteAtomicallyAsync with a path-based temp-write callback and the directory creation, the same per-call temp name, overwrite move and stranded-temp cleanup; DeleteBestEffort with the same swallowed exceptions), OwnerPhotoService and ResumeService now call both (the photo keeps its path-based ImageSharp save; the résumé copies its buffer into a FileStream inside the callback), new FileWritesTests (five facts), fixtures table 753 tests and 44 fixtures. Build 0 warnings, 753 tests. Committed 05b8ffa plus a docs follow-up for the heading, pushed, PR opened with a refactor: title, Copilot requested. The Unit 14 phase agent keeps running in the main working tree, untouched."
+**Context**: Quick change (refactor) PR opened; Copilot gate
+
+---
+
+## Refactor PR #105: clean pass and merge
+**Timestamp**: 2026-09-11T23:08:43Z
+**User Input**: (none)
+**AI Response**: "PR #105 head 7beb03c: all six checks green; Copilot: Approval recommended, zero comments, no suppressed notes. Squash-merged with the refactor: title; worktree removed, local and remote branches deleted. Release PR #104 absorbs it (a refactor commit is part of the release without a changelog line). The Unit 14 branch, based on b45f1f0, touches none of the refactored files, so PR B merges cleanly on top."
+**Context**: Quick change (refactor) COMPLETE; Unit 14 phase agent still running
+
+---
+
+## Unit 14: phase agent report
+**Timestamp**: 2026-09-11T23:31:56Z
+**User Input**: (none)
+**AI Response**: "The Sonnet phase agent finished on feat/admin-stats-visitors-chart with three commits on top of e02d9fd: 7f1b40b feat (VisitorsChartRules, DailyVisitorPoint and GetDailyVisitorsAsync, VisitorsChart.razor, Stats.razor wiring, the app.css Visitors chart block), 6e903fd test (VisitorsChartRulesTests 58, VisitorsChartRenderTests 10 through a new LandingRenderHarness.RenderVisitorsChartAsync, three AppCssTests pins), b8bb08a docs (test instructions, plan ticks with the validator reports). Reported: build 0 warnings; 819 tests (748 before). Validator: --info fails the lightness band on dark and the chroma floor on both surfaces, --c-blue passes lightness and contrast on both (chroma floor fails for both, a categorical-palette check), so --c-blue is the series token. Render and look done in the Browser pane at 7, 30, 90, 365 and 1 point in both themes with a spike, a zero day and a partial today: no collisions, tooltip inside the frame at both ends, dashed today segment and hollow marker correct, empty state correct; no fixes needed; the throwaway preview fact and folder removed before committing. Deviations: LinePath takes a lastIsToday flag; TooltipAnchor returns a string; Razor reserves the text tag so SVG text is emitted through an HTML-encoding SvgText helper returning a MarkupString; Ticks(5) yields two values by the documented rule; the harness helper mirrors RenderGamePlanAsync. Flagged: GetDailyVisitorsAsync has no automated test (no database harness, as planned); the tooltip clamp helpers are private and covered by the render tests. Next: orchestrator verification, then five review agents."
+**Context**: Construction, Unit 14, Code Generation Part 2: phase complete, review pending
+
+---
+
+## Unit 14: orchestrator verification and review launch
+**Timestamp**: 2026-09-11T23:33:28Z
+**User Input**: (none)
+**AI Response**: "Verified on the branch: three commits after e02d9fd (7f1b40b, 6e903fd, b8bb08a), 11 files, +1031/-8; the chart component contains no style attribute, script or external URL; dotnet build -warnaserror 0 warnings; dotnet test Passed 819, Failed 0. Launched five report-only Sonnet review agents in parallel on git diff e02d9fd..HEAD: correctness (the query, the wiring, the geometry, the SvgText encoding, the tests), security (the MarkupString path, no script or external resource, ADR 0001, BR-18 grep), framework and accessibility (the reserved text tag workaround, role img versus focusable descendants, tabindex on g, 365 tab stops, touch, Npgsql kinds, the harness), maintainability (structure, comments, the fixtures table, test duplication), performance (per-day tooltip groups at 365 days, the queries, the extra FirstDayAsync call, string building). Remediation follows their reports."
+**Context**: Construction, Unit 14, Code Generation Part 2: five-area review running
+
+---
+
+## Unit 14: security review
+**Timestamp**: 2026-09-11T23:35:09Z
+**User Input**: (none)
+**AI Response**: "Security PASS: SvgText is the only MarkupString in the component; its class and anchor arguments are literals, its content is an invariant-formatted tick, a formatted day or a composed count and is HTML-encoded as defence in depth; every other interpolation uses Razor binding; no script, href, xlink, style or event attribute in the component, no url or import in the CSS diff, no package change; the Admin authorize attribute untouched; the query returns per-day totals only (ADR 0001 unaffected). BR-18 grep over the diff: only a pre-existing context line from the fixtures table; the new fixtures use invented dates and counts."
+**Context**: Construction, Unit 14, review: one of five reports in
+
+---
+
+## Unit 14: performance review
+**Timestamp**: 2026-09-11T23:39:18Z
+**User Input**: (none)
+**AI Response**: "Performance: three minors (LoadAsync reruns the chart query and FirstDayAsync on every sort and pager click, not only on a period change; FirstDayAsync runs twice per load under all time and once extra otherwise; today\x27s distinct count runs in both GetSummaryAsync and GetDailyVisitorsAsync), two nits (about 2,500 SVG nodes at 365 days from the per-day tooltip groups, acceptable for a single admin and unavoidable without script; the Values array built twice per render). Decisions for the remediation pass: load the chart series and the first day once in ReloadAsync (period change and init) and reuse the first day for the all-time range; compute Values once per render; keep the today count duplicate (one cheap aggregate; sharing would couple the tile to the chart) and the per-day tooltip groups (the owner\x27s approved CSS-only design)."
+**Context**: Construction, Unit 14, review: two of five reports in
+
+---
+
+## Unit 14: correctness review
+**Timestamp**: 2026-09-11T23:42:23Z
+**User Input**: (none)
+**AI Response**: "Correctness: no blocker or major. Verified by hand: NiceMax and Ticks for the listed inputs, X and Y at the edges, LinePath and TodayPath continuity, LabelIndexes for 2 to 365 days, the tooltip anchor and clamping at both ends, GetDailyVisitorsAsync line by line against GetSummaryAsync (same today guard, same Utc construction, same distinct count; one point per day inclusive; zero for a missing row; empty for from after to), the sum-equals-tile invariant (safe because the rollup only aggregates days before today), the Stats.razor wiring including the site-younger-than-period collapse to the empty state, invariant formatting everywhere, no motion or script. One minor: the seven-row table test asserts the dates and counts as sets, not as paired cells per row; to be tightened to per-row pairs. One nit: Ticks returns two values when NiceMax is 1 or 5, so a very quiet week draws two gridlines while FR-V6 says three to five; documented in code and pinned by a test, to be recorded as a deviation in the plan and an FR-V6 note."
+**Context**: Construction, Unit 14, review: three of five reports in
+
+---
+
+## Unit 14: maintainability review
+**Timestamp**: 2026-09-11T23:42:41Z
+**User Input**: (none)
+**AI Response**: "Maintainability: two majors (the N0 invariant count format repeated six times in the component instead of one FormatCount helper beside FormatCoordinate; the svg viewBox hardcodes 720 240 and the marker radius 4 twice instead of reading Layout.Width and Layout.Height and a MarkerRadius constant, contradicting the rules class summary that the two can never drift), three minors (the rules class summary omits RangeStart and needs the section dividers BjjRules uses; CountOccurrences copied from LandingSectionsRenderTests into the new render tests instead of living in the harness; two invariant theories re-run values the exact-value tests already pin), three nits (AriaLabel and TipText undocumented; Points should pair EditorRequired with the required keyword like GamePlan and RankBar; FirstDayAsync twice under all time, the same as the performance finding). Verified clean: the fixtures table and heading (819 tests, 45 fixtures), the CSS block placement and scoping, the plan\x27s validator table, the glossary usage. All to be applied in the consolidated remediation."
+**Context**: Construction, Unit 14, review: four of five reports in
+
+---
+
+## Unit 14: framework and accessibility review; consolidated remediation launched
+**Timestamp**: 2026-09-11T23:44:06Z
+**User Input**: (none)
+**AI Response**: "Framework and accessibility: two majors (role img on the svg hides the focusable day groups from assistive technology, so the svg and each day become role group; up to 365 tab stops with no way past them, resolved with a visually hidden skip link to the data table summary, keeping the owner-approved keyboard tooltip), one unverified major (SVG text emitted as a MarkupString takes a different insertion path than literal SVG elements in the interactive renderer; replaced with a RenderFragment built through RenderTreeBuilder so it follows the same namespace-safe path and encodes content), two nits (AsNoTracking on the new live query; ordinal comparisons in the render tests). Consolidated remediation brief written as construction/plans/unit14-remediation-brief.md with eighteen items (sixteen applied, two declined: the duplicated today count and the per-day tooltip groups) and handed to a fresh Sonnet remediation agent that commits once on the branch and never pushes."
+**Context**: Construction, Unit 14, five reviews complete; remediation agent running
+
+---
+
+## Unit 14: remediation report and verification
+**Timestamp**: 2026-09-12T00:06:58Z
+**User Input**: (none)
+**AI Response**: "The remediation agent applied all sixteen items in one commit, 071ada1 (10 files, +208/-130): role group on the svg and the day groups; the skip link and summary id with a render test and a focus-visible CSS rule folded into the existing .visitors-chart block; SvgText as a RenderFragment through RenderTreeBuilder (MarkupString and HtmlEncode removed, output verified byte for byte in a temporary assertion then reverted); FormatCount with a test; viewBox from Layout and a MarkerRadius constant; the rules summary and dividers; CountOccurrences shared from the harness; the invariant theories repointed at uncovered values; AriaLabel and TipText summaries; the required parameter; ReloadAsync fetching the first day once and loading the chart, LoadAsync no longer touching either; one Values array per render; the row-scoped table assertion; the deviation note in the plan; AsNoTracking on the new query; ordinal comparisons. Orchestrator verified: build 0 warnings; 814 tests. Test instructions heading corrected to 814; plan review box ticked; state line updated; next the docs commit, push and PR B."
+**Context**: Construction, Unit 14, remediation complete; PR next
+
+---
+
