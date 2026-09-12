@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.28.0](https://github.com/JJWren/Portfolio/compare/v1.27.0...v1.28.0) (2026-09-12)
+
+
+### Features
+
+* admin resume upload and footer link ([#103](https://github.com/JJWren/Portfolio/issues/103)) ([b45f1f0](https://github.com/JJWren/Portfolio/commit/b45f1f0c9af6a1802aa67eacf745ecdf528856e8))
+* daily-visitors chart on the admin stats page ([#106](https://github.com/JJWren/Portfolio/issues/106)) ([3a8cf52](https://github.com/JJWren/Portfolio/commit/3a8cf529dc585b051f83de2f35e8dd0d994aa42d))
+
 ## [1.27.0](https://github.com/JJWren/Portfolio/compare/v1.26.0...v1.27.0) (2026-09-05)
 
 
