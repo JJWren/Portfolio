@@ -49,15 +49,17 @@
                     var y = VisitorsChartRules.Y(point.Visitors, NiceMaxValue);
                     var half = ColumnWidth / 2.0;
                     var anchor = VisitorsChartRules.TooltipAnchor(i, Points.Count);
-                    var boxX = TipBoxX(x, anchor);
+                    var tipText = TipText(point);
+                    var boxWidth = TipBoxWidthFor(tipText);
+                    var boxX = TipBoxX(x, anchor, boxWidth);
                     var boxY = TipBoxY(y);
                     <g class="day" tabindex="0" role="group" aria-label="@AriaLabel(point)">
                         <rect class="hit" x="@Coord(x - half)" y="@Coord(Layout.Top)" width="@Coord(ColumnWidth)" height="@Coord(Layout.PlotHeight)" />
                         <g class="tip">
                             <line class="crosshair" x1="@Coord(x)" y1="@Coord(Layout.Top)" x2="@Coord(x)" y2="@Coord(Layout.Height - Layout.Bottom)" />
                             <circle class="marker" cx="@Coord(x)" cy="@Coord(y)" r="@MarkerRadius" />
-                            <rect class="tip-box" x="@Coord(boxX)" y="@Coord(boxY)" width="@Coord(TipBoxWidth)" height="@Coord(TipBoxHeight)" />
-                            @SvgText("tip-text", boxX + TipTextPadding, boxY + (TipBoxHeight / 2.0) + 4, "start", TipText(point))
+                            <rect class="tip-box" x="@Coord(boxX)" y="@Coord(boxY)" width="@Coord(boxWidth)" height="@Coord(TipBoxHeight)" />
+                            @SvgText("tip-text", boxX + TipTextPadding, boxY + (TipBoxHeight / 2.0) + 4, "start", tipText)
                         </g>
                     </g>
                 }
@@ -84,7 +86,10 @@
 </section>
 
 @code {
-    private const double TipBoxWidth = 210;
+    /// <summary>Advance width of one tooltip character in viewBox units: the
+    /// tooltip text is set in the site's monospace font at 12px, whose glyphs
+    /// advance 0.6em (7.2 units), with a little slack for the fallbacks.</summary>
+    private const double TipCharWidth = 7.4;
     private const double TipBoxHeight = 28;
     private const double TipGap = 8;
     private const double TipTextPadding = 8;
@@ -114,12 +119,21 @@
 
     private double LastY => VisitorsChartRules.Y(Points[^1].Visitors, NiceMaxValue);
 
-    /// <summary>The hit column's width: the gap between neighboring points,
-    /// never under 6 units (FR-V8) even when a long period packs points
-    /// closer together than that.</summary>
+    /// <summary>The hit column's width: exactly the gap between neighboring
+    /// points, so the columns tile the plot without overlapping and every day
+    /// owns the pointer over its own half-way boundaries. A wider minimum
+    /// would let later columns steal hover from earlier days once a long
+    /// period packs points closer together than that (365 days sit about
+    /// 1.8 units apart).</summary>
     private double ColumnWidth => Points.Count > 1
-        ? Math.Max(6.0, Layout.PlotWidth / (double)(Points.Count - 1))
+        ? Layout.PlotWidth / (double)(Points.Count - 1)
         : Layout.PlotWidth;
+
+    /// <summary>The tooltip box's width, sized from its own text so a large
+    /// count never runs past the box (or the frame): padding on both sides
+    /// plus one monospace advance per character.</summary>
+    private static double TipBoxWidthFor(string text)
+        => (TipTextPadding * 2) + (text.Length * TipCharWidth);
 
     /// <summary>Recomputes the shared visitors array once per render (instead
     /// of once per consumer) so <see cref="LinePathValue"/> and
@@ -166,10 +180,10 @@
     /// the side <see cref="VisitorsChartRules.TooltipAnchor"/> gives, then
     /// clamped so the box never leaves the viewBox even for a day right at
     /// the chart's edge.</summary>
-    private double TipBoxX(double pointX, string anchor)
+    private double TipBoxX(double pointX, string anchor, double boxWidth)
     {
-        var raw = anchor == "start" ? pointX + TipGap : pointX - TipGap - TipBoxWidth;
-        return Math.Clamp(raw, ViewboxMargin, Layout.Width - TipBoxWidth - ViewboxMargin);
+        var raw = anchor == "start" ? pointX + TipGap : pointX - TipGap - boxWidth;
+        return Math.Clamp(raw, ViewboxMargin, Layout.Width - boxWidth - ViewboxMargin);
     }
 
     /// <summary>The tooltip box's top edge: centred on the point, then

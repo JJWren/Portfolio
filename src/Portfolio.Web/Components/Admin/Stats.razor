@@ -154,19 +154,34 @@
     private async Task ReloadAsync()
     {
         _page = 1;
+        await RefreshRangeAndSeriesAsync();
+        await LoadAsync();
+    }
+
+    /// <summary>The Period's range, the first recorded day and the chart
+    /// series: fetched together, since all three change only with the period
+    /// or with the UTC date.</summary>
+    private async Task RefreshRangeAndSeriesAsync()
+    {
         _firstDay = await Analytics.FirstDayAsync();
         (_rangeFrom, _rangeTo) = PeriodRange(_firstDay);
         _dailyVisitors = await Analytics.GetDailyVisitorsAsync(
             VisitorsChartRules.RangeStart(_rangeFrom, _firstDay), _rangeTo);
-        await LoadAsync();
     }
 
     // The chart series and the first recorded day only ever change with the
     // period (or on first load), so LoadAsync — re-run on every sort and
-    // pager click — leaves both alone and reuses the range ReloadAsync
-    // already stored.
+    // pager click — normally reuses the range ReloadAsync already stored.
+    // The one exception is a circuit kept open across UTC midnight: the
+    // stored range would then end on yesterday, so it is refreshed whenever
+    // the current UTC date has moved past it.
     private async Task LoadAsync()
     {
+        if (_rangeTo != DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            await RefreshRangeAndSeriesAsync();
+        }
+
         _summary = await Analytics.GetSummaryAsync(_rangeFrom, _rangeTo);
         _routes = await Analytics.GetTopRoutesAsync(_rangeFrom, _rangeTo, _page, _sortColumn, _sortDirection);
         _page = _routes.Page;
