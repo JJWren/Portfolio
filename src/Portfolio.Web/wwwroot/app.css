@@ -2714,10 +2714,29 @@ select:focus {
 .visitors-chart {
     margin: 0 0 2rem;
     padding: 1rem 1.25rem;
+    position: relative;
 }
 
 .visitors-chart h2 {
     margin-top: 0;
+}
+
+/* Off-screen until focused: escapes the day-group tab-stop run (up to 365
+   of them) straight to the data table below, without a visible layout
+   change for a sighted mouse user. */
+.visitors-chart .skip-link {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.visitors-chart .skip-link:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
 }
 
 .visitors-svg {

@@ -69,16 +69,10 @@ public class VisitorsChartRulesTests
     }
 
     [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(5)]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    [InlineData(200)]
-    [InlineData(500)]
-    [InlineData(1000)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(15)]
+    [InlineData(4000)]
     public void Ticks_AlwaysBetweenTwoAndFiveValues_FirstZeroLastNiceMaxNoDuplicates(int niceMax)
     {
         var ticks = VisitorsChartRules.Ticks(niceMax);
@@ -162,10 +156,9 @@ public class VisitorsChartRulesTests
         => Assert.Equal(new[] { 0, 91, 182, 273, 364 }, VisitorsChartRules.LabelIndexes(365));
 
     [Theory]
-    [InlineData(2)]
-    [InlineData(7)]
-    [InlineData(30)]
-    [InlineData(365)]
+    [InlineData(3)]
+    [InlineData(10)]
+    [InlineData(50)]
     public void LabelIndexes_AlwaysIncludesFirstAndLastAndNeverRepeats(int count)
     {
         var indexes = VisitorsChartRules.LabelIndexes(count);
@@ -181,6 +174,10 @@ public class VisitorsChartRulesTests
     [InlineData(2025, 12, 31, "31 Dec")]
     public void FormatDay_UsesInvariantCultureShortForm(int year, int month, int day, string expected)
         => Assert.Equal(expected, VisitorsChartRules.FormatDay(new DateOnly(year, month, day)));
+
+    [Fact]
+    public void FormatCount_UsesInvariantCultureThousandsSeparator()
+        => Assert.Equal("1,234", VisitorsChartRules.FormatCount(1234));
 
     [Theory]
     [InlineData(0, 7, "start")]

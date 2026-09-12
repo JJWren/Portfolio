@@ -144,6 +144,9 @@
     private int _page = 1;
     private RouteStatSortColumn _sortColumn = RouteStatSortColumn.Views;
     private SortDirection _sortDirection = SortDirection.Descending;
+    private DateOnly _firstDay;
+    private DateOnly _rangeFrom;
+    private DateOnly _rangeTo;
 
     protected override async Task OnInitializedAsync()
         => await ReloadAsync();
@@ -151,26 +154,31 @@
     private async Task ReloadAsync()
     {
         _page = 1;
+        _firstDay = await Analytics.FirstDayAsync();
+        (_rangeFrom, _rangeTo) = PeriodRange(_firstDay);
+        _dailyVisitors = await Analytics.GetDailyVisitorsAsync(
+            VisitorsChartRules.RangeStart(_rangeFrom, _firstDay), _rangeTo);
         await LoadAsync();
     }
 
+    // The chart series and the first recorded day only ever change with the
+    // period (or on first load), so LoadAsync — re-run on every sort and
+    // pager click — leaves both alone and reuses the range ReloadAsync
+    // already stored.
     private async Task LoadAsync()
     {
-        var (from, to) = await PeriodRangeAsync();
-        _summary = await Analytics.GetSummaryAsync(from, to);
-        _dailyVisitors = await Analytics.GetDailyVisitorsAsync(
-            VisitorsChartRules.RangeStart(from, await Analytics.FirstDayAsync()), to);
-        _routes = await Analytics.GetTopRoutesAsync(from, to, _page, _sortColumn, _sortDirection);
+        _summary = await Analytics.GetSummaryAsync(_rangeFrom, _rangeTo);
+        _routes = await Analytics.GetTopRoutesAsync(_rangeFrom, _rangeTo, _page, _sortColumn, _sortDirection);
         _page = _routes.Page;
-        _referrers = await Analytics.GetTopReferrersAsync(from, to);
-        _events = await Analytics.GetEventBreakdownAsync(from, to);
+        _referrers = await Analytics.GetTopReferrersAsync(_rangeFrom, _rangeTo);
+        _events = await Analytics.GetEventBreakdownAsync(_rangeFrom, _rangeTo);
     }
 
-    private async Task<(DateOnly From, DateOnly To)> PeriodRangeAsync()
+    private (DateOnly From, DateOnly To) PeriodRange(DateOnly firstDay)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var from = _period == "all"
-            ? await Analytics.FirstDayAsync()
+            ? firstDay
             : today.AddDays(1 - int.Parse(_period));
         return (from, today);
     }

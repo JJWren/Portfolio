@@ -91,6 +91,23 @@ internal static class LandingRenderHarness
         });
     }
 
+    /// <summary>Counts non-overlapping occurrences of <paramref name="needle"/>
+    /// in <paramref name="haystack"/> (ordinal); shared by
+    /// <see cref="LandingSectionsRenderTests"/> and
+    /// <see cref="VisitorsChartRenderTests"/> so neither keeps its own copy.</summary>
+    internal static int CountOccurrences(string haystack, string needle)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = haystack.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += needle.Length;
+        }
+
+        return count;
+    }
+
     /// <summary>Builds a SiteConfig with fixed, neutral defaults; pass only what a given test cares about varying.</summary>
     public static SiteConfig BuildConfig(
         string? gitHubUrl = null,

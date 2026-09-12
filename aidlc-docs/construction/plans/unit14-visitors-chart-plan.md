@@ -60,3 +60,7 @@
 ## Definition of done
 
 The stats page shows a daily-visitors line between the tiles and Top pages that follows the period select, includes today as a dashed final segment, starts no earlier than the first recorded day, has a hover and focus tooltip and a data table, shows the empty state under two days, uses tokens validated on both surfaces, contains no script, and sums to the tile; build and tests green; PR merged with a clean Copilot pass.
+
+## Deviations
+
+Ticks yields two gridlines when NiceMax is 1 or 5 (a week whose busiest day has at most five visitors), a documented exception to FR-V6's three to five, pinned by `Ticks_SmallestScales_ReturnJustTheEndpoints`.

@@ -1,5 +1,4 @@
 @using System.Globalization
-@using System.Net
 
 @* No-script chart: this SVG is plain markup computed from Points on every
    render — a period change re-renders the whole thing through the existing
@@ -18,13 +17,14 @@
     }
     else
     {
-        <svg viewBox="0 0 720 240" role="img" aria-labelledby="visitors-chart-title" class="visitors-svg">
+        <a class="skip-link" href="#visitors-data-summary">Skip the daily detail</a>
+        <svg viewBox="0 0 @Layout.Width @Layout.Height" role="group" aria-labelledby="visitors-chart-title" class="visitors-svg">
             <g class="grid">
                 @foreach (var tick in Ticks)
                 {
                     var y = VisitorsChartRules.Y(tick, NiceMaxValue);
                     <line x1="@Coord(Layout.Left)" y1="@Coord(y)" x2="@Coord(Layout.Width - Layout.Right)" y2="@Coord(y)" />
-                    @SvgText("axis", Layout.Left - 6, y + 3.5, "end", tick.ToString("N0", CultureInfo.InvariantCulture))
+                    @SvgText("axis", Layout.Left - 6, y + 3.5, "end", VisitorsChartRules.FormatCount(tick))
                 }
             </g>
             <g class="axis-x">
@@ -39,7 +39,7 @@
             @if (LastIsToday)
             {
                 <path class="today" d="@TodayPathValue" />
-                <circle class="marker" cx="@Coord(LastX)" cy="@Coord(LastY)" r="4" />
+                <circle class="marker" cx="@Coord(LastX)" cy="@Coord(LastY)" r="@MarkerRadius" />
             }
             <g class="days">
                 @for (var i = 0; i < Points.Count; i++)
@@ -51,11 +51,11 @@
                     var anchor = VisitorsChartRules.TooltipAnchor(i, Points.Count);
                     var boxX = TipBoxX(x, anchor);
                     var boxY = TipBoxY(y);
-                    <g class="day" tabindex="0" aria-label="@AriaLabel(point)">
+                    <g class="day" tabindex="0" role="group" aria-label="@AriaLabel(point)">
                         <rect class="hit" x="@Coord(x - half)" y="@Coord(Layout.Top)" width="@Coord(ColumnWidth)" height="@Coord(Layout.PlotHeight)" />
                         <g class="tip">
                             <line class="crosshair" x1="@Coord(x)" y1="@Coord(Layout.Top)" x2="@Coord(x)" y2="@Coord(Layout.Height - Layout.Bottom)" />
-                            <circle class="marker" cx="@Coord(x)" cy="@Coord(y)" r="4" />
+                            <circle class="marker" cx="@Coord(x)" cy="@Coord(y)" r="@MarkerRadius" />
                             <rect class="tip-box" x="@Coord(boxX)" y="@Coord(boxY)" width="@Coord(TipBoxWidth)" height="@Coord(TipBoxHeight)" />
                             @SvgText("tip-text", boxX + TipTextPadding, boxY + (TipBoxHeight / 2.0) + 4, "start", TipText(point))
                         </g>
@@ -64,7 +64,7 @@
             </g>
         </svg>
         <details class="visitors-data">
-            <summary>Data table</summary>
+            <summary id="visitors-data-summary">Data table</summary>
             <table>
                 <thead>
                     <tr><th>Day</th><th>Visitors</th></tr>
@@ -74,7 +74,7 @@
                     {
                         <tr>
                             <td>@point.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)@(point.IsToday ? " today so far" : "")</td>
-                            <td>@point.Visitors.ToString("N0", CultureInfo.InvariantCulture)</td>
+                            <td>@VisitorsChartRules.FormatCount(point.Visitors)</td>
                         </tr>
                     }
                 </tbody>
@@ -89,13 +89,14 @@
     private const double TipGap = 8;
     private const double TipTextPadding = 8;
     private const double ViewboxMargin = 2;
+    private const double MarkerRadius = 4;
 
     private static readonly VisitorsChartRules.ChartLayout Layout = VisitorsChartRules.Layout;
 
     [Parameter, EditorRequired]
-    public IReadOnlyList<DailyVisitorPoint> Points { get; set; } = [];
+    public required IReadOnlyList<DailyVisitorPoint> Points { get; set; }
 
-    private IReadOnlyList<int> Values => [.. Points.Select(p => p.Visitors)];
+    private IReadOnlyList<int> _values = [];
 
     private int NiceMaxValue => VisitorsChartRules.NiceMax(Points.Count == 0 ? 0 : Points.Max(p => p.Visitors));
 
@@ -105,9 +106,9 @@
 
     private bool LastIsToday => Points.Count > 0 && Points[^1].IsToday;
 
-    private string LinePathValue => VisitorsChartRules.LinePath(Values, NiceMaxValue, LastIsToday);
+    private string LinePathValue => VisitorsChartRules.LinePath(_values, NiceMaxValue, LastIsToday);
 
-    private string TodayPathValue => VisitorsChartRules.TodayPath(Values, NiceMaxValue);
+    private string TodayPathValue => VisitorsChartRules.TodayPath(_values, NiceMaxValue);
 
     private double LastX => VisitorsChartRules.X(Points.Count - 1, Points.Count);
 
@@ -120,28 +121,46 @@
         ? Math.Max(6.0, Layout.PlotWidth / (double)(Points.Count - 1))
         : Layout.PlotWidth;
 
+    /// <summary>Recomputes the shared visitors array once per render (instead
+    /// of once per consumer) so <see cref="LinePathValue"/> and
+    /// <see cref="TodayPathValue"/> read the same materialized list.</summary>
+    protected override void OnParametersSet()
+    {
+        _values = [.. Points.Select(p => p.Visitors)];
+    }
+
     private static string Coord(double value) => VisitorsChartRules.FormatCoordinate(value);
 
     private static string Coord(int value) => value.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>
-    /// Builds one SVG &lt;text&gt; element. Razor's own <c>&lt;text&gt;</c>
-    /// tag is a reserved markup-transition construct and can never carry
-    /// attributes (RZ1023), so a literal <c>&lt;text x="..." y="..."&gt;</c>
-    /// in this file's markup won't compile — every text label is built here
-    /// instead and returned as a <see cref="MarkupString"/>. The only
-    /// interpolated piece is <paramref name="content"/> (a formatted number
-    /// or <see cref="VisitorsChartRules.FormatDay"/>/<see cref="TipText"/>
-    /// output — never admin-editable copy), and it is still HTML-encoded
-    /// before being embedded, so this stays safe even if that ever changes.
+    /// Builds one SVG &lt;text&gt; element. Razor reserves the
+    /// <c>&lt;text&gt;</c> tag as a markup-transition construct that can
+    /// never carry attributes (RZ1023), so a literal
+    /// <c>&lt;text x="..." y="..."&gt;</c> in this file's markup won't
+    /// compile — every text label is built here instead, through the render
+    /// tree, the same namespace-safe path the literal <c>&lt;g&gt;</c> and
+    /// <c>&lt;path&gt;</c> elements take, so it keeps the SVG namespace on
+    /// every live re-render. <paramref name="content"/> is always a
+    /// formatted number or <see cref="VisitorsChartRules.FormatDay"/>/
+    /// <see cref="TipText"/> output — never admin-editable copy — and it is
+    /// still encoded the same way any other Razor content is, so this stays
+    /// safe even if that ever changes.
     /// </summary>
-    private static MarkupString SvgText(string? cssClass, double x, double y, string textAnchor, string content)
+    private static RenderFragment SvgText(string? cssClass, double x, double y, string textAnchor, string content) => builder =>
     {
-        var classAttribute = cssClass is null ? string.Empty : $" class=\"{cssClass}\"";
-        var encodedContent = WebUtility.HtmlEncode(content);
-        return new MarkupString(
-            $"<text{classAttribute} x=\"{Coord(x)}\" y=\"{Coord(y)}\" text-anchor=\"{textAnchor}\">{encodedContent}</text>");
-    }
+        builder.OpenElement(0, "text");
+        if (cssClass is not null)
+        {
+            builder.AddAttribute(1, "class", cssClass);
+        }
+
+        builder.AddAttribute(2, "x", VisitorsChartRules.FormatCoordinate(x));
+        builder.AddAttribute(3, "y", VisitorsChartRules.FormatCoordinate(y));
+        builder.AddAttribute(4, "text-anchor", textAnchor);
+        builder.AddContent(5, content);
+        builder.CloseElement();
+    };
 
     /// <summary>The tooltip box's left edge: grown out from the crosshair on
     /// the side <see cref="VisitorsChartRules.TooltipAnchor"/> gives, then
@@ -161,13 +180,16 @@
             Layout.Top,
             Layout.Height - Layout.Bottom - TipBoxHeight);
 
+    /// <summary>A full sentence for assistive technology, kept separate from
+    /// <see cref="TipText"/>'s shorter visual tooltip wording.</summary>
     private static string AriaLabel(DailyVisitorPoint point)
         => point.IsToday
-            ? $"{VisitorsChartRules.FormatDay(point.Day)}, today so far: {point.Visitors.ToString("N0", CultureInfo.InvariantCulture)} visitors"
-            : $"{VisitorsChartRules.FormatDay(point.Day)}: {point.Visitors.ToString("N0", CultureInfo.InvariantCulture)} visitors";
+            ? $"{VisitorsChartRules.FormatDay(point.Day)}, today so far: {VisitorsChartRules.FormatCount(point.Visitors)} visitors"
+            : $"{VisitorsChartRules.FormatDay(point.Day)}: {VisitorsChartRules.FormatCount(point.Visitors)} visitors";
 
+    /// <summary>The middle-dot-joined visual chip shown in the hover/focus tooltip.</summary>
     private static string TipText(DailyVisitorPoint point)
         => point.IsToday
-            ? $"{VisitorsChartRules.FormatDay(point.Day)} · today so far · {point.Visitors.ToString("N0", CultureInfo.InvariantCulture)}"
-            : $"{VisitorsChartRules.FormatDay(point.Day)} · {point.Visitors.ToString("N0", CultureInfo.InvariantCulture)}";
+            ? $"{VisitorsChartRules.FormatDay(point.Day)} · today so far · {VisitorsChartRules.FormatCount(point.Visitors)}"
+            : $"{VisitorsChartRules.FormatDay(point.Day)} · {VisitorsChartRules.FormatCount(point.Visitors)}";
 }

@@ -3,12 +3,11 @@ using System.Globalization;
 namespace Portfolio.Web.Services;
 
 /// <summary>
-/// Pure geometry and formatting rules for the admin stats daily-visitors
-/// chart (Unit 14): the "nice" vertical scale, gridline ticks, point
-/// coordinates, the line and today-segment paths, the date-label spread and
-/// wording, and which side a per-day tooltip opens on. No I/O and no state —
-/// every member here is computed straight from its arguments, so it all
-/// tests without a database or a rendered component.
+/// Pure rules for the admin stats daily-visitors chart (Unit 14): which days
+/// the chart covers, the "nice" vertical scale, the coordinates, the paths,
+/// the date labels and the tooltip side. No I/O and no state — every member
+/// here is computed straight from its arguments, so it all tests without a
+/// database or a rendered component.
 /// </summary>
 public static class VisitorsChartRules
 {
@@ -45,6 +44,8 @@ public static class VisitorsChartRules
     /// <summary>The one chart layout every coordinate below is computed against.</summary>
     public static readonly ChartLayout Layout = new();
 
+    // -- Chart data range --
+
     /// <summary>
     /// The later of the period's own start and the first day the site has
     /// any recorded data, so the chart never draws days before the site
@@ -52,6 +53,8 @@ public static class VisitorsChartRules
     /// </summary>
     public static DateOnly RangeStart(DateOnly periodStart, DateOnly firstRecordedDay)
         => periodStart > firstRecordedDay ? periodStart : firstRecordedDay;
+
+    // -- Geometry and formatting --
 
     /// <summary>
     /// The smallest round number of the form 1, 2 or 5 times a power of ten
@@ -138,6 +141,9 @@ public static class VisitorsChartRules
     /// <summary>One coordinate, formatted the same way everywhere in the
     /// chart: invariant culture, one decimal place.</summary>
     public static string FormatCoordinate(double value) => value.ToString("F1", CultureInfo.InvariantCulture);
+
+    /// <summary>One visitor count, formatted the same way everywhere in the chart: invariant culture, thousands separators.</summary>
+    public static string FormatCount(int value) => value.ToString("N0", CultureInfo.InvariantCulture);
 
     /// <summary>
     /// The solid line's SVG path data through <paramref name="values"/> (one

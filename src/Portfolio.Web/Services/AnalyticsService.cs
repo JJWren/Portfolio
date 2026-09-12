@@ -228,7 +228,7 @@ public class AnalyticsService(
         if (to >= today && from <= today)
         {
             var start = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-            todayVisitors = await db.PageViews
+            todayVisitors = await db.PageViews.AsNoTracking()
                 .Where(v => v.OccurredAt >= start)
                 .Select(v => v.VisitorKey)
                 .Distinct()

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Portfolio.Tests.Support;
 using Portfolio.Web.Services;
 
@@ -15,18 +16,12 @@ namespace Portfolio.Tests;
 /// </summary>
 public class VisitorsChartRenderTests
 {
-    private static int CountOccurrences(string haystack, string needle)
-    {
-        var count = 0;
-        var index = 0;
-        while ((index = haystack.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
-        {
-            count++;
-            index += needle.Length;
-        }
-
-        return count;
-    }
+    /// <summary>Every `&lt;tr&gt;...&lt;/tr&gt;` block, in document order —
+    /// the data table never nests a `&lt;tr&gt;` inside a row (only
+    /// `&lt;td&gt;`s), so the non-greedy match always closes on the row's
+    /// own tag, never a nested one.</summary>
+    private static List<string> ExtractTrBlocks(string html)
+        => [.. Regex.Matches(html, "<tr>.*?</tr>", RegexOptions.Singleline).Select(m => m.Value)];
 
     private static readonly DailyVisitorPoint[] SevenPointsNoneToday =
     [
@@ -55,8 +50,22 @@ public class VisitorsChartRenderTests
     {
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsNoneToday);
 
-        Assert.Contains("<h2 id=\"visitors-chart-title\">Daily visitors</h2>", html);
-        Assert.Contains("<p class=\"muted\">one point per UTC day</p>", html);
+        Assert.Contains("<h2 id=\"visitors-chart-title\">Daily visitors</h2>", html, StringComparison.Ordinal);
+        Assert.Contains("<p class=\"muted\">one point per UTC day</p>", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Render_SevenPoints_HasSkipLinkAndDataSummaryId()
+    {
+        var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsNoneToday);
+
+        // The skip link escapes the run of up to 365 day tab-stops straight
+        // to the data table (FR-V9/accessibility remediation); the <details>
+        // summary must carry the id the link points at.
+        Assert.Contains(
+            "<a class=\"skip-link\" href=\"#visitors-data-summary\">Skip the daily detail</a>",
+            html, StringComparison.Ordinal);
+        Assert.Contains("<summary id=\"visitors-data-summary\">", html, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -66,7 +75,7 @@ public class VisitorsChartRenderTests
 
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(points);
 
-        Assert.Contains("Not enough data to chart yet.", html);
+        Assert.Contains("Not enough data to chart yet.", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<svg", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<table", html, StringComparison.Ordinal);
     }
@@ -76,7 +85,7 @@ public class VisitorsChartRenderTests
     {
         var html = await LandingRenderHarness.RenderVisitorsChartAsync([]);
 
-        Assert.Contains("Not enough data to chart yet.", html);
+        Assert.Contains("Not enough data to chart yet.", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<svg", html, StringComparison.Ordinal);
     }
 
@@ -88,7 +97,7 @@ public class VisitorsChartRenderTests
         // "<g class=\"day\"" (with the closing quote) never matches the
         // "<g class=\"days\">" wrapper: the character right after "day" in
         // that wrapper is 's', not a quote.
-        Assert.Equal(7, CountOccurrences(html, "<g class=\"day\""));
+        Assert.Equal(7, LandingRenderHarness.CountOccurrences(html, "<g class=\"day\""));
     }
 
     [Fact]
@@ -97,24 +106,33 @@ public class VisitorsChartRenderTests
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsNoneToday);
 
         // 7 data rows plus the <thead> header row.
-        Assert.Equal(8, CountOccurrences(html, "<tr>"));
+        Assert.Equal(8, LandingRenderHarness.CountOccurrences(html, "<tr>"));
 
-        Assert.Contains("<td>2025-03-01</td>", html);
-        Assert.Contains("<td>2025-03-02</td>", html);
-        Assert.Contains("<td>2025-03-03</td>", html);
-        Assert.Contains("<td>2025-03-04</td>", html);
-        Assert.Contains("<td>2025-03-05</td>", html);
-        Assert.Contains("<td>2025-03-06</td>", html);
-        Assert.Contains("<td>2025-03-07</td>", html);
+        (string Date, int Visitors)[] expected =
+        [
+            ("2025-03-01", 5),
+            ("2025-03-02", 12),
+            ("2025-03-03", 0),
+            ("2025-03-04", 8),
+            ("2025-03-05", 20),
+            ("2025-03-06", 3),
+            ("2025-03-07", 7),
+        ];
 
-        // The seven invented visitor counts, each rendered N0 in its own cell.
-        Assert.Contains("<td>5</td>", html);
-        Assert.Contains("<td>12</td>", html);
-        Assert.Contains("<td>0</td>", html);
-        Assert.Contains("<td>8</td>", html);
-        Assert.Contains("<td>20</td>", html);
-        Assert.Contains("<td>3</td>", html);
-        Assert.Contains("<td>7</td>", html);
+        var rows = ExtractTrBlocks(html);
+        // The header row plus one row per point.
+        Assert.Equal(expected.Length + 1, rows.Count);
+
+        for (var i = 0; i < expected.Length; i++)
+        {
+            // Row 0 is the <thead> header row, so the data rows start at 1;
+            // asserting both cells against the SAME extracted row (rather
+            // than against the page as a whole) pins each date to its own
+            // count, not just that both sets appear somewhere in the html.
+            var row = rows[i + 1];
+            Assert.Contains($"<td>{expected[i].Date}</td>", row, StringComparison.Ordinal);
+            Assert.Contains($"<td>{expected[i].Visitors}</td>", row, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -122,7 +140,7 @@ public class VisitorsChartRenderTests
     {
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsLastIsToday);
 
-        Assert.Contains("<td>2025-03-07 today so far</td>", html);
+        Assert.Contains("<td>2025-03-07 today so far</td>", html, StringComparison.Ordinal);
         Assert.Contains("<path class=\"today\"", html, StringComparison.Ordinal);
     }
 
@@ -131,7 +149,7 @@ public class VisitorsChartRenderTests
     {
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsNoneToday);
 
-        Assert.Contains("<td>2025-03-07</td>", html);
+        Assert.Contains("<td>2025-03-07</td>", html, StringComparison.Ordinal);
         Assert.DoesNotContain("today so far", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<path class=\"today\"", html, StringComparison.Ordinal);
     }
@@ -141,10 +159,10 @@ public class VisitorsChartRenderTests
     {
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsNoneToday);
 
-        Assert.Equal(7, CountOccurrences(html, "aria-label=\""));
-        Assert.Contains("aria-label=\"1 Mar: 5 visitors\"", html);
-        Assert.Contains("aria-label=\"3 Mar: 0 visitors\"", html);
-        Assert.Contains("aria-label=\"5 Mar: 20 visitors\"", html);
+        Assert.Equal(7, LandingRenderHarness.CountOccurrences(html, "aria-label=\""));
+        Assert.Contains("aria-label=\"1 Mar: 5 visitors\"", html, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"3 Mar: 0 visitors\"", html, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"5 Mar: 20 visitors\"", html, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -152,7 +170,7 @@ public class VisitorsChartRenderTests
     {
         var html = await LandingRenderHarness.RenderVisitorsChartAsync(SevenPointsLastIsToday);
 
-        Assert.Contains("aria-label=\"7 Mar, today so far: 7 visitors\"", html);
+        Assert.Contains("aria-label=\"7 Mar, today so far: 7 visitors\"", html, StringComparison.Ordinal);
     }
 
     [Fact]
