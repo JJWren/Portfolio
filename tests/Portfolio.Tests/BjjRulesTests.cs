@@ -776,7 +776,7 @@ public class BjjRulesTests
     {
         Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 3, "Gym", "City", "Role")];
 
-        Assert.Null(BjjRules.ValidateDegreesAgainstEras(null, eras));
+        Assert.Null(BjjRules.ValidateDegreesAgainstEras(null, Belt.Black, eras));
     }
 
     [Fact]
@@ -784,19 +784,19 @@ public class BjjRulesTests
     {
         Era[] eras = [new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role")];
 
-        Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, eras));
+        Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, Belt.Black, eras));
     }
 
     [Fact]
     public void ValidateDegreesAgainstEras_NoErasAtAll_ReturnsNull()
-        => Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, []));
+        => Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, Belt.Black, []));
 
     [Fact]
     public void ValidateDegreesAgainstEras_MatchingStripes_ReturnsNull()
     {
         Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 3, "Gym", "City", "Role")];
 
-        Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, eras));
+        Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, Belt.Black, eras));
     }
 
     [Fact]
@@ -804,7 +804,7 @@ public class BjjRulesTests
     {
         Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 1, "Gym", "City", "Role")];
 
-        var error = BjjRules.ValidateDegreesAgainstEras(0, eras);
+        var error = BjjRules.ValidateDegreesAgainstEras(0, Belt.Black, eras);
 
         Assert.NotNull(error);
         Assert.Contains("Belt degrees (0)", error);
@@ -822,7 +822,209 @@ public class BjjRulesTests
         ];
 
         // Degrees agrees with the LAST black era (1), not the first (0).
-        Assert.Null(BjjRules.ValidateDegreesAgainstEras(1, eras));
-        Assert.NotNull(BjjRules.ValidateDegreesAgainstEras(0, eras));
+        Assert.Null(BjjRules.ValidateDegreesAgainstEras(1, Belt.Black, eras));
+        Assert.NotNull(BjjRules.ValidateDegreesAgainstEras(0, Belt.Black, eras));
+    }
+
+    [Fact]
+    public void ValidateDegreesAgainstEras_LastEraOnAnotherBelt_ReturnsNull()
+    {
+        // BR-23: only an era on the CURRENT belt counts; a brown era must
+        // not be compared against a black-belt caller's degrees.
+        Era[] eras = [new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role")];
+
+        Assert.Null(BjjRules.ValidateDegreesAgainstEras(3, Belt.Black, eras));
+    }
+
+    [Fact]
+    public void ValidateDegreesAgainstEras_MatchingStripesOnNonBlackBelt_ReturnsNull()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Purple, 2, "Gym", "City", "Role")];
+
+        Assert.Null(BjjRules.ValidateDegreesAgainstEras(2, Belt.Purple, eras));
+    }
+
+    [Fact]
+    public void ValidateDegreesAgainstEras_DisagreeingStripesOnNonBlackBelt_NamesTheBelt()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Purple, 2, "Gym", "City", "Role")];
+
+        var error = BjjRules.ValidateDegreesAgainstEras(0, Belt.Purple, eras);
+
+        Assert.NotNull(error);
+        Assert.Contains("Belt degrees (0)", error);
+        Assert.Contains("purple belt era's stripes (2)", error);
+        Assert.Contains("disagree", error);
+    }
+
+    [Fact]
+    public void ValidateDegreesAgainstEras_SourcesNamed_MatchesUnit10MessageShapeWithFixHint()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 1, "Gym", "City", "Role")];
+
+        var error = BjjRules.ValidateDegreesAgainstEras(0, Belt.Black, eras, "SITE_BELT_DEGREES", "SITE_ERAS");
+
+        Assert.Equal(
+            "Belt degrees (0, from SITE_BELT_DEGREES) and the black belt era's stripes (1, from SITE_ERAS) disagree; " +
+            "override the eras here or change the environment.",
+            error);
+    }
+
+    [Fact]
+    public void ValidateDegreesAgainstEras_OnlyDegreesSourceNamed_FixHintNamesTheBeltDegrees()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 1, "Gym", "City", "Role")];
+
+        var error = BjjRules.ValidateDegreesAgainstEras(0, Belt.Black, eras, degreesSource: "SITE_BELT_DEGREES");
+
+        Assert.Equal(
+            "Belt degrees (0, from SITE_BELT_DEGREES) and the black belt era's stripes (1) disagree; " +
+            "override the belt degrees here or change the environment.",
+            error);
+    }
+
+    // -- TryParseBelt / BeltName (Unit 11) --------------------------------
+
+    [Theory]
+    [InlineData("white", Belt.White)]
+    [InlineData("blue", Belt.Blue)]
+    [InlineData("purple", Belt.Purple)]
+    [InlineData("brown", Belt.Brown)]
+    [InlineData("black", Belt.Black)]
+    [InlineData("White", Belt.White)]
+    [InlineData("BLUE", Belt.Blue)]
+    [InlineData(" black ", Belt.Black)]
+    public void TryParseBelt_KnownNames_ParsesTrimmedAndCaseInsensitively(string value, Belt expected)
+    {
+        Assert.True(BjjRules.TryParseBelt(value, out var belt));
+        Assert.Equal(expected, belt);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("coral")]
+    [InlineData("whites")]
+    public void TryParseBelt_UnknownOrBlank_ReturnsFalse(string? value)
+        => Assert.False(BjjRules.TryParseBelt(value, out _));
+
+    [Theory]
+    [InlineData(Belt.White, "white")]
+    [InlineData(Belt.Blue, "blue")]
+    [InlineData(Belt.Purple, "purple")]
+    [InlineData(Belt.Brown, "brown")]
+    [InlineData(Belt.Black, "black")]
+    public void BeltName_ReturnsTheLowercaseName(Belt belt, string expected)
+        => Assert.Equal(expected, BjjRules.BeltName(belt));
+
+    // -- ValidateCurrentBelt (BR-22) ---------------------------------------
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("white")]
+    [InlineData("BLACK")]
+    [InlineData(" purple ")]
+    public void ValidateCurrentBelt_BlankOrKnown_ReturnsNull(string? value)
+        => Assert.Null(BjjRules.ValidateCurrentBelt(value));
+
+    [Theory]
+    [InlineData("coral")]
+    [InlineData("red")]
+    [InlineData("whites")]
+    public void ValidateCurrentBelt_Unknown_ReturnsFriendlyError(string value)
+        => Assert.Equal("Current belt must be white, blue, purple, brown or black", BjjRules.ValidateCurrentBelt(value));
+
+    // -- HighestBelt (BR-24) ------------------------------------------------
+
+    [Fact]
+    public void HighestBelt_NoEras_ReturnsNull()
+        => Assert.Null(BjjRules.HighestBelt([]));
+
+    [Fact]
+    public void HighestBelt_SingleEra_ReturnsItsBelt()
+        => Assert.Equal(Belt.Brown, BjjRules.HighestBelt([new(new DateOnly(2013, 4, 5), Belt.Brown, 4, "Gym", "City", "Role")]));
+
+    [Fact]
+    public void HighestBelt_ReturnsTheHighestRankedBeltRegardlessOfEntryOrder()
+    {
+        Era[] eras =
+        [
+            new(new DateOnly(2010, 1, 1), Belt.Purple, 1, "Gym", "City", "Role"),
+            new(new DateOnly(2012, 6, 15), Belt.White, 0, "Gym", "City", "Role"),
+            new(new DateOnly(2014, 3, 20), Belt.Blue, 2, "Gym", "City", "Role"),
+        ];
+
+        Assert.Equal(Belt.Purple, BjjRules.HighestBelt(eras));
+    }
+
+    // -- ValidateCurrentBeltAgainstEras (BR-24) -----------------------------
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_NoEras_ReturnsNull()
+        => Assert.Null(BjjRules.ValidateCurrentBeltAgainstEras(Belt.White, []));
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_AtTheHighestBelt_ReturnsNull()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Purple, 2, "Gym", "City", "Role")];
+
+        Assert.Null(BjjRules.ValidateCurrentBeltAgainstEras(Belt.Purple, eras));
+    }
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_AboveTheHighestBelt_ReturnsNull()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Purple, 2, "Gym", "City", "Role")];
+
+        Assert.Null(BjjRules.ValidateCurrentBeltAgainstEras(Belt.Black, eras));
+    }
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_BelowTheHighestBelt_ReturnsFriendlyError()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role")];
+
+        var error = BjjRules.ValidateCurrentBeltAgainstEras(Belt.Blue, eras);
+
+        Assert.Equal("Current belt (blue) is below the road's highest belt (black).", error);
+    }
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_BlankBeltResolvesToBlack_NeverBelow()
+    {
+        // BR-20: a blank current belt resolves to black, the top of the
+        // ladder, so it can never be "below" whatever the road's highest is.
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role")];
+
+        Assert.Null(BjjRules.ValidateCurrentBeltAgainstEras(Belt.Black, eras));
+    }
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_SourcesNamed_AppearInMessageWithFixHint()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role")];
+
+        var error = BjjRules.ValidateCurrentBeltAgainstEras(Belt.Blue, eras, "SITE_CURRENT_BELT", "SITE_ERAS");
+
+        Assert.Equal(
+            "Current belt (blue, from SITE_CURRENT_BELT) is below the road's highest belt (black, from SITE_ERAS); " +
+            "override the eras here or change the environment.",
+            error);
+    }
+
+    [Fact]
+    public void ValidateCurrentBeltAgainstEras_OnlyBeltSourceNamed_FixHintNamesTheCurrentBelt()
+    {
+        Era[] eras = [new(new DateOnly(2018, 12, 1), Belt.Black, 0, "Gym", "City", "Role")];
+
+        var error = BjjRules.ValidateCurrentBeltAgainstEras(Belt.Blue, eras, beltSource: "SITE_CURRENT_BELT");
+
+        Assert.Equal(
+            "Current belt (blue, from SITE_CURRENT_BELT) is below the road's highest belt (black); " +
+            "override the current belt here or change the environment.",
+            error);
     }
 }

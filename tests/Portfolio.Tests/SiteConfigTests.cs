@@ -365,4 +365,61 @@ public class SiteConfigTests
             site.EraLines);
         Assert.Equal(["Training | Evening classes.", "Reading |"], site.NowLines);
     }
+
+    // -- Current belt (Unit 11) -------------------------------------------
+
+    [Fact]
+    public void FromConfiguration_MinimalConfig_CurrentBeltIsNull()
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane Developer",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Null(site.CurrentBelt);
+    }
+
+    [Theory]
+    [InlineData("white", Belt.White)]
+    [InlineData("blue", Belt.Blue)]
+    [InlineData("purple", Belt.Purple)]
+    [InlineData("brown", Belt.Brown)]
+    [InlineData("black", Belt.Black)]
+    [InlineData("BLACK", Belt.Black)]
+    [InlineData(" purple ", Belt.Purple)]
+    public void FromConfiguration_CurrentBeltParsing_KnownValue(string value, Belt expected)
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_CURRENT_BELT"] = value,
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Equal(expected, site.CurrentBelt);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("coral")]
+    public void FromConfiguration_CurrentBeltParsing_BlankOrUnknown_IsNull(string? value)
+    {
+        var config = BuildConfig(new Dictionary<string, string?>
+        {
+            ["SITE_OWNER_NAME"] = "Jane",
+            ["CONTACT_EMAIL"] = "jane@example.com",
+            ["SITE_CURRENT_BELT"] = value,
+        });
+
+        var site = SiteConfig.FromConfiguration(config);
+
+        Assert.Null(site.CurrentBelt);
+    }
 }
