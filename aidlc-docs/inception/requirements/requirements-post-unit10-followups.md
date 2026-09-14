@@ -146,3 +146,46 @@ Owner's words, given with the workflow plan approval: "make a quick change to le
 ## 9. Approval
 
 Requirements analysis complete. The next stage is Workflow Planning (phases, depths and PR sequence for the three units), followed by construction unit by unit.
+
+## 10. Grilling amendments (2026-09-13)
+
+A grilling session on 2026-09-13 (`audit.md`, round 1: fourteen questions, all answered as recommended, "good answers") reviewed the handoff and these requirements before Units 11 and 12 start. Where the amendments below differ from the sections above, the amendments win.
+
+### 10.1 Process
+
+- **Gates** (Q1: C): one approval per unit, then run to merge. Unit 11: one stop with the functional design, the code-generation plan and the quick-fix plan. Unit 12: one stop with the application design, the NFR requirements, the NFR design and the code-generation plan together. Completion messages are reports. Stops stay before each production deploy and for the owner's admin-page check under the CSP.
+- **Release and deploy** (Q2: B): one release and deploy after 12a, carrying the quick fix, Unit 11 and the headers; one after 12b. The session merges the release PRs, bumps the compose tag, edits the production `.env` with values masked, and recreates the container.
+- **Quick fix inserted ahead of Unit 11** (Q3: A): PR 1.5, `fix: show the average per day on the daily visitors tile`, plan `construction/plans/quick-stats-tile-plan.md`.
+
+### 10.2 Quick fix: the Daily visitors tile
+
+| Id | Requirement |
+|---|---|
+| FR-S1 | The "Daily visitors" tile on `/admin/stats` shows the average per day over the Period: the sum of each day's unique visitors divided by the Period's day count, today's partial day included, rounded to a whole number. |
+| FR-S2 | A line under the label states the sum and the day count, for example "354 visitor-days over 30 days". For all time the day count runs from the first recorded day to today. |
+| FR-S3 | The label, the chart, its title and the stored data are unchanged (ADR 0001, NFR-15); the arithmetic is a pure rule with tests. |
+
+### 10.3 Unit 11
+
+- FR-C5 stands, and one rule is added (Q5: B): when the road has eras, the effective current belt must not rank below the highest belt among them; the save is refused with a message naming both belts; lenient at resolve. A blank belt resolves to black and never trips it. BR-24 in the functional design.
+- The caption keeps gating the bar (Q4: A); the belt only changes the drawing.
+- Glossary (Q6: A): `CONTEXT.md` gains Current Belt; Rank Bar and Degree are generalized; the term Degree and the admin label "Belt degrees" stay (FR-C4).
+
+### 10.4 Unit 12a: headers
+
+- **FR-D3 replaced** (Q11: A, Q13: A): no page needs `'unsafe-inline'` in any style directive. The theme override `<style>` block is allowed by a SHA-256 hash carried by the theme snapshot and read by the header composer, not by a per-request nonce: enhanced navigation keeps the first response's policy, so a nonce delivered on a later navigation never matches it, while the hash of unchanged content always does. The theme editor forces a full page load after a successful save so the new block and the new header arrive together. The theme editor's preview frame and swatches take their colors through the CSSOM from the color-picker module it already loads, so no admin component emits a `style` attribute either. The unused `ImportMap` component is removed (no module imports anything), which leaves no executable inline script: `script-src 'self'` with neither nonce nor hash. The three JSON-LD data blocks are not scripts to CSP.
+- **FR-D7 corrected** (Q8: A): the proxy is left alone. The app emits `frame-ancestors 'none'` and `X-Frame-Options: DENY` as FR-D1 and FR-D2 say. A browser enforces every CSP header it receives, so the stricter policy wins beside the proxy's `frame-ancestors 'self'`, and X-Frame-Options is ignored when frame-ancestors is present. The README states that a proxy may add headers and that the duplicates are harmless; the "conflicting duplicate" clause is dropped.
+- **Rollout** (Q7: B; decision 3 amended for production only): the code default stays `enforce`. The first production deploy sets `SECURITY_CSP_MODE=report-only`; the owner checks the admin pages with the browser console open against a checklist shipped in the unit's docs; then the session flips to `enforce` and recreates the container.
+- `connect-src 'self'` carries the circuit's WebSocket in current browsers; an old browser that refuses it falls back to long polling on the same origin. No `upgrade-insecure-requests`, which would break a self-hoster on a plain-HTTP LAN address. `form-action 'self'` is safe: the sign-in links are GETs and the logout form redirects within the origin.
+- **Tests** (Q12: A): pure tests for the header composer and the limiter policies, middleware tests against a bare HttpContext, a text-scan pin of the middleware order, and a curl checklist in the security verification instructions. No test host, no new package (NFR-11 kept).
+
+### 10.5 Unit 12b: rate limiting
+
+- **Numbers** (Q9: A), fixed windows per client IP, no queue, 429 with Retry-After: the auth group 10 per minute; the feeds 30 per minute; the counted redirects 30 per minute; comments 5 and reports 3 per 10 minutes as FR-D12 says. Code constants (decision 7).
+- **FR-D9 extended** (Q14: B): the OAuth handler paths `/signin-github`, `/signin-google` and `/signin-discord` are not endpoints, so a path-scoped global limiter covers them with the auth numbers and returns an unlimited partition for every other path; decision 5's concern (counting static assets) does not apply to it.
+- The anonymous commenter's address (FR-D12) is captured once when the static page renders and handed to the comment island as a protected parameter, or read at circuit start by a circuit handler; the NFR design picks after checking the framework.
+- **Production values** (Q10): `TRUSTED_PROXIES=172.22.0.0/16`, the docker network the proxy (nginx-proxy-manager) shares with the container, and `WEB_BIND=127.0.0.1`, so the published port serves this machine only while the proxy reaches the container over the network. Set by the session at the 12b deploy.
+
+### 10.6 Facts recorded from the code survey (2026-09-13)
+
+No security header exists today beyond HSTS and cache control; forwarded headers are trusted from any peer; the Server header is on. Every script, style, font and image is same-origin; there is no iframe, embed or external form; OAuth avatars are never used; of the three posts in production none carries raw HTML, inline styles, scripts or an external image (counts only were queried). The project ships its own reconnect modal, so Blazor injects no style of its own. Comments and reports have no limiter today; the contact limiter keys on the connection address. Only `/auth` is a route group.
