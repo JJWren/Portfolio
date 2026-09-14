@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.29.0](https://github.com/JJWren/Portfolio/compare/v1.28.0...v1.29.0) (2026-09-14)
+
+
+### Features
+
+* current belt for the rank bar ([#109](https://github.com/JJWren/Portfolio/issues/109)) ([069ef12](https://github.com/JJWren/Portfolio/commit/069ef12c3d7ce036b52d9c3b01d98deacc535d96))
+
+
+### Bug Fixes
+
+* show the average per day on the daily visitors tile ([#107](https://github.com/JJWren/Portfolio/issues/107)) ([e79bf49](https://github.com/JJWren/Portfolio/commit/e79bf49e48c3ac7eb94f09739638dfb490ce90a1))
+
 ## [1.28.0](https://github.com/JJWren/Portfolio/compare/v1.27.0...v1.28.0) (2026-09-12)
 
 
