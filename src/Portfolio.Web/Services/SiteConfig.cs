@@ -35,7 +35,11 @@ public record SiteConfig(
     // -- Second owner-photo slot (Unit 10 Phase 4); same semantics as the
     // primary pair above. --
     string? OwnerPhotoFlipFile = null,
-    string? OwnerPhotoFlipAlt = null)
+    string? OwnerPhotoFlipAlt = null,
+    // -- Current belt (Unit 11); the rank bar's fallback when there is no
+    // admin override (BR-20). Lenient like Flavor/BeltDegrees: blank or an
+    // unrecognized value parses to null rather than throwing (BR-21). --
+    Belt? CurrentBelt = null)
 {
     public static SiteConfig FromConfiguration(IConfiguration config)
     {
@@ -93,7 +97,8 @@ public record SiteConfig(
             EraLines: SplitEnvLines(config["SITE_ERAS"]),
             NowLines: SplitEnvLines(config["SITE_NOW"]),
             OwnerPhotoFlipFile: NullIfEmpty(config["OWNER_PHOTO_FLIP_FILE"]),
-            OwnerPhotoFlipAlt: NullIfEmpty(config["OWNER_PHOTO_FLIP_ALT"]));
+            OwnerPhotoFlipAlt: NullIfEmpty(config["OWNER_PHOTO_FLIP_ALT"]),
+            CurrentBelt: BjjRules.ParseBelt(config["SITE_CURRENT_BELT"]));
     }
 
     private static string? NullIfEmpty(string? value)
