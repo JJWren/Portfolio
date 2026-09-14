@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Portfolio.Web.Endpoints;
@@ -86,4 +87,26 @@ public class AnalyticsRulesTests
 
         Assert.False(AnalyticsRules.IsExcludedUser(new ClaimsPrincipal(identity)));
     }
+
+    [Theory]
+    [InlineData("2026-08-15", "2026-09-13", 30)] // "Last 30 days": today and the 29 before it
+    [InlineData("2026-09-13", "2026-09-13", 1)] // all time on the first recorded day
+    [InlineData("2026-01-01", "2026-12-31", 365)]
+    [InlineData("2026-09-14", "2026-09-13", 1)] // never below one day
+    public void PeriodDays_CountsBothEndsInclusive(string from, string to, int expected)
+        => Assert.Equal(expected, AnalyticsRules.PeriodDays(
+            DateOnly.Parse(from, CultureInfo.InvariantCulture),
+            DateOnly.Parse(to, CultureInfo.InvariantCulture)));
+
+    [Theory]
+    [InlineData(354, 30, 12)] // 11.8
+    [InlineData(345, 30, 12)] // 11.5 rounds away from zero
+    [InlineData(344, 30, 11)] // 11.47
+    [InlineData(0, 30, 0)]
+    [InlineData(7, 7, 1)]
+    [InlineData(15, 2, 8)] // 7.5
+    [InlineData(5, 2, 3)] // 2.5: away from zero gives 3 where to-even would give 2
+    [InlineData(10, 0, 0)] // no days, no average
+    public void AveragePerDay_RoundsToWholeVisitors(int visitorDays, int days, int expected)
+        => Assert.Equal(expected, AnalyticsRules.AveragePerDay(visitorDays, days));
 }

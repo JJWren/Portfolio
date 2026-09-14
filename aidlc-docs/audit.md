@@ -1585,3 +1585,179 @@ everything else is good"
 
 ---
 
+## Unit 14: PR #106 opened; merge conflict with master
+**Timestamp**: 2026-09-12T00:07:48Z
+**User Input**: (none)
+**AI Response**: "Committed the audit trail as 1e77b3f, pushed and opened PR #106 (feat: daily-visitors chart on the admin stats page); Copilot requested. GitHub reports the PR conflicting: the refactor PR #105 (4b66342) and this branch both edited the coverage heading and table of unit-test-instructions.md. Merging origin/master into the branch and resolving: the combined heading is 819 tests and 46 fixtures (814 on the branch plus the five FileWritesTests facts; 43 plus FileWritesTests plus the two chart fixtures), keeping both the Images & uploads row with FileWritesTests and the Admin stats chart row."
+**Context**: Construction, Unit 14, PR B conflict resolution
+
+---
+
+## Unit 14: conflict resolved; PR #106 mergeable
+**Timestamp**: 2026-09-12T00:08:51Z
+**User Input**: (none)
+**AI Response**: "Merged origin/master (4b66342, the refactor) into the branch; the only conflict was the coverage heading, resolved to 819 tests and 46 fixtures with both the Images & uploads row (FileWritesTests) and the Admin stats chart row kept; no markers left. Build 0 warnings, 819 tests. Merge commit 35af07a pushed; GitHub now reports the PR mergeable with checks pending; Copilot re-requested for the merge head. Monitor armed for CI and the review."
+**Context**: Construction, Unit 14, Copilot gate on PR #106
+
+---
+
+## Unit 14: Copilot round 1 on PR #106
+**Timestamp**: 2026-09-12T00:35:45Z
+**User Input**: (none)
+**AI Response**: "CI on the merge head 35af07a all green, mergeable and clean. Copilot reviewed the pre-merge head 1e77b3f (the re-request after the merge push was absorbed into the review already in progress): Changes recommended, four inline comments, all valid: (1) after the reload refactor the stored range and series go stale if the circuit lives across UTC midnight, since sort and pager clicks no longer recompute them; (2) the tooltip box is a fixed 210 units while the text is one unwrapped line, so a large count at the right edge can overflow the frame; (3) at 365 points the hit columns are forced to 6 units while the spacing is 1.82, so later columns capture the pointer over earlier days; (4) the plan\x27s component contract still prescribes role img. Applying all four: LoadAsync refreshes the range and series when the UTC day has moved past the stored range end; the tooltip box width derives from the monospace text length and is clamped; hit columns become exactly the spacing between neighbours (a minimum only when it does not overlap); the plan table updated."
+**Context**: Construction, Unit 14, Copilot round 1 remediation
+
+---
+
+## Unit 14: Copilot round 1 fixes pushed (PR #106)
+**Timestamp**: 2026-09-12T00:37:32Z
+**User Input**: (none)
+**AI Response**: "Applied all four round-1 comments as 29bb6bc: Stats.razor gains RefreshRangeAndSeriesAsync (first day, range, series), called by ReloadAsync and by LoadAsync whenever the UTC date has moved past the stored range end; the tooltip box width derives from its monospace text (7.4 units per character plus padding) and the clamp uses that width; the hit columns are exactly the spacing between points; the plan\x27s component contract now prescribes role group and the skip link, and two deviations are recorded (the hit-column width against the plan\x27s 6-unit minimum; the text-sized tooltip). Build 0 warnings; tests green. Pushed; Copilot re-requested; monitor armed for round 2."
+**Context**: Construction, Unit 14, Copilot gate round 2
+
+---
+
+## Unit 14: Copilot round 2 on PR #106
+**Timestamp**: 2026-09-12T00:43:55Z
+**User Input**: (none)
+**AI Response**: "Round 2 on 29bb6bc: all checks green, mergeable and clean; Changes recommended with one generated comment (the coverage heading says 819 while the plan\x27s review entry said 814: both true in context, 814 on the branch and 819 after master\x27s FileWritesTests merged in; the plan entry now states both and the thread has the reply) and one suppressed note (at 365 days the hit column, now equal to the 1.8-unit spacing, is narrower than the 8-unit hovered marker, against FR-V8\x27s wider-than-the-mark wording). The second is a geometric limit: 365 targets across 664 units cannot each be wider than the mark without overlapping, and overlap makes later days steal the pointer, which round 1 rejected. Recorded as an FR-V8 addendum in the requirements (keyboard focus and the table stay exact) rather than changed. Committing the two docs and re-requesting round 3."
+**Context**: Construction, Unit 14, Copilot gate round 3
+
+---
+
+## Unit 14: Copilot round 3 on PR #106 and the fixes
+**Timestamp**: 2026-09-12T00:52:49Z
+**User Input**: (none)
+**AI Response**: "Round 3 on db5b5aa: checks green; Changes recommended with one generated comment (NiceMax overflows for a count near int.MaxValue and could loop forever) and five suppressed notes (the plan still documented the two-argument LinePath; today\x27s chart point goes stale on sort and pager clicks while the tile refreshes, breaking the sum-equals-tile property intraday; on a two-point chart the second endpoint column covers the first; the axis top rescanned the points per read; the All time series grows without bound). Applied as 6bac14d: NiceMax in long arithmetic clamped at the int maximum with three pinned cases; WithTodayFromTotal re-derives today from the tile after every tile reload (two tests); endpoint hit columns clamped to the plot (a two-point render test pins 44..376 and 376..708); the axis top cached in OnParametersSet; the plan\x27s signature and deviations updated. Declined with a recorded NFR-24 addendum: bounding or bucketing All time (decision 21 is the owner\x27s). Build 0 warnings; 825 tests; coverage heading 825. Pushed; Copilot round 4 requested; the overflow thread answered."
+**Context**: Construction, Unit 14, Copilot gate round 4
+
+---
+
+## Unit 14: Copilot round 4 clean pass; merging PR #106
+**Timestamp**: 2026-09-12T01:01:11Z
+**User Input**: (none)
+**AI Response**: "Round 4 on 6bac14d (01:00Z): Needs a closer look, zero new comments, all six checks green, mergeable and clean. Three suppressed notes, all plan wording lagging the code: the coverage heading (825 is the real merged total after the round-3 tests; the plan\x27s review entry to say so), the component row still saying at least 6 units wide, and the Stats.razor row still saying the series loads in LoadAsync. Clean pass under CONTRIBUTING.md; squash-merged; the three plan rows corrected as post-merge bookkeeping on master. (The earlier monitor tripped on the session\x27s own thread reply, which GitHub records as a review by the repository account; the Copilot-only monitor waited for the real review.)"
+**Context**: Construction, Unit 14, PR B merged; close-out next
+
+---
+
+## Unit 14 merged (PR #106); close-out bookkeeping; release next
+**Timestamp**: 2026-09-12T01:02:40Z
+**User Input**: (none)
+**AI Response**: "Squash-merged PR #106 as 3a8cf52; master realigned stash-first; branch deleted (GitHub auto-deleted the remote). Ticked the plan PR step with the four-round history, corrected the three plan rows Copilot flagged (the hit-column rule, the Stats.razor reload contract, the 825 total), marked Unit 14 COMPLETE in the state file, noted PR B in the workflow plan, updated memory with the outcome and the gate gotchas. Release-please refreshed PR #104 (release 1.28.0: #103, #106, with #105 as a hidden refactor commit); merging it once its checks are green starts the publish-image job, then the deploy."
+**Context**: Construction, Unit 14 COMPLETE; Operations: release 1.28.0 and deploy
+
+---
+
+## Release 1.28.0: release PR #104 merged
+**Timestamp**: 2026-09-12T01:03:01Z
+**User Input**: (none)
+**AI Response**: "Release PR #104 (chore(master): release 1.28.0) merged as ec107a0 with its checks green; the release-please workflow on that push tags v1.28.0 and runs publish-image (ghcr.io/jjwren/portfolio:1.28.0 and :latest). Monitor armed on that run; the deploy (compose tag 1.26.0 to 1.28.0 in Z:/docker/portfolio, docker compose pull web, docker compose up -d web) starts when the image is published. Local master realigned to ec107a0 with the pending bookkeeping restored."
+**Context**: Operations: release 1.28.0 cut; deploy pending the image
+
+---
+
+## Deploy: 1.28.0 to the production container
+**Timestamp**: 2026-09-12T01:05:31Z
+**User Input**: (none; owner instruction of 2026-09-11 to deploy)
+**AI Response**: "release-please run 34663600630 on ec107a0: release-please and publish-image both succeeded; release v1.28.0 published 01:02:52Z; ghcr.io/jjwren/portfolio:1.28.0 visible in the registry. In Z:/docker/portfolio: compose image tag 1.26.0 to 1.28.0 (LF preserved), docker compose pull web (image pulled), docker compose up -d web (portfolio-db healthy, portfolio-web recreated and started on 1.28.0, health starting). The recreate also activates the read-write résumé mount edited on 2026-09-11. Live checks (health, footer and Contact links, /resume headers) running in the background."
+**Context**: Operations: deploy of 1.28.0 (Units 13 and 14, the refactor, and the never-deployed 1.27.0 tooltip wording)
+
+---
+
+## Deploy verified: v1.28.0 live
+**Timestamp**: 2026-09-12T01:06:08Z
+**User Input**: (none)
+**AI Response**: "portfolio-web healthy on ghcr.io/jjwren/portfolio:1.28.0; https://joshuamykitta.dev/healthz 200; the home page footer carries the résumé link with the footer origin and the nav is labelled Links; the Contact page carries the link with the contact origin; /resume answers 200 with Content-Type application/pdf and Content-Disposition attachment with the configured filename. Note: the HEAD check of /resume?from=footer from this machine was recorded as one resume-download event with target footer, and the two page fetches as page views (a non-admin session). Build and Test: the unit-test instructions were refreshed inside each PR (825 tests, 46 fixtures); no separate gate under the owner instruction. Operations placeholder: this deploy. Remaining owner checks: upload a PDF from /admin/site and view the chart on /admin/stats. Next in the workflow: Unit 11 (current belt) per workflow-planning-post-unit10-followups.md."
+**Context**: Operations: v1.28.0 deployed and verified; session requests complete
+
+---
+
+## Owner question: the Daily visitors tile reads 365 while no day passes 20
+**Timestamp**: 2026-09-12T02:02:35Z
+**User Input**: "looks good. curious though, why does daily visitors state 365 currently? at no point is it ever that high -- it never stops 20."
+**AI Response**: "Explained from the production tables (queried through the db container\x27s own credentials, values never printed): the tile sums each UTC day\x27s unique visitors over the selected period (Daily Visitor, ADR 0001: keys rotate daily, so a returning visitor counts once per day and cross-day uniques do not exist), while the chart shows each day alone. Right now: 29 rolled-up days since 2026-08-14 summing to 354, busiest day 20, today live 2 shortly after midnight UTC; the 365 seen earlier was that sum plus that moment\x27s live count. Not a bug; the tile label is ambiguous next to a chart with the same title. Offered a relabel or a per-day average as a follow-up; no change applied."
+**Context**: Post-deploy question; assessment only
+
+---
+
+## Owner request: a handoff for the next session
+**Timestamp**: 2026-09-13T12:42:11Z
+**User Input**: "write a handoff.md for what was done and what needs to be done next (units 11 and 12 I think) so a new session can pick up that work."
+**AI Response**: "Wrote aidlc-docs/handoff.md: read-first list, what this session did (Units 13 and 14, the refactor, release 1.28.0 and the deploy, the docs), the repository state (pending aidlc-docs edits on master by convention, 825 tests), Unit 11 (FR-C1 to FR-C10, stages, branch and PR, migration mechanics, files to start from), Unit 12 (FR-D1 to FR-D16, stages, PRs 3 and 4, the proxy header facts, owner deploy-time actions), the execution model and the mechanics that mattered (Copilot, git, Bash, production), and a definition of picked-up-correctly. Pointed to from aidlc-state.md and the project memory."
+**Context**: Session close-out; handoff written
+
+---
+
+## Owner request: link to the handoff
+**Timestamp**: 2026-09-13T12:50:05Z
+**User Input**: "give me the link to the handoff"
+**AI Response**: "Gave the repository path aidlc-docs/handoff.md as a clickable link plus the absolute path; noted it is not on GitHub until the next branch\x27s docs commit and offered a published page if a shareable URL is wanted."
+**Context**: Session close-out
+
+---
+
+
+## Grilling session: review of the handoff and planning of Units 11 and 12
+**Timestamp**: 2026-09-13T12:53:12Z
+**User Input**: "/mattpocock-skills:grill-with-docs review the handoff doc (C:\Users\joshu\source\repos\Portfolio\aidlc-docs\handoff.md) and plan for the next 2 units that need to be accomplished."
+**AI Response**: "Started a grilling session (grilling plus domain-modeling skills). Read handoff.md, aidlc-state.md, CONTEXT.md and the project memory; reading the post-Unit 10 requirements and workflow plan, the Unit 11 code, and surveying the code for Unit 12 before asking round 1."
+**Context**: Workflow Planning review for Units 11 (current belt) and 12 (security headers, rate limiting); stage gates unchanged; no code touched.
+
+---
+
+## Grilling round 1 presented (Units 11 and 12)
+**Timestamp**: 2026-09-13T13:00:59Z
+**User Input**: (none; the session asked round 1)
+**AI Response**: "Round 1, ten questions with recommendations: Q1 gate cadence (rec. one approval per unit, then run to merge); Q2 release and deploy cadence (rec. deploy after 12a, then after 12b; the session does the production edits); Q3 the Daily visitors tile follow-up from the handoff (rec. quick fix PR ahead of Unit 11: average per day as the headline, visitor-days beneath); Q4 what gates the rank bar (rec. keep: the caption gates it); Q5 a current belt below the road highest belt (rec. refuse at save, lenient at resolve); Q6 glossary edits Current Belt, Rank Bar, Degree (rec. as proposed, the term Degree kept); Q7 production CSP rollout (rec. report-only first, owner checks the admin pages, then enforce); Q8 proxy header overlap, an FR-D7 correction (rec. leave the proxy alone: the stricter CSP wins and X-Frame-Options is ignored when frame-ancestors is present); Q9 rate-limit numbers (rec. auth 10 per minute, feeds 30 per minute, counted redirects 30 per minute, comments 5 and reports 3 per 10 minutes); Q10 production values (rec. TRUSTED_PROXIES 172.22.0.0/16, WEB_BIND 127.0.0.1). Facts gathered read-only: the production compose publishes the container on 0.0.0.0:5870 (WEB_PORT=5870); the proxy is nginx-proxy-manager on the docker network proxy 172.22.0.0/16 at 172.22.0.9; the road already accepts 0 to 6 stripes on any belt (BjjRules.MaxDegrees); Stats.razor line 43 and VisitorsChart.razor line 12 both read Daily visitors. A code survey for Unit 12 (headers, inline styles, limiter, endpoints, tests) runs in the background; round 2 waits on it."
+**Context**: Grilling session, round 1 presented; awaiting the owner; no code touched.
+
+---
+
+## Grilling round 1, part 2: the Unit 12 code survey landed
+**Timestamp**: 2026-09-13T13:08:51Z
+**User Input**: (none; awaiting the owner on round 1)
+**AI Response**: "Explore agent survey of the code for Unit 12 complete. Facts: no security headers today beyond HSTS and Cache-Control; forwarded-headers trust wide open; Server header on. All scripts, styles, fonts and images are same-origin; no iframes or embeds; OAuth avatars never used. The only inline style element is the theme override in App.razor; the only inline scripts are three JSON-LD data blocks (CSP does not apply to data blocks) and the import map emitted by the ImportMap component; no JS module imports anything, so the import map is unused. The project ships its own reconnect modal (scoped CSS plus a module), so Blazor never injects styles. After Unit 11 the only style attributes left are the theme editor preview frame and swatches (admin). Comments and reports have no limiter; the contact limiter keys on RemoteIpAddress. Only /auth is a MapGroup; the OAuth handler callback paths /signin-github, /signin-google and /signin-discord are not endpoints. Tests: no WebApplicationFactory, no database fixture; the suite is pure rules, HtmlRenderer and file scans. The theme editor does not reload after a save. Production database counts (aggregates only): 3 posts, none with raw HTML, inline styles, scripts, iframes or external images. Added to the round: Q11 theme editor styles under the CSP (rec. refactor to the CSSOM, no unsafe-inline anywhere); Q12 how headers and 429s are tested (rec. pure and middleware-level tests plus a curl checklist, no new package); Q13 nonce or hash for the theme block, an FR-D3 correction (rec. hash, forced reload after a theme save, remove the unused ImportMap); Q14 the OAuth handler paths (rec. a path-scoped global limiter with an unlimited partition for every other path). Design items taken without a question were listed: connect-src self, no upgrade-insecure-requests, the commenter address capture left to the NFR design, form-action self safe."
+**Context**: Grilling session, round 1 extended with the survey-dependent questions; awaiting the owner; no code touched.
+
+---
+
+## Grilling round 1 answered
+**Timestamp**: 2026-09-13T20:19:55Z
+**User Input**: "good answers"
+**AI Response**: "Read as accepting all fourteen recommendations: Q1 C (one approval per unit, then run to merge; deploy decisions stay stops); Q2 B (release and deploy after 12a and after 12b; the session does the production edits); Q3 A (quick fix PR for the stats tile ahead of Unit 11); Q4 A (the caption gates the rank bar); Q5 B (refuse a current belt below the road highest belt at save, lenient at resolve); Q6 A (glossary: Current Belt added, Rank Bar and Degree generalized); Q7 B (production CSP report-only first, owner check, then enforce); Q8 A (proxy left alone; app emits frame-ancestors none and X-Frame-Options DENY); Q9 A (auth 10 per minute, feeds 30 per minute, counted redirects 30 per minute, comments 5 and reports 3 per 10 minutes); Q10 (i) A TRUSTED_PROXIES 172.22.0.0/16, (ii) A WEB_BIND 127.0.0.1; Q11 A (theme editor colors through the CSSOM, no unsafe-inline anywhere); Q12 A (pure and middleware-level tests plus a curl checklist, no new package); Q13 A (hash for the theme override block, forced reload after a theme save, ImportMap removed); Q14 B (path-scoped global limiter for the /signin-* handler paths). Frontier empty. Next: glossary update, the grilling record and requirement amendments, then the first stop: the quick-fix plan with the Unit 11 functional design and code-generation plan."
+**Context**: Grilling session complete; design tree settled; moving to the documents for the first stop.
+
+---
+
+## Unit 11 stop presented: functional design, code-generation plan and the quick-fix plan
+**Timestamp**: 2026-09-13T20:26:22Z
+**User Input**: (none since the round 1 answer)
+**AI Response**: "Written: CONTEXT.md (Current Belt added; Rank Bar and Degree generalized); requirements-post-unit10-followups.md section 10 (grilling amendments: process, FR-S1 to FR-S3 for the stats tile, Unit 11 BR-24, Unit 12 FR-D3 replaced by the hash and the CSSOM refactor with ImportMap removed, FR-D7 corrected, the report-only rollout, the tests approach, the thresholds, FR-D9 extended to the /signin-* paths, the production values, the survey facts); workflow plan grilling outcome; construction/unit11-current-belt/functional-design/domain-entities.md and business-rules.md (BR-20 to BR-25); construction/plans/unit11-current-belt-plan.md; construction/plans/quick-stats-tile-plan.md; aidlc-state.md. Presented the merged stop with the 2-option message: A) Request Changes, B) Continue to Next Stage (B runs the quick fix then Unit 11 through to merge without further stops, then the Unit 12 design bundle)."
+**Context**: Unit 11 Functional Design and Code Generation Part 1 plus the quick-fix plan, one stop per the owner decision Q1 C; awaiting the owner.
+
+---
+
+## Unit 11 stop answered
+**Timestamp**: 2026-09-14T00:33:23Z
+**User Input**: "B"
+**AI Response**: "Continue to Next Stage: the quick fix (PR 1.5) runs first, then Unit 11 through to merge, with no further stops until the Unit 12 design bundle; release and deploy wait for 12a."
+**Context**: Unit 11 Functional Design and Code Generation Part 1 approved with the quick-fix plan (one stop, owner decision Q1 C); Code Generation Part 2 starts with the quick fix.
+
+---
+
+## Quick fix (PR 1.5): implemented, built and tested
+**Timestamp**: 2026-09-14T00:37:27Z
+**User Input**: (none)
+**AI Response**: "Branch fix/stats-daily-visitors-average from master (level with origin, no stash needed); docs commit e3a18a4 folding the handoff, the grilling amendments, CONTEXT.md, the Unit 11 design and both plans. Code: AnalyticsRules.PeriodDays and AveragePerDay; the Daily visitors tile shows the average per day with the visitor-days and day count beneath; .stat-sub rule; two theories in AnalyticsRulesTests (eleven rows); unit-test-instructions.md at 836 tests, 46 fixtures. dotnet build -warnaserror 0 warnings; dotnet test 836 passed, 0 failed. Five report-only review agents (correctness, security with the BR-18 grep, framework and accessibility, maintainability, performance) launched on the diff."
+**Context**: Code Generation Part 2, quick fix; plan boxes ticked through the build; review in progress.
+
+---
+
+## Quick fix (PR 1.5): review applied, PR #107 opened
+**Timestamp**: 2026-09-14T00:44:50Z
+**User Input**: (none)
+**AI Response**: "Five-area review: security PASS (BR-18 grep clean), performance one nit (no action), correctness one minor applied (singular visitor-day), framework one minor applied (a 2.5 midpoint row so the away-from-zero rounding has regression coverage), maintainability two nits applied (class summary widened; member summaries trimmed to the file style). Build 0 warnings; 837 tests passed. Commit ff9aa80 fix: show the average per day on the daily visitors tile; pushed; PR #107 opened with the plan and review in the body; Copilot requested (the reviewers list comes back empty as usual; the timeline is the check)."
+**Context**: Code Generation Part 2, quick fix; Copilot gate in progress.
+
+---

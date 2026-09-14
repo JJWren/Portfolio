@@ -44,9 +44,16 @@ _Avoid_: roadmap, funnel
 
 **Rank Bar**:
 The belt-and-stripes graphic on the hero/About seam, captioned with the
-owner's rank. Always drawn as a black belt in v1, carrying the configured
-count of degree stripes.
+owner's rank. Drawn as the Current Belt, carrying the configured count of
+Degree stripes; it renders only while the caption is set, whatever the belt.
 _Avoid_: progress bar
+
+**Current Belt**:
+The belt the Rank Bar draws, one of the five Belts. Stated by the owner,
+never derived from The Road, though a save is refused when it ranks below
+the road's highest belt. Blank means black, so a site that never sets it
+looks exactly as before.
+_Avoid_: rank, level, belt color
 
 **Belt**:
 One of the five ranks the site knows — white, blue, purple, brown, black —
@@ -55,9 +62,10 @@ this closed set is rejected at save and dropped at render.
 _Avoid_: rank color, level
 
 **Degree**:
-One stripe earned on the black belt, 0 to 6. Kept equal to the stripe count
-of the last black-belt era — one fact recorded in two places, checked
-against itself at save.
+One stripe on the Current Belt, 0 to 6; the word is the black belt's, and
+the site uses it for every belt. Kept equal to the stripe count of the last
+era on the current belt — one fact recorded in two places, checked against
+itself at save.
 _Avoid_: dan, level
 
 **Era**:

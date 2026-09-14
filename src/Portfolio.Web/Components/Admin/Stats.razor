@@ -38,9 +38,13 @@
                     <span class="stat-value">@_summary.Views.ToString("N0")</span>
                     <span class="stat-label muted">Page views</span>
                 </div>
+                @* The average per day over the Period; the sum beneath it is
+                   what the chart's days add up to (visitor-days, one count
+                   per Daily Visitor per UTC day). *@
                 <div class="card stat-tile">
-                    <span class="stat-value">@_summary.DailyVisitors.ToString("N0")</span>
+                    <span class="stat-value">@AnalyticsRules.AveragePerDay(_summary.DailyVisitors, PeriodDays).ToString("N0")</span>
                     <span class="stat-label muted">Daily visitors</span>
+                    <span class="stat-sub muted">@_summary.DailyVisitors.ToString("N0") @(_summary.DailyVisitors == 1 ? "visitor-day" : "visitor-days") over @PeriodDays.ToString("N0") @(PeriodDays == 1 ? "day" : "days")</span>
                 </div>
                 <div class="card stat-tile">
                     <span class="stat-value">@_summary.ContactSubmits.ToString("N0")</span>
@@ -192,6 +196,9 @@
         _referrers = await Analytics.GetTopReferrersAsync(_rangeFrom, _rangeTo);
         _events = await Analytics.GetEventBreakdownAsync(_rangeFrom, _rangeTo);
     }
+
+    /// <summary>Days in the Period the tiles report on, today included.</summary>
+    private int PeriodDays => AnalyticsRules.PeriodDays(_rangeFrom, _rangeTo);
 
     private (DateOnly From, DateOnly To) PeriodRange(DateOnly firstDay)
     {
