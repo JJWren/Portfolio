@@ -459,13 +459,11 @@ public class AppCssTests : IDisposable
     // -- Current belt (Unit 11) -------------------------------------------
 
     // CssScanner blanks a selector's own quoted attribute values to spaces
-    // (see its class summary — the same reason
-    // RootConstants_AreNotRedefinedInTheLightThemeBlock anchors on shape
-    // rather than literal text), so ".rank-bar[data-belt='white']" comes
-    // back as ".rank-bar[data-belt=       ]": match that shape instead of
-    // the literal quoted belt name.
-    private static readonly Regex RankBarDataBeltSelector = new(@"^\.rank-bar\[data-belt=\s+\]$");
-    private static readonly Regex RankBarDataBeltBarSelector = new(@"^\.rank-bar\[data-belt=\s+\]\s+\.belt-bar$");
+    // (see its class summary), so the five ".rank-bar[data-belt='...']"
+    // rules are indistinguishable by parsed selector. These pins therefore
+    // match the raw stylesheet text, one exact one-line rule per belt, so a
+    // swapped belt-to-token mapping or a red bar on a colored belt fails.
+    private static readonly Regex RankBarBeltBarOverride = new(@"\.rank-bar\[data-belt='([a-z]+)'\]\s+\.belt-bar\s*\{");
 
     [Theory]
     [InlineData("white")]
@@ -474,30 +472,27 @@ public class AppCssTests : IDisposable
     [InlineData("brown")]
     [InlineData("black")]
     public void RankBar_DataBeltRule_SetsRankCustomProperty(string belt)
-    {
-        var rankBarDataBeltRules = LandingBannerRules.Where(r => RankBarDataBeltSelector.IsMatch(r.Selector)).ToList();
-
-        Assert.Equal(5, rankBarDataBeltRules.Count);
-        Assert.Contains(rankBarDataBeltRules, r => r.Declarations.Contains($"--rank: var(--rank-{belt});", StringComparison.Ordinal));
-    }
+        => Assert.Contains(
+            $".rank-bar[data-belt='{belt}'] {{ --rank: var(--rank-{belt}); }}",
+            ReadAppCss(), StringComparison.Ordinal);
 
     [Fact]
     public void RankBar_BlackBelt_BarIsRed()
-    {
-        var rule = LandingBannerRules.Single(r => RankBarDataBeltBarSelector.IsMatch(r.Selector));
-
-        Assert.Contains("background: var(--c-red);", rule.Declarations);
-    }
+        => Assert.Contains(
+            ".rank-bar[data-belt='black'] .belt-bar { background: var(--c-red); }",
+            ReadAppCss(), StringComparison.Ordinal);
 
     [Fact]
-    public void RankBar_RedBarOverride_OnlyOneSuchRuleExists()
-        // Only the black belt gets a red bar (BR-25); the scanner's blanking
-        // (see above) means a colored belt's rule would be indistinguishable
-        // from black's by selector text alone, so this pins the count
-        // instead — combined with RankBar_BlackBelt_BarIsRed (which finds
-        // that one rule and confirms it is red), the pair together pin "the
-        // red-bar rule only for black".
-        => Assert.Single(LandingBannerRules, r => RankBarDataBeltBarSelector.IsMatch(r.Selector));
+    public void RankBar_RedBarOverride_OnlyForBlack()
+    {
+        // Only the black belt gets a red bar (BR-25): every rule that
+        // overrides .belt-bar under a data-belt selector names black.
+        var beltsWithBarOverride = RankBarBeltBarOverride.Matches(ReadAppCss())
+            .Select(m => m.Groups[1].Value)
+            .ToList();
+
+        Assert.Equal(new[] { "black" }, beltsWithBarOverride);
+    }
 
     [Fact]
     public void RankBar_BodyAndTip_FallBackToBlackWhenNoBeltSet()

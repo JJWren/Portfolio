@@ -5,10 +5,10 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (920 tests, 46 fixtures — as of Unit 11, the current belt for the rank bar, after its review remediation, on top of the Daily visitors tile quick fix (PR 1.5) and Unit 14, the admin stats daily-visitors chart)
+## Coverage (924 tests, 47 fixtures — as of Unit 11, the current belt for the rank bar, after its review remediation and Copilot round 1, on top of the Daily visitors tile quick fix (PR 1.5) and Unit 14, the admin stats daily-visitors chart)
 | Area | Fixtures |
 |---|---|
-| Site config & admin access | SiteConfigTests (includes SITE_CURRENT_BELT parsing), AdminEmailsTests, SiteContentRulesTests |
+| Site config & admin access | SiteConfigTests (includes SITE_CURRENT_BELT parsing), AdminEmailsTests, SiteContentRulesTests, SiteContentEditorTests (the current-belt select: options, the blank-option label, the binding and the field order, scanned from the linked Razor source) |
 | BJJ landing flavor | BjjRulesTests (game plan, rank bar, current belt, principles, eras/road, now — parsing and validation) |
 | Landing page (render) | LandingSectionsRenderTests, AppCssTests |
 | Blog | SlugHelperTests, MarkdownServiceTests, PostRulesTests, BlogFiltersTests |

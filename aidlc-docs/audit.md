@@ -1801,3 +1801,19 @@ everything else is good"
 **Context**: Unit 11 Code Generation Part 2, review complete; PR next.
 
 ---
+
+## Unit 11: PR #109 opened
+**Timestamp**: 2026-09-14T01:53:17Z
+**User Input**: (none)
+**AI Response**: "Docs commit aa3440c; branch pushed; PR #109 feat: current belt for the rank bar opened with the design, verification and review summary in the body; Copilot requested (reviewers list empty as usual; polling the reviews)."
+**Context**: Unit 11 Copilot gate in progress.
+
+---
+
+## Unit 11: Copilot round 1 on PR #109
+**Timestamp**: 2026-09-14T02:03:25Z
+**User Input**: (none)
+**AI Response**: "Copilot left four comments, CI green. Applied all four: (1) the admin select had no test: new fixture SiteContentEditorTests scans the linked SiteContentEditor.razor for the select binding, the blank option and the five belts in ladder order, the two blank-option labels, the draft mapping and the field order with the generalized degrees hint; (2) and (3) the CssScanner blanks attribute values so the rank-bar CSS pins could not tell belts apart: the three pins now match the raw stylesheet text, one exact rule per belt, the red-bar rule for black by name, and a regex proving black is the only belt with a bar override; (4) the plan step note still described BeltName delegating to CssName: reworded to record the unification. Build 0 warnings; 924 tests, 47 fixtures. Next: commit, push, reply on the four threads, re-request Copilot."
+**Context**: Unit 11 Copilot gate, round 1 remediated.
+
+---
