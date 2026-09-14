@@ -2682,6 +2682,11 @@ select:focus {
     font-size: 0.82rem;
 }
 
+/* The line under a tile's label (the visitor-days behind the daily average). */
+.stat-sub {
+    font-size: 0.72rem;
+}
+
 .stats-sort-bar,
 .stats-row {
     display: grid;

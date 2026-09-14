@@ -3,7 +3,8 @@ using Portfolio.Web.Endpoints;
 
 namespace Portfolio.Web.Services;
 
-/// <summary>Pure rules for what gets counted and how values are normalized.</summary>
+/// <summary>Pure rules for what gets counted, how values are normalized, and
+/// how the Period is measured and averaged for display.</summary>
 public static class AnalyticsRules
 {
     public const int PathMaxLength = 300;
@@ -92,4 +93,13 @@ public static class AnalyticsRules
 
     public static string Truncate(string value, int maxLength)
         => value.Length <= maxLength ? value : value[..maxLength];
+
+    /// <summary>The number of UTC days in a Period, both ends inclusive and never below 1.</summary>
+    public static int PeriodDays(DateOnly from, DateOnly to)
+        => Math.Max(1, to.DayNumber - from.DayNumber + 1);
+
+    /// <summary>Visitor-days (the sum of each day's unique visitors) spread over the
+    /// Period's days, rounded half away from zero to a whole visitor; 0 when there are no days.</summary>
+    public static int AveragePerDay(int visitorDays, int days)
+        => days <= 0 ? 0 : (int)Math.Round(visitorDays / (double)days, MidpointRounding.AwayFromZero);
 }
