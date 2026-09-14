@@ -407,7 +407,7 @@ public class LandingSectionsRenderTests : IDisposable
     {
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
-            LandingRenderHarness.BuildContent(beltCaption: "Test caption", beltDegrees: 2) with { CurrentBelt = belt });
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption", beltDegrees: 2, currentBelt: belt));
 
         Assert.Contains($"<figure class=\"rank-bar\" data-belt=\"{expectedDataBelt}\">", html);
         Assert.Equal(2, CountBeltStripes(html));
@@ -428,7 +428,7 @@ public class LandingSectionsRenderTests : IDisposable
     {
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
-            LandingRenderHarness.BuildContent(beltCaption: "Test caption", beltDegrees: 3) with { CurrentBelt = Belt.Purple });
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption", beltDegrees: 3, currentBelt: Belt.Purple));
 
         var figureStart = html.IndexOf("<figure class=\"rank-bar\"", StringComparison.Ordinal);
         Assert.True(figureStart >= 0, "Expected a rank-bar figure in the rendered HTML.");
@@ -443,7 +443,7 @@ public class LandingSectionsRenderTests : IDisposable
     {
         var html = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
-            LandingRenderHarness.BuildContent(beltCaption: null) with { CurrentBelt = Belt.Purple });
+            LandingRenderHarness.BuildContent(beltCaption: null, currentBelt: Belt.Purple));
 
         Assert.DoesNotContain("rank-bar", html);
     }
@@ -457,7 +457,7 @@ public class LandingSectionsRenderTests : IDisposable
 
         var withCurrentBelt = await LandingRenderHarness.RenderAsync(
             LandingRenderHarness.BuildConfig(),
-            LandingRenderHarness.BuildContent(beltCaption: "Test caption") with { CurrentBelt = Belt.Purple });
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption", currentBelt: Belt.Purple));
 
         // BR-1: under the Default flavor the rank bar never renders at all,
         // current belt or not, so the plain landing page's HTML is

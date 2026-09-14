@@ -35,7 +35,7 @@
                 var era = Eras[i];
                 var rowNumber = i + 1;
                 var iso = IsoDate(era);
-                <tr class="row era-@rowNumber" data-belt="@BjjRules.CssName(era.Belt)" @key="rowNumber">
+                <tr class="row era-@rowNumber" data-belt="@BjjRules.BeltName(era.Belt)" @key="rowNumber">
                     <td class="rowbelt">
                         <BeltBand Belt="era.Belt" Stripes="era.Stripes" />
                     </td>

@@ -356,7 +356,7 @@ public class BjjRulesTests
         Assert.Equal("Consistency | not talent", principle.Reading);
     }
 
-    // -- ParseBelt / CssName ----------------------------------------------
+    // -- ParseBelt -----------------------------------------------------------
 
     [Theory]
     [InlineData("white", Belt.White)]
@@ -379,15 +379,6 @@ public class BjjRulesTests
     [InlineData("whites")]
     public void ParseBelt_UnknownOrBlank_ReturnsNull(string? value)
         => Assert.Null(BjjRules.ParseBelt(value));
-
-    [Theory]
-    [InlineData(Belt.White, "white")]
-    [InlineData(Belt.Blue, "blue")]
-    [InlineData(Belt.Purple, "purple")]
-    [InlineData(Belt.Brown, "brown")]
-    [InlineData(Belt.Black, "black")]
-    public void CssName_ReturnsTheLowercaseClassName(Belt belt, string expected)
-        => Assert.Equal(expected, BjjRules.CssName(belt));
 
     // -- ParseEras ----------------------------------------------------------
 
