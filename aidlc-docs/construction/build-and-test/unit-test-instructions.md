@@ -5,7 +5,7 @@ dotnet test                          # all tests
 dotnet test --filter SlugHelperTests # one fixture
 ```
 
-## Coverage (925 tests, 46 fixtures — as of Unit 11, the current belt for the rank bar, on top of the Daily visitors tile quick fix (PR 1.5) and Unit 14, the admin stats daily-visitors chart)
+## Coverage (920 tests, 46 fixtures — as of Unit 11, the current belt for the rank bar, after its review remediation, on top of the Daily visitors tile quick fix (PR 1.5) and Unit 14, the admin stats daily-visitors chart)
 | Area | Fixtures |
 |---|---|
 | Site config & admin access | SiteConfigTests (includes SITE_CURRENT_BELT parsing), AdminEmailsTests, SiteContentRulesTests |
