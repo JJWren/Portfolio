@@ -696,7 +696,7 @@ main {
 
 .belt-body {
     flex: 1;
-    background: var(--belt-black);
+    background: var(--rank, var(--belt-black));
     border: 1px solid var(--border);
     border-right: 0;
     border-radius: 3px 0 0 3px;
@@ -708,6 +708,7 @@ main {
     gap: 6px;
     width: 112px;
     padding: 0 10px;
+    background: var(--belt-black);
 }
 
 .belt-bar i {
@@ -726,7 +727,7 @@ main {
 
 .belt-tip {
     width: 44px;
-    background: var(--belt-black);
+    background: var(--rank, var(--belt-black));
     border: 1px solid var(--border);
     border-left: 0;
     border-radius: 0 3px 3px 0;
@@ -735,6 +736,18 @@ main {
 @keyframes stripe-on {
     from { transform: scaleX(0); }
 }
+
+/* Per-belt color (BR-25), mirroring .row[data-belt='...'] on the road:
+   .belt-body/.belt-tip fall back to black above when --rank is unset, so a
+   BJJ deployment that never sets the current belt still draws today's
+   black belt (FR-C2). */
+.rank-bar[data-belt='white'] { --rank: var(--rank-white); }
+.rank-bar[data-belt='blue'] { --rank: var(--rank-blue); }
+.rank-bar[data-belt='purple'] { --rank: var(--rank-purple); }
+.rank-bar[data-belt='brown'] { --rank: var(--rank-brown); }
+.rank-bar[data-belt='black'] { --rank: var(--rank-black); }
+
+.rank-bar[data-belt='black'] .belt-bar { background: var(--c-red); }
 
 .rank-bar figcaption {
     margin-top: 0.7rem;
