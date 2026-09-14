@@ -1761,3 +1761,59 @@ everything else is good"
 **Context**: Code Generation Part 2, quick fix; Copilot gate in progress.
 
 ---
+
+## Quick fix (PR 1.5) merged; Unit 12 bundle drafted
+**Timestamp**: 2026-09-14T00:51:51Z
+**User Input**: (none)
+**AI Response**: "PR #107: CI green (build-test, pr-title, CodeQL, GitGuardian); Copilot reviewed with zero inline comments (clean pass); squash-merged as e79bf49; master realigned (level with origin, nothing to stash); local branch deleted; plan and state ticked. While the review ran, the Unit 12 design bundle was drafted for its later stop: the application design (components per phase), the NFR requirements (threat per header, the CSP directive by directive with evidence, the limits table, the proxy trust boundary, verification), the tech-stack decisions, the NFR design patterns (OnStarting fill-if-absent middleware, the snapshot hash, the theme editor CSSOM colors and forced reload, the limiter placement and 429 body, the circuit client address as a protected island parameter, trusted proxies) and logical components (pipeline diagram with a text alternative), and the two-phase plan. Next: branch feat/current-belt with the docs commit, the Unit 11 brief, the Sonnet phase agent."
+**Context**: Quick fix COMPLETE; Unit 11 Code Generation Part 2 starting; Unit 12 documents await their stop.
+
+---
+
+## Unit 11: branch, docs commit, phase agent launched
+**Timestamp**: 2026-09-14T00:52:42Z
+**User Input**: (none)
+**AI Response**: "Branch feat/current-belt from master e79bf49; docs commit 1fa6fbb folding the quick-fix close-out, the state and audit, the Unit 11 brief (construction/plans/unit11-brief.md, from the Unit 14 template) and the Unit 12 design bundle. A Sonnet general-purpose phase agent launched with the brief: BjjRules belt helpers and the two cross-checks, the column and migration AddCurrentBelt, SiteConfig and SiteContentRules changes, RankBar data-belt and the CSS rules, the admin select, env and README docs, tests, the local look at the five belts. Review, PR and post-merge steps stay with the orchestrator."
+**Context**: Unit 11 Code Generation Part 2 in progress.
+
+---
+
+## Unit 11: phase agent report
+**Timestamp**: 2026-09-14T01:34:36Z
+**User Input**: (none)
+**AI Response**: "Phase agent done on feat/current-belt: seven commits (814d3c7 rules, 40fdbb9 column and migration AddCurrentBelt, 3054661 resolve and validate, 874df33 rank bar and CSS, 4393c12 admin select, dbacfd4 tests, ef8cd06 docs); build 0 warnings; 925 tests (88 new, 46 fixtures); no style attribute left in Components outside ThemeEditor.razor. Deviations recorded in the plan: CssName kept with BeltName delegating to it (Road and BeltBand out of scope); TryParseBelt delegating to the existing ParseBelt; the max-length constant landed in the resolve commit; the .env.example degrees comment gained the black-belt note; the render-check app ran on port 5072. Render and look: purple, white and black checked in the Browser pane at 1280 and 375 wide in both themes (the white belt ring distinct on light); blue and brown carried by the per-belt pins. Next: the five-area review."
+**Context**: Unit 11 Code Generation Part 2, implementation complete; review starting.
+
+---
+
+## Unit 11: five-area review complete; remediation launched
+**Timestamp**: 2026-09-14T01:44:17Z
+**User Input**: (none)
+**AI Response**: "Correctness PASS (925 tests); security PASS (BR-18 grep for the owner surname and first name, the real gyms, cities, employer and promotion dates, all zero; the closed set enforced from the select to data-belt; the migration one nullable column); performance PASS; maintainability two minors (CssName and BeltName as two names for one mapping; the repeated source-suffix ternary in the two era validators); framework one nit (the render harness BuildContent should take the belt as a parameter instead of a with-expression at four call sites), everything else clean including the select accessibility and the CRLF migration files. A Sonnet remediation agent applies the three: BeltName becomes the one mapping with Road.razor and BeltBand.razor switched to it, a WithSource helper, the harness parameter."
+**Context**: Unit 11 Code Generation Part 2, remediation in progress.
+
+---
+
+## Unit 11: remediation applied; opening PR 2
+**Timestamp**: 2026-09-14T01:52:41Z
+**User Input**: (none)
+**AI Response**: "Remediation commits a08bd48 (BeltName the one mapping, CssName deleted, Road.razor and BeltBand.razor switched; WithSource and DisagreementSuffix helpers with every message byte-identical; the harness currentBelt parameter) and e577159 (plan deviation note). Verified: CssName zero hits; build 0 warnings; 920 tests (a redundant theory removed with the deleted method). Instructions heading and the plan review box updated. Next: docs commit, push, PR feat: current belt for the rank bar, Copilot request."
+**Context**: Unit 11 Code Generation Part 2, review complete; PR next.
+
+---
+
+## Unit 11: PR #109 opened
+**Timestamp**: 2026-09-14T01:53:17Z
+**User Input**: (none)
+**AI Response**: "Docs commit aa3440c; branch pushed; PR #109 feat: current belt for the rank bar opened with the design, verification and review summary in the body; Copilot requested (reviewers list empty as usual; polling the reviews)."
+**Context**: Unit 11 Copilot gate in progress.
+
+---
+
+## Unit 11: Copilot round 1 on PR #109
+**Timestamp**: 2026-09-14T02:03:25Z
+**User Input**: (none)
+**AI Response**: "Copilot left four comments, CI green. Applied all four: (1) the admin select had no test: new fixture SiteContentEditorTests scans the linked SiteContentEditor.razor for the select binding, the blank option and the five belts in ladder order, the two blank-option labels, the draft mapping and the field order with the generalized degrees hint; (2) and (3) the CssScanner blanks attribute values so the rank-bar CSS pins could not tell belts apart: the three pins now match the raw stylesheet text, one exact rule per belt, the red-bar rule for black by name, and a regex proving black is the only belt with a bar override; (4) the plan step note still described BeltName delegating to CssName: reworded to record the unification. Build 0 warnings; 924 tests, 47 fixtures. Next: commit, push, reply on the four threads, re-request Copilot."
+**Context**: Unit 11 Copilot gate, round 1 remediated.
+
+---

@@ -67,7 +67,7 @@
 @if (Site.Flavor == SiteFlavor.Bjj && Content.BeltCaption is { Length: > 0 } beltCaption)
 {
     <div class="container">
-        <RankBar Degrees="@Content.BeltDegrees" Caption="@beltCaption" />
+        <RankBar Belt="@Content.CurrentBelt" Degrees="@Content.BeltDegrees" Caption="@beltCaption" />
     </div>
 }
 

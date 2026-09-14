@@ -275,10 +275,26 @@ public static class BjjRules
         };
     }
 
-    /// <summary>The lowercase class name the CSS uses for this belt
-    /// (<c>--rank-white</c> to <c>--rank-black</c>, ADR 0002) — also the
-    /// `data-belt` attribute value on each road-table row.</summary>
-    public static string CssName(Belt belt) => belt switch
+    /// <summary>Out-parameter form of <see cref="ParseBelt"/> for callers that
+    /// read more naturally as a bool test (Unit 11's current-belt resolution
+    /// and validation) — reuses the same mapping rather than declaring the
+    /// closed set a second time.</summary>
+    public static bool TryParseBelt(string? value, out Belt belt)
+    {
+        var parsed = ParseBelt(value);
+        belt = parsed ?? default;
+        return parsed is not null;
+    }
+
+    /// <summary>The lowercase belt name (ADR 0002's closed set) — the CSS
+    /// class name (<c>--rank-white</c> to <c>--rank-black</c>) and
+    /// `data-belt` attribute value used by the road table and rank bar, and
+    /// also the display name used in disagreement messages
+    /// (<see cref="ValidateCurrentBeltAgainstEras"/>,
+    /// <see cref="ValidateDegreesAgainstEras"/>). Also the value stored in
+    /// <see cref="Portfolio.Web.Data.SiteContent.CurrentBelt"/> and shown in
+    /// the admin's current-belt select (BR-20, BR-25).</summary>
+    public static string BeltName(Belt belt) => belt switch
     {
         Belt.White => "white",
         Belt.Blue => "blue",
@@ -287,6 +303,14 @@ public static class BjjRules
         Belt.Black => "black",
         _ => throw new ArgumentOutOfRangeException(nameof(belt), belt, "Unknown belt."),
     };
+
+    /// <summary>First friendly error, or null when the current-belt text is
+    /// blank (the env value, then black, applies — BR-20) or one of the five
+    /// belt names (BR-22).</summary>
+    public static string? ValidateCurrentBelt(string? text)
+        => string.IsNullOrWhiteSpace(text) || TryParseBelt(text, out _)
+            ? null
+            : "Current belt must be white, blue, purple, brown or black";
 
     /// <summary>
     /// `date | belt | stripes | gym | location | role` per line, in the
@@ -485,12 +509,76 @@ public static class BjjRules
         return null;
     }
 
+    /// <summary>The highest-ranked belt among <paramref name="eras"/> in
+    /// ladder order (the <see cref="Belt"/> enum's declared order, white to
+    /// black), or null when there are no eras — used by
+    /// <see cref="ValidateCurrentBeltAgainstEras"/> (BR-24).</summary>
+    public static Belt? HighestBelt(IReadOnlyList<Era> eras)
+        => eras.Count == 0 ? null : eras.Max(e => e.Belt);
+
+    /// <summary>Formats one value for a disagreement message: <paramref
+    /// name="value"/> alone when it came from the admin's own draft
+    /// (<paramref name="source"/> null), or <c>"{value}, from {source}"</c>
+    /// when it was instead resolved from an environment variable. Shared by
+    /// <see cref="ValidateCurrentBeltAgainstEras"/> and
+    /// <see cref="ValidateDegreesAgainstEras"/> for all four value/source
+    /// pairs they format.</summary>
+    private static string WithSource(string value, string? source)
+        => source is null ? value : $"{value}, from {source}";
+
+    /// <summary>The "; override X here or change the environment." sentence
+    /// shared by <see cref="ValidateCurrentBeltAgainstEras"/> and
+    /// <see cref="ValidateDegreesAgainstEras"/>: names "the eras" when
+    /// <paramref name="erasSource"/> is the side that came from the
+    /// environment, otherwise <paramref name="subject"/> naming the other
+    /// side ("the current belt", "the belt degrees").</summary>
+    private static string DisagreementSuffix(string? erasSource, string subject)
+        => $"; override {(erasSource is not null ? "the eras" : subject)} here or change the environment.";
+
     /// <summary>
-    /// BR-9: one fact (the black belt's stripe count) is recorded in two
-    /// places — <c>BeltDegrees</c> and the black-belt era's own stripes —
-    /// kept equal at the only place they can drift: the save gate. Null
-    /// (unset degrees, or no black-belt era yet) never conflicts; when both
-    /// exist, the LAST black-belt era in <paramref name="eras"/> must agree.
+    /// BR-24: the effective current belt must never rank below the highest
+    /// belt the road records — a practitioner's stated rank cannot
+    /// contradict their own history, even though the road itself never
+    /// derives from the current belt (BR-20). Null when there are no eras,
+    /// or <paramref name="currentBelt"/> ranks at or above
+    /// <see cref="HighestBelt"/>; a blank current belt resolves to black
+    /// (BR-20), the top of the ladder, so it can never trip this rule.
+    /// <paramref name="beltSource"/> and <paramref name="erasSource"/> name
+    /// the environment variable a side came from ("SITE_CURRENT_BELT",
+    /// "SITE_ERAS") exactly like <see cref="ValidateDegreesAgainstEras"/>;
+    /// leave both null for the draft-only case. Lenient at resolve: a
+    /// belt below the road never hides the bar, only blocks the save.
+    /// </summary>
+    public static string? ValidateCurrentBeltAgainstEras(
+        Belt currentBelt, IReadOnlyList<Era> eras, string? beltSource = null, string? erasSource = null)
+    {
+        var highestBelt = HighestBelt(eras);
+        if (highestBelt is null || currentBelt >= highestBelt.Value)
+        {
+            return null;
+        }
+
+        if (beltSource is null && erasSource is null)
+        {
+            return $"Current belt ({BeltName(currentBelt)}) is below the road's highest belt " +
+                $"({BeltName(highestBelt.Value)}).";
+        }
+
+        var beltText = WithSource(BeltName(currentBelt), beltSource);
+        var highestText = WithSource(BeltName(highestBelt.Value), erasSource);
+
+        return $"Current belt ({beltText}) is below the road's highest belt ({highestText})" +
+            DisagreementSuffix(erasSource, "the current belt");
+    }
+
+    /// <summary>
+    /// BR-23 (BR-9 generalized from "the black belt era" to "the last era on
+    /// the current belt"): one fact (the current belt's stripe count) is
+    /// recorded in two places — <c>BeltDegrees</c> and the last era on
+    /// <paramref name="currentBelt"/> — kept equal at the only place they can
+    /// drift: the save gate. Null (unset degrees, or no era on the current
+    /// belt yet) never conflicts; when both exist, the LAST era on the
+    /// current belt in <paramref name="eras"/> must agree.
     /// <paramref name="degreesSource"/> and <paramref name="erasSource"/>
     /// optionally name the environment variable a value came from (for
     /// example "SITE_BELT_DEGREES", "SITE_ERAS") when the caller resolved it
@@ -499,33 +587,29 @@ public static class BjjRules
     /// null for the draft-only case — the message is unchanged.
     /// </summary>
     public static string? ValidateDegreesAgainstEras(
-        int? degrees, IReadOnlyList<Era> eras, string? degreesSource = null, string? erasSource = null)
+        int? degrees, Belt currentBelt, IReadOnlyList<Era> eras, string? degreesSource = null, string? erasSource = null)
     {
         if (degrees is null)
         {
             return null;
         }
 
-        var lastBlackEra = eras.LastOrDefault(e => e.Belt == Belt.Black);
-        if (lastBlackEra is null || lastBlackEra.Stripes == degrees.Value)
+        var lastEraOnBelt = eras.LastOrDefault(e => e.Belt == currentBelt);
+        if (lastEraOnBelt is null || lastEraOnBelt.Stripes == degrees.Value)
         {
             return null;
         }
 
+        var beltName = BeltName(currentBelt);
         if (degreesSource is null && erasSource is null)
         {
-            return $"Belt degrees ({degrees.Value}) and the black belt era's stripes ({lastBlackEra.Stripes}) disagree.";
+            return $"Belt degrees ({degrees.Value}) and the {beltName} belt era's stripes ({lastEraOnBelt.Stripes}) disagree.";
         }
 
-        var degreesText = degreesSource is null
-            ? degrees.Value.ToString(CultureInfo.InvariantCulture)
-            : $"{degrees.Value}, from {degreesSource}";
-        var stripesText = erasSource is null
-            ? lastBlackEra.Stripes.ToString(CultureInfo.InvariantCulture)
-            : $"{lastBlackEra.Stripes}, from {erasSource}";
-        var fixHint = erasSource is not null ? "the eras" : "the belt degrees";
+        var degreesText = WithSource(degrees.Value.ToString(CultureInfo.InvariantCulture), degreesSource);
+        var stripesText = WithSource(lastEraOnBelt.Stripes.ToString(CultureInfo.InvariantCulture), erasSource);
 
-        return $"Belt degrees ({degreesText}) and the black belt era's stripes ({stripesText}) disagree; " +
-            $"override {fixHint} here or change the environment.";
+        return $"Belt degrees ({degreesText}) and the {beltName} belt era's stripes ({stripesText}) disagree" +
+            DisagreementSuffix(erasSource, "the belt degrees");
     }
 }

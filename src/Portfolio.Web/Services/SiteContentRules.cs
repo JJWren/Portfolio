@@ -21,7 +21,10 @@ public record EffectiveSiteContent(
     IReadOnlyList<Era>? Eras = null,
     IReadOnlyList<NowItem>? Now = null,
     // -- Second owner-photo slot (Unit 10 Phase 4). --
-    string? OwnerPhotoFlipAlt = null)
+    string? OwnerPhotoFlipAlt = null,
+    // -- Current belt (Unit 11); resolved by SiteContentRules.Resolve from
+    // the admin override, else SITE_CURRENT_BELT, else black (BR-20, BR-21). --
+    Belt CurrentBelt = Belt.Black)
 {
     /// <summary>Never null — empty means "no chart" (BR-2). The nullable
     /// constructor parameter only exists so callers that predate the BJJ
@@ -72,7 +75,8 @@ public sealed record SiteContentDraft(
     string? PrinciplesText,
     string? ErasText,
     string? NowText,
-    string? OwnerPhotoFlipAlt);
+    string? OwnerPhotoFlipAlt,
+    string? CurrentBeltText);
 
 /// <summary>
 /// Rules for the admin site-content overrides. Blank input means "use the
@@ -91,6 +95,11 @@ public static class SiteContentRules
     // BJJ landing flavor (Unit 10, BR-11).
     public const int HeroEyebrowMaxLength = 120;
     public const int BeltCaptionMaxLength = 200;
+
+    // Current belt (Unit 11): the five belt names are all 6 characters or
+    // fewer ("purple"); 16 is plenty of headroom without inviting a longer
+    // value to look valid.
+    public const int CurrentBeltMaxLength = 16;
 
     /// <summary>Trims and normalizes line endings; whitespace-only collapses to null.</summary>
     public static string? NormalizeField(string? value)
@@ -172,19 +181,24 @@ public static class SiteContentRules
     /// length checks first (CheckLengths, for the pre-existing fields), then
     /// the BJJ-flavor format checks (BR-4 "strict at save") in the editor's
     /// own field order — hero eyebrow, game plan, belt caption, belt
-    /// degrees, principles, eras, now — so the first error reported is
-    /// always the first invalid field the admin would scroll to. The BR-9
-    /// degrees-vs-eras cross-check runs last, once both fields it compares
-    /// have individually validated, and against the EFFECTIVE values (draft,
-    /// falling back to <paramref name="site"/>'s environment values) rather
-    /// than the draft's own text alone — the editor seeds its textareas from
-    /// the DB override, so a field left blank because it defers to
-    /// SITE_BELT_DEGREES / SITE_ERAS would otherwise let a real disagreement
-    /// between the two save unblocked. <paramref name="site"/> is optional
-    /// (defaults to null, keeping every pre-existing call site compiling);
-    /// without it the cross-check runs on the draft alone, same as before.
-    /// Returns the first friendly error, or null when the whole draft may be
-    /// saved.
+    /// degrees, current belt (BR-22), principles, eras, now — so the first
+    /// error reported is always the first invalid field the admin would
+    /// scroll to. The BR-24 current-belt-vs-eras check then the BR-23 (BR-9
+    /// generalized) degrees-vs-eras check run last, in that order, once
+    /// every field they compare has individually validated, and against the
+    /// EFFECTIVE values (draft, falling back to <paramref name="site"/>'s
+    /// environment values, the current belt falling back to black when
+    /// neither supplies one) rather than the draft's own text alone — the
+    /// editor seeds its fields from the DB override, so a field left blank
+    /// because it defers to SITE_BELT_DEGREES / SITE_ERAS /
+    /// SITE_CURRENT_BELT would otherwise let a real disagreement save
+    /// unblocked. The trigger widens to all three fields: a save touching
+    /// none of them is never blocked by an environment-only disagreement.
+    /// <paramref name="site"/> is optional (defaults to null, keeping every
+    /// pre-existing call site compiling); without it both cross-checks run
+    /// on the draft alone (the current belt defaulting to black), same as
+    /// before. Returns the first friendly error, or null when the whole
+    /// draft may be saved.
     /// </summary>
     public static string? Validate(SiteContentDraft draft, SiteConfig? site = null)
     {
@@ -238,6 +252,16 @@ public static class SiteContentRules
             }
         }
 
+        // Hoisted for the same reason as beltDegreesText above: the widened
+        // cross-check below reuses this normalized value instead of
+        // re-normalizing draft.CurrentBeltText a second time.
+        var currentBeltText = NormalizeField(draft.CurrentBeltText);
+        var currentBeltError = BjjRules.ValidateCurrentBelt(currentBeltText);
+        if (currentBeltError is not null)
+        {
+            return currentBeltError;
+        }
+
         var principlesError = BjjRules.ValidatePrinciples(ParseLines(draft.PrinciplesText) ?? []);
         if (principlesError is not null)
         {
@@ -257,22 +281,38 @@ public static class SiteContentRules
             return nowError;
         }
 
-        // Only when the draft supplies at least one of the two fields: when
-        // both are blank the save touches neither fact, so it must not be
-        // blocked by an environment-only disagreement between them (see the
-        // summary above).
-        if (beltDegreesText is not null || eraLines.Count > 0)
+        // Only when the draft supplies at least one of the three fields:
+        // when all three are blank the save touches none of these facts, so
+        // it must not be blocked by an environment-only disagreement between
+        // them (see the summary above).
+        if (beltDegreesText is not null || eraLines.Count > 0 || currentBeltText is not null)
         {
             var effectiveDegrees = beltDegrees ?? site?.BeltDegrees;
             var effectiveEraLines = eraLines.Count > 0 ? eraLines : (site?.EraLines ?? []);
+            var effectiveEras = BjjRules.ParseEras(effectiveEraLines);
+            var effectiveBelt = currentBeltText is not null && BjjRules.TryParseBelt(currentBeltText, out var draftBelt)
+                ? draftBelt
+                : site?.CurrentBelt ?? Belt.Black;
 
             // Named only on the side that fell back to the environment — the
-            // other side came from the draft itself, same as always.
+            // other side came from the draft itself, same as always. The
+            // current belt is named only when the environment actually
+            // supplied one: unlike degrees/eras it always resolves to a
+            // value (black by default), and that default is not itself an
+            // environment fact.
             var degreesSource = beltDegreesText is null ? "SITE_BELT_DEGREES" : null;
             var erasSource = eraLines.Count > 0 ? null : "SITE_ERAS";
+            var beltSource = currentBeltText is null && site?.CurrentBelt is not null ? "SITE_CURRENT_BELT" : null;
+
+            var currentBeltVsErasError = BjjRules.ValidateCurrentBeltAgainstEras(
+                effectiveBelt, effectiveEras, beltSource, erasSource);
+            if (currentBeltVsErasError is not null)
+            {
+                return currentBeltVsErasError;
+            }
 
             var degreesVsErasError = BjjRules.ValidateDegreesAgainstEras(
-                effectiveDegrees, BjjRules.ParseEras(effectiveEraLines), degreesSource, erasSource);
+                effectiveDegrees, effectiveBelt, effectiveEras, degreesSource, erasSource);
             if (degreesVsErasError is not null)
             {
                 return degreesVsErasError;
@@ -297,7 +337,9 @@ public static class SiteContentRules
     /// BjjRules.Parse*) — a bad env or stored value can never take the
     /// landing page down (BR-4). Rungs is not resolved here: EffectiveSiteContent
     /// computes it once at construction, from Eras, via its own init-assigned
-    /// property.</summary>
+    /// property. The current belt resolves override, then SITE_CURRENT_BELT,
+    /// then black (BR-20); an unparsable value on either side is treated as
+    /// absent rather than thrown (BR-21).</summary>
     public static EffectiveSiteContent Resolve(SiteConfig site, SiteContent? overrides)
     {
         var gamePlanLines = overrides?.GamePlan is { Count: > 0 } gamePlanOverride
@@ -312,6 +354,9 @@ public static class SiteContentRules
         var nowLines = overrides?.Now is { Count: > 0 } nowOverride
             ? nowOverride
             : site.NowLines ?? [];
+        var currentBelt = BjjRules.TryParseBelt(overrides?.CurrentBelt, out var overrideBelt)
+            ? overrideBelt
+            : site.CurrentBelt ?? Belt.Black;
 
         return new(
             overrides?.HeroHeading ?? site.OwnerName,
@@ -328,6 +373,7 @@ public static class SiteContentRules
             BjjRules.ParsePrinciples(principleLines),
             BjjRules.ParseEras(eraLines),
             BjjRules.ParseNow(nowLines),
-            overrides?.OwnerPhotoFlipAlt ?? site.OwnerPhotoFlipAlt ?? $"Portrait of {site.OwnerName}");
+            overrides?.OwnerPhotoFlipAlt ?? site.OwnerPhotoFlipAlt ?? $"Portrait of {site.OwnerName}",
+            currentBelt);
     }
 }

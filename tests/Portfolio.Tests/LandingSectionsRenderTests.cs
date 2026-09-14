@@ -387,12 +387,82 @@ public class LandingSectionsRenderTests : IDisposable
                 beltCaption: "Black belt - Test gym, Test City",
                 beltDegrees: 3));
 
-        Assert.Contains("<figure class=\"rank-bar\">", html);
+        Assert.Contains("<figure class=\"rank-bar\" data-belt=\"black\">", html);
         Assert.Contains("<div class=\"belt\" aria-hidden=\"true\">", html);
         Assert.Contains("<span class=\"belt-body\"></span>", html);
         Assert.Contains("<span class=\"belt-tip\"></span>", html);
         Assert.Contains("<figcaption>Black belt - Test gym, Test City</figcaption>", html);
         Assert.Equal(3, CountBeltStripes(html));
+    }
+
+    // -- Current belt (Unit 11) -------------------------------------------
+
+    [Theory]
+    [InlineData(Belt.White, "white")]
+    [InlineData(Belt.Blue, "blue")]
+    [InlineData(Belt.Purple, "purple")]
+    [InlineData(Belt.Brown, "brown")]
+    [InlineData(Belt.Black, "black")]
+    public async Task Render_Bjj_RankBarCarriesDataBeltAndStripesForTheCurrentBelt(Belt belt, string expectedDataBelt)
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption", beltDegrees: 2, currentBelt: belt));
+
+        Assert.Contains($"<figure class=\"rank-bar\" data-belt=\"{expectedDataBelt}\">", html);
+        Assert.Equal(2, CountBeltStripes(html));
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RankBarDefaultsToBlackWhenCurrentBeltUnset()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption"));
+
+        Assert.Contains("<figure class=\"rank-bar\" data-belt=\"black\">", html);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RankBarFigure_NeverEmitsAStyleAttribute()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption", beltDegrees: 3, currentBelt: Belt.Purple));
+
+        var figureStart = html.IndexOf("<figure class=\"rank-bar\"", StringComparison.Ordinal);
+        Assert.True(figureStart >= 0, "Expected a rank-bar figure in the rendered HTML.");
+        var figureEnd = html.IndexOf("</figure>", figureStart, StringComparison.Ordinal);
+        var figureMarkup = html[figureStart..figureEnd];
+
+        Assert.DoesNotContain("style=", figureMarkup, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Render_Bjj_RankBarStillGatedByCaptionRegardlessOfCurrentBelt()
+    {
+        var html = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(flavor: SiteFlavor.Bjj),
+            LandingRenderHarness.BuildContent(beltCaption: null, currentBelt: Belt.Purple));
+
+        Assert.DoesNotContain("rank-bar", html);
+    }
+
+    [Fact]
+    public async Task Render_DefaultFlavor_IdenticalRegardlessOfCurrentBelt()
+    {
+        var withoutCurrentBelt = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(),
+            LandingRenderHarness.BuildContent());
+
+        var withCurrentBelt = await LandingRenderHarness.RenderAsync(
+            LandingRenderHarness.BuildConfig(),
+            LandingRenderHarness.BuildContent(beltCaption: "Test caption", currentBelt: Belt.Purple));
+
+        // BR-1: under the Default flavor the rank bar never renders at all,
+        // current belt or not, so the plain landing page's HTML is
+        // byte-for-byte identical either way.
+        Assert.Equal(withoutCurrentBelt, withCurrentBelt);
     }
 
     [Fact]

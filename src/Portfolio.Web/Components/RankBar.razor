@@ -1,12 +1,15 @@
-@* The rank bar: always drawn as a black belt in v1 (BR-6 — a "current
-   belt" field to draw a non-black belt is a recorded follow-up). The belt
-   graphic is aria-hidden; the figcaption carries the information for
-   assistive tech. LandingSections only renders this component when the
-   caption is non-empty. *@
-<figure class="rank-bar">
+@* The rank bar: drawn as the Current Belt (BR-25), never derived from The
+   Road — EffectiveSiteContent.CurrentBelt resolves the admin override, then
+   SITE_CURRENT_BELT, then black (BR-20, BR-21). Colors are the fixed ADR
+   0002 :root constants, reached through the data-belt attribute below, not
+   an inline style (FR-C7): no public component emits one. The belt graphic
+   is aria-hidden; the figcaption carries the information for assistive
+   tech. LandingSections only renders this component when the caption is
+   non-empty. *@
+<figure class="rank-bar" data-belt="@BjjRules.BeltName(Belt)">
     <div class="belt" aria-hidden="true">
         <span class="belt-body"></span>
-        <span class="belt-bar" style="background: var(--c-red)">
+        <span class="belt-bar">
             @for (var i = 0; i < Stripes; i++)
             {
                 <i></i>
@@ -18,6 +21,12 @@
 </figure>
 
 @code {
+    /// <summary>The belt drawn (BR-25), defaulting to black (BR-20) so a
+    /// caller that predates Unit 11 keeps compiling and rendering
+    /// unchanged.</summary>
+    [Parameter]
+    public Belt Belt { get; set; } = Belt.Black;
+
     /// <summary>Degree stripes, 0 to 6 (BR-6). Resolve already clamps, but the
     /// component clamps again so no caller can make it emit an unbounded run
     /// of stripe elements.</summary>

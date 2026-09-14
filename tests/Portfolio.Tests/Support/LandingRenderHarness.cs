@@ -160,7 +160,8 @@ internal static class LandingRenderHarness
         IReadOnlyList<Principle>? principles = null,
         IReadOnlyList<Era>? eras = null,
         IReadOnlyList<NowItem>? now = null,
-        string ownerPhotoFlipAlt = "Jane on the mat")
+        string ownerPhotoFlipAlt = "Jane on the mat",
+        Belt currentBelt = Belt.Black)
         => new(
             HeroHeading: heroHeading,
             Tagline: tagline,
@@ -174,7 +175,8 @@ internal static class LandingRenderHarness
             Principles: principles,
             Eras: eras,
             Now: now,
-            OwnerPhotoFlipAlt: ownerPhotoFlipAlt);
+            OwnerPhotoFlipAlt: ownerPhotoFlipAlt,
+            CurrentBelt: currentBelt);
 
     /// <summary>
     /// A SiteConfig with every optional branch populated (GitHub, LinkedIn,

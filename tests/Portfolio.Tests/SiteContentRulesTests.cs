@@ -16,7 +16,8 @@ public class SiteContentRulesTests
         IReadOnlyList<string>? principleLines = null,
         IReadOnlyList<string>? eraLines = null,
         IReadOnlyList<string>? nowLines = null,
-        string? ownerPhotoFlipAlt = null)
+        string? ownerPhotoFlipAlt = null,
+        Belt? currentBelt = null)
         => new(
             OwnerName: "Jane Developer",
             SiteTitle: "Jane Developer — Portfolio",
@@ -38,7 +39,8 @@ public class SiteContentRulesTests
             PrincipleLines: principleLines,
             EraLines: eraLines,
             NowLines: nowLines,
-            OwnerPhotoFlipAlt: ownerPhotoFlipAlt);
+            OwnerPhotoFlipAlt: ownerPhotoFlipAlt,
+            CurrentBelt: currentBelt);
 
     private static SiteContentDraft EmptyDraft()
         => new(
@@ -54,7 +56,8 @@ public class SiteContentRulesTests
             PrinciplesText: null,
             ErasText: null,
             NowText: null,
-            OwnerPhotoFlipAlt: null);
+            OwnerPhotoFlipAlt: null,
+            CurrentBeltText: null);
 
     [Theory]
     [InlineData(null)]
@@ -925,5 +928,195 @@ public class SiteContentRulesTests
 
         Assert.NotNull(error);
         Assert.Equal("Belt degrees (0) and the black belt era's stripes (1) disagree.", error);
+    }
+
+    // -- Current belt: Resolve precedence and the black default (BR-20, BR-21) --
+
+    [Fact]
+    public void Resolve_NullOverridesAndNoEnv_CurrentBeltDefaultsToBlack()
+    {
+        var site = BuildConfig();
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal(Belt.Black, effective.CurrentBelt);
+    }
+
+    [Fact]
+    public void Resolve_NullOverrides_CurrentBeltFallsBackToEnv()
+    {
+        var site = BuildConfig(currentBelt: Belt.Purple);
+
+        var effective = SiteContentRules.Resolve(site, null);
+
+        Assert.Equal(Belt.Purple, effective.CurrentBelt);
+    }
+
+    [Fact]
+    public void Resolve_CurrentBeltOverride_WinsOverEnv()
+    {
+        var site = BuildConfig(currentBelt: Belt.Purple);
+        var overrides = new SiteContent { CurrentBelt = "blue" };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Equal(Belt.Blue, effective.CurrentBelt);
+    }
+
+    [Fact]
+    public void Resolve_CurrentBeltOverrideUnparsable_FallsBackToEnv()
+    {
+        // BR-21: an unparsable stored value counts as unset, not an error.
+        var site = BuildConfig(currentBelt: Belt.Purple);
+        var overrides = new SiteContent { CurrentBelt = "coral" };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Equal(Belt.Purple, effective.CurrentBelt);
+    }
+
+    [Fact]
+    public void Resolve_CurrentBeltOverrideUnparsableAndNoEnv_FallsBackToBlack()
+    {
+        var site = BuildConfig();
+        var overrides = new SiteContent { CurrentBelt = "coral" };
+
+        var effective = SiteContentRules.Resolve(site, overrides);
+
+        Assert.Equal(Belt.Black, effective.CurrentBelt);
+    }
+
+    // -- Current belt: Validate (BR-22, BR-23, BR-24) ----------------------
+
+    [Fact]
+    public void Validate_UnknownCurrentBelt_ReturnsFriendlyError()
+    {
+        var draft = EmptyDraft() with { CurrentBeltText = "coral" };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.Equal("Current belt must be white, blue, purple, brown or black", error);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("white")]
+    [InlineData("BLACK")]
+    public void Validate_BlankOrKnownCurrentBelt_ReturnsNull(string? currentBeltText)
+    {
+        var draft = EmptyDraft() with { CurrentBeltText = currentBeltText };
+
+        Assert.Null(SiteContentRules.Validate(draft));
+    }
+
+    [Fact]
+    public void Validate_CurrentBeltBelowRoadsHighestBelt_ReturnsFriendlyError()
+    {
+        var draft = EmptyDraft() with
+        {
+            CurrentBeltText = "blue",
+            ErasText = "2018-12-01 | black | 0 | Gym | City | Role.",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.Equal("Current belt (blue) is below the road's highest belt (black).", error);
+    }
+
+    [Fact]
+    public void Validate_CurrentBeltAtOrAboveRoadsHighestBelt_ReturnsNull()
+    {
+        var draft = EmptyDraft() with
+        {
+            CurrentBeltText = "black",
+            ErasText = "2018-12-01 | blue | 0 | Gym | City | Role.",
+        };
+
+        Assert.Null(SiteContentRules.Validate(draft));
+    }
+
+    [Fact]
+    public void Validate_BlankCurrentBeltNeverTripsBR24EvenBelowTheRoad()
+    {
+        // A blank draft belt resolves to black (BR-20), the top of the
+        // ladder, so it can never disagree with the road's highest belt.
+        var draft = EmptyDraft() with { ErasText = "2018-12-01 | black | 0 | Gym | City | Role." };
+
+        Assert.Null(SiteContentRules.Validate(draft));
+    }
+
+    [Fact]
+    public void Validate_CurrentBeltVsErasCheck_RunsBeforeDegreesVsErasCheck()
+    {
+        // Both BR-24 (current belt below the road) and BR-23 (degrees
+        // disagree with the current belt's last era) are violated at once;
+        // BR-24 must be the one reported.
+        var draft = EmptyDraft() with
+        {
+            CurrentBeltText = "blue",
+            BeltDegreesText = "3",
+            ErasText = "2018-12-01 | black | 0 | Gym | City | Role.",
+        };
+
+        var error = SiteContentRules.Validate(draft);
+
+        Assert.NotNull(error);
+        Assert.Contains("is below the road's highest belt", error);
+    }
+
+    [Fact]
+    public void Validate_CurrentBeltInDraft_DisagreesWithEnvEras_NamesSiteEras()
+    {
+        var site = BuildConfig(eraLines: ["2018-12-01 | black | 0 | Gym | City | Role."]);
+        var draft = EmptyDraft() with { CurrentBeltText = "blue" }; // ErasText blank: defers to SITE_ERAS.
+
+        var error = SiteContentRules.Validate(draft, site);
+
+        Assert.NotNull(error);
+        Assert.Contains("is below the road's highest belt", error);
+        Assert.Contains("SITE_ERAS", error);
+    }
+
+    [Fact]
+    public void Validate_ErasInDraft_DisagreesWithEnvCurrentBelt_NamesSiteCurrentBelt()
+    {
+        var site = BuildConfig(currentBelt: Belt.Blue);
+        var draft = EmptyDraft() with { ErasText = "2018-12-01 | black | 0 | Gym | City | Role." }; // CurrentBeltText blank: defers to SITE_CURRENT_BELT.
+
+        var error = SiteContentRules.Validate(draft, site);
+
+        Assert.NotNull(error);
+        Assert.Contains("is below the road's highest belt", error);
+        Assert.Contains("SITE_CURRENT_BELT", error);
+    }
+
+    [Fact]
+    public void Validate_CurrentBeltDefaultsToBlackWithNoEnvValue_NeverNamesSiteCurrentBeltAsSource()
+    {
+        // BeltDegrees disagrees with the (defaulted-to-black) current belt's
+        // last era; SITE_CURRENT_BELT itself was never set, so even though
+        // the belt fell back to a default, that default must not be
+        // misreported as "from SITE_CURRENT_BELT" — it is not an
+        // environment fact.
+        var site = BuildConfig(eraLines: ["2018-12-01 | black | 1 | Gym | City | Role."]);
+        var draft = EmptyDraft() with { BeltDegreesText = "0" }; // CurrentBeltText and ErasText blank.
+
+        var error = SiteContentRules.Validate(draft, site);
+
+        Assert.NotNull(error);
+        Assert.Contains("disagree", error);
+        Assert.DoesNotContain("SITE_CURRENT_BELT", error);
+    }
+
+    [Fact]
+    public void Validate_AllThreeFieldsBlankInDraft_DisagreeingEnvValues_ReturnsNull()
+    {
+        // Neither field is touched by this save, so an environment-only
+        // disagreement must not block it — there is nothing here for the
+        // admin to fix (mirrors Validate_BothBlankInDraft_DisagreeingEnvValues_ReturnsNull for BR-9).
+        var site = BuildConfig(currentBelt: Belt.Blue, eraLines: ["2018-12-01 | black | 0 | Gym | City | Role."]);
+        var draft = EmptyDraft();
+
+        Assert.Null(SiteContentRules.Validate(draft, site));
     }
 }

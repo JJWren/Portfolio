@@ -456,6 +456,55 @@ public class AppCssTests : IDisposable
         Assert.Contains($"timeline-scope: {expected};", timelineScopeRule.Declarations);
     }
 
+    // -- Current belt (Unit 11) -------------------------------------------
+
+    // CssScanner blanks a selector's own quoted attribute values to spaces
+    // (see its class summary), so the five ".rank-bar[data-belt='...']"
+    // rules are indistinguishable by parsed selector. These pins therefore
+    // match the raw stylesheet text, one exact one-line rule per belt, so a
+    // swapped belt-to-token mapping or a red bar on a colored belt fails.
+    private static readonly Regex RankBarBeltBarOverride = new(@"\.rank-bar\[data-belt='([a-z]+)'\]\s+\.belt-bar\s*\{");
+
+    [Theory]
+    [InlineData("white")]
+    [InlineData("blue")]
+    [InlineData("purple")]
+    [InlineData("brown")]
+    [InlineData("black")]
+    public void RankBar_DataBeltRule_SetsRankCustomProperty(string belt)
+        => Assert.Contains(
+            $".rank-bar[data-belt='{belt}'] {{ --rank: var(--rank-{belt}); }}",
+            ReadAppCss(), StringComparison.Ordinal);
+
+    [Fact]
+    public void RankBar_BlackBelt_BarIsRed()
+        => Assert.Contains(
+            ".rank-bar[data-belt='black'] .belt-bar { background: var(--c-red); }",
+            ReadAppCss(), StringComparison.Ordinal);
+
+    [Fact]
+    public void RankBar_RedBarOverride_OnlyForBlack()
+    {
+        // Only the black belt gets a red bar (BR-25): every rule that
+        // overrides .belt-bar under a data-belt selector names black.
+        var beltsWithBarOverride = RankBarBeltBarOverride.Matches(ReadAppCss())
+            .Select(m => m.Groups[1].Value)
+            .ToList();
+
+        Assert.Equal(new[] { "black" }, beltsWithBarOverride);
+    }
+
+    [Fact]
+    public void RankBar_BodyAndTip_FallBackToBlackWhenNoBeltSet()
+    {
+        var body = LandingBannerRules.Single(r => r.Selector == ".belt-body");
+        var tip = LandingBannerRules.Single(r =>
+            r.Selector == ".belt-tip" && r.Declarations.Contains("background", StringComparison.Ordinal));
+
+        Assert.Contains("background: var(--rank, var(--belt-black));", body.Declarations);
+        Assert.Contains("background: var(--rank, var(--belt-black));", tip.Declarations);
+    }
+
     // -- Visitors chart (Unit 14) -----------------------------------------
 
     [Fact]

@@ -3,7 +3,7 @@
    for assistive tech). Reused by Road.razor for both the ladder's rungs and
    each table row's band cell; the black belt's red bar is CSS only
    (.belt-band.black .bar), not markup here. *@
-<span class="belt-band @BjjRules.CssName(Belt)" aria-hidden="true">
+<span class="belt-band @BjjRules.BeltName(Belt)" aria-hidden="true">
     <span class="bar">
         @for (var i = 0; i < Count; i++)
         {

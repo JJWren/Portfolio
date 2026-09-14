@@ -39,6 +39,11 @@ public class SiteContent
     /// <summary>Caption under the rank bar.</summary>
     public string? BeltCaption { get; set; }
 
+    /// <summary>The belt the rank bar draws: white, blue, purple, brown or
+    /// black (stored lower-case), or null for the env value (SITE_CURRENT_BELT)
+    /// then black (BR-20).</summary>
+    public string? CurrentBelt { get; set; }
+
     /// <summary>Degree stripes drawn on the rank bar, 0 to 6 (BR-6).</summary>
     public int? BeltDegrees { get; set; }
 
