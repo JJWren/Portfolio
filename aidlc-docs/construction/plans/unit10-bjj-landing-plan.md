@@ -152,7 +152,7 @@ Tests:
 
 ## Out of scope (recorded follow-ups)
 
-- A "current belt" field so the rank bar can draw a non-black belt (BR-6).
+- ~~A "current belt" field so the rank bar can draw a non-black belt (BR-6).~~ Done: Unit 11, `construction/plans/unit11-current-belt-plan.md`.
 - Per-node landing sections for Guard, Pass, Mount, Submit (decision 4 keeps `#principles` for v1).
 - Kids' and coral belts in the closed belt set.
 - Security headers, rate limiting and the other engineering cons from the reverse-engineering pass (separate units).
