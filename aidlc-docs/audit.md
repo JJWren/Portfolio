@@ -1745,3 +1745,19 @@ everything else is good"
 **Context**: Unit 11 Functional Design and Code Generation Part 1 approved with the quick-fix plan (one stop, owner decision Q1 C); Code Generation Part 2 starts with the quick fix.
 
 ---
+
+## Quick fix (PR 1.5): implemented, built and tested
+**Timestamp**: 2026-09-14T00:37:27Z
+**User Input**: (none)
+**AI Response**: "Branch fix/stats-daily-visitors-average from master (level with origin, no stash needed); docs commit e3a18a4 folding the handoff, the grilling amendments, CONTEXT.md, the Unit 11 design and both plans. Code: AnalyticsRules.PeriodDays and AveragePerDay; the Daily visitors tile shows the average per day with the visitor-days and day count beneath; .stat-sub rule; two theories in AnalyticsRulesTests (eleven rows); unit-test-instructions.md at 836 tests, 46 fixtures. dotnet build -warnaserror 0 warnings; dotnet test 836 passed, 0 failed. Five report-only review agents (correctness, security with the BR-18 grep, framework and accessibility, maintainability, performance) launched on the diff."
+**Context**: Code Generation Part 2, quick fix; plan boxes ticked through the build; review in progress.
+
+---
+
+## Quick fix (PR 1.5): review applied, PR #107 opened
+**Timestamp**: 2026-09-14T00:44:50Z
+**User Input**: (none)
+**AI Response**: "Five-area review: security PASS (BR-18 grep clean), performance one nit (no action), correctness one minor applied (singular visitor-day), framework one minor applied (a 2.5 midpoint row so the away-from-zero rounding has regression coverage), maintainability two nits applied (class summary widened; member summaries trimmed to the file style). Build 0 warnings; 837 tests passed. Commit ff9aa80 fix: show the average per day on the daily visitors tile; pushed; PR #107 opened with the plan and review in the body; Copilot requested (the reviewers list comes back empty as usual; the timeline is the check)."
+**Context**: Code Generation Part 2, quick fix; Copilot gate in progress.
+
+---
