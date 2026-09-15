@@ -38,6 +38,11 @@ builder.Services.AddSingleton<CommentService>();
 builder.Services.AddSingleton<ProjectService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<ContactRateLimiter>();
+// FR-D12: the contact limiter's algorithm, generalized (SubmissionLimiter);
+// CommentLimiter and ReportLimiter reuse it with their own per-window
+// numbers for the circuit's two other submission paths.
+builder.Services.AddSingleton<CommentLimiter>();
+builder.Services.AddSingleton<ReportLimiter>();
 builder.Services.AddSingleton<ContactFormTimestamp>();
 // Explicit factory: container-driven construction would pick the
 // IEnumerable<string> test constructor (DI resolves IEnumerable<T> as "all
@@ -84,12 +89,39 @@ if (!string.IsNullOrEmpty(keysPath))
         .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 }
 
-// OAuth callbacks need the original scheme/host when running behind a reverse proxy.
+// OAuth callbacks need the original scheme/host when running behind a
+// reverse proxy. FR-D14: TRUSTED_PROXIES narrows whose X-Forwarded-For is
+// honored after the two lists are cleared below; blank keeps every peer
+// trusted (today's behaviour), so no self-hoster breaks.
+var trusted = TrustedProxies.Parse(builder.Configuration["TRUSTED_PROXIES"]);
+
+// A *configured* TRUSTED_PROXIES that produced no valid proxy or network is
+// a misconfiguration, not "trust everyone": left alone, both KnownProxies
+// and KnownIPNetworks below would end up empty exactly as they would for a
+// blank/unset value, and the forwarded-headers middleware treats an empty
+// pair of lists as trust-every-peer. Fail fast instead, the same startup-
+// validation style as SiteConfig.FromConfiguration above.
+if (trusted.ConfiguredButEmpty)
+{
+    throw new InvalidOperationException(
+        $"TRUSTED_PROXIES is set but contains no valid IP address or CIDR network " +
+        $"(skipped: {string.Join(", ", trusted.Skipped)}). Fix the value, or clear it to trust every peer.");
+}
+
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
+    foreach (var proxy in trusted.Proxies)
+    {
+        options.KnownProxies.Add(proxy);
+    }
+
+    foreach (var network in trusted.Networks)
+    {
+        options.KnownIPNetworks.Add(network);
+    }
 });
 
 // Sign-in is external OAuth only — no password accounts.
@@ -161,7 +193,20 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>();
 
+// FR-D9: named per-client-address policies on the auth group, the feeds and
+// the counted redirects; a path-scoped global limiter for the OAuth handler
+// callback paths. See RateLimitPolicies.Configure for the policy values and
+// the 429 rejection response.
+builder.Services.AddRateLimiter(RateLimitPolicies.Configure);
+
 var app = builder.Build();
+
+if (trusted.Skipped.Count > 0)
+{
+    app.Services.GetRequiredService<ILogger<Program>>().LogWarning(
+        "TRUSTED_PROXIES: ignoring entries that are not an IP address or CIDR network: {Skipped}",
+        string.Join(", ", trusted.Skipped));
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -236,6 +281,11 @@ if (app.Environment.IsDevelopment())
 // above — the implicit UseRouting would run before every middleware in
 // this file and match HEAD against GET-only endpoints (405).
 app.UseRouting();
+
+// After routing, so the matched endpoint's policy can resolve, and before
+// authentication, so a rejected request never reaches authentication,
+// authorization, antiforgery or the analytics middleware (FR-D10, NFR-15).
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

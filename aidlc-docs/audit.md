@@ -1929,3 +1929,131 @@ everything else is good"
 **Context**: Unit 12 phase 12a Copilot gate, round 1 remediation in progress.
 
 ---
+
+## Unit 12 phase 12a merged
+**Timestamp**: 2026-09-15T15:52:29Z
+**User Input**: (none)
+**AI Response**: "PR #110: Copilot round 2 landed with zero new comments (clean pass); CI green; squash-merged as 1153ece; master realigned (nothing to stash); local branch deleted. Phase 12a complete: 990 tests, 54 fixtures. Release-please will open or update the release PR (a minor). Next: the stop before the release and the report-only deploy (owner decisions Q1 C and Q7 B)."
+**Context**: Unit 12 phase 12a Code Generation complete; release stop next.
+
+---
+
+## Stop presented: release 1.30.0 and the report-only deploy
+**Timestamp**: 2026-09-15T15:53:18Z
+**User Input**: (none)
+**AI Response**: "Presented the deploy stop: A) merge release PR #111, deploy 1.30.0 with SECURITY_CSP_MODE=report-only in the production .env, then the owner runs the admin-page checklist and says done, then the flip to enforce; B) hold. Phase 12b (rate limiting) starts after A or in parallel on the owner word."
+**Context**: Unit 12 phase 12a complete; deploy stop (owner decisions Q1 C, Q2 B, Q7 B).
+
+---
+
+## Owner instruction: compact the session, then review the CodeQL issue
+**Timestamp**: 2026-09-15T18:06:00Z
+**User Input**: "everything is merged. compact this session, then review the security issue that is logged in portfolio from codeQL (https://github.com/JJWren/Portfolio/issues/88)"
+**AI Response**: "Checking the release and production state after the owner merges; refreshing handoff.md as the compaction checkpoint (no tool compacts the context; it compacts automatically or via /compact in a terminal); then reviewing issue #88."
+**Context**: Post-12a; deploy stop answered implicitly by the merge; CodeQL issue review requested.
+
+---
+
+## CodeQL issue #88 reviewed; handoff refreshed
+**Timestamp**: 2026-09-15T18:09:02Z
+**User Input**: (the instruction above)
+**AI Response**: "State: release 1.30.0 published by the owner merge of PR #111 (65a7728), image in the registry; production still on 1.29.0 (the report-only deploy is the open stop); master realigned stash-first. handoff.md rewritten as the compaction checkpoint (state, next steps, the CodeQL review, mechanics). Issue #88 review: alert 2 cs/log-forging at AnalyticsService.cs:96 is real but low impact (the percent-decoded request path logged verbatim into the plain-text console log; fix with a SanitizeForLog helper stripping control characters and truncating, plus tests; MailDomainChecker.cs:102 logs the sender domain at Debug and is the only similar spot); alert 1 js/xss-through-dom at crop.js:323 is a false positive (a blob: object URL of the admin picked file assigned to the src of the img element with id crop-image, fetched by getElementById so CodeQL cannot see the element type; an image never executes script and the bytes are validated server-side) to dismiss with that rationale. Offered: a quick fix PR for alert 2 and the dismissal of alert 1 with the written rationale, alongside the open deploy and 12b decisions."
+**Context**: Owner request; assessment delivered; decisions open.
+
+---
+
+## Owner instruction: work it
+**Timestamp**: 2026-09-15T21:53:06Z
+**User Input**: "work it"
+**AI Response**: "Read as A on all three: the CodeQL fix PR and the alert 1 dismissal; the report-only deploy of 1.30.0 now; phase 12b started. Order: deploy first, then the 12b branch and phase agent in the main tree, the CodeQL fix in a separate worktree while 12b runs."
+**Context**: Deploy stop answered; 12b and the CodeQL fix authorized.
+
+---
+
+## Deploy verified: v1.30.0 live with SECURITY_CSP_MODE=report-only
+**Timestamp**: 2026-09-15T21:54:21Z
+**User Input**: (none; the owner instruction work it)
+**AI Response**: "Appended SECURITY_CSP_MODE=report-only to the production .env (CRLF, values masked); compose tag 1.29.0 to 1.30.0; docker compose pull web and up -d web; portfolio-web healthy on 1.30.0. Live headers on /: X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, X-Frame-Options DENY, the nineteen-feature Permissions-Policy, Cross-Origin-Opener-Policy same-origin, X-DNS-Prefetch-Control off, X-Permitted-Cross-Domain-Policies none, Content-Security-Policy-Report-Only with the full directive list (style-src self only: no theme override in production), HSTS passthrough, Server openresty from the proxy; the old SAMEORIGIN and frame-ancestors self are gone, confirming they were the framework defaults. The 404 page carries the report-only header too. Owner check open: the admin pages with the browser console per security-verification-instructions.md; then the flip to enforce."
+**Context**: Operations: 1.30.0 deployed in report-only; the enforce flip waits on the owner check.
+
+---
+
+## Phase 12b launched; CodeQL alert 1 dismissed; fix worktree opened
+**Timestamp**: 2026-09-15T21:55:56Z
+**User Input**: (none; the owner instruction work it)
+**AI Response**: "Branch feat/rate-limiting from master 65a7728 with docs commit 990a30c; a Sonnet phase agent launched with construction/plans/unit12b-brief.md. CodeQL alert 1 (js/xss-through-dom, crop.js:323) dismissed as a false positive with the written rationale (a blob: object URL of the admin picked file assigned to an img src; images never execute script; uploads validated server-side). Worktree C:/Users/joshu/source/repos/Portfolio-codeql on fix/log-forging from origin/master for alert 2: Services/LogSafe.cs (control characters to underscores, length capped), used at AnalyticsService.cs:96 and MailDomainChecker.cs:102, LogSafeTests, plan construction/plans/quick-codeql-88-plan.md."
+**Context**: Unit 12 phase 12b Code Generation Part 2 in progress; CodeQL issue #88 fix in progress in parallel.
+
+---
+
+## CodeQL fix built and committed on fix/log-forging
+**Timestamp**: 2026-09-15T21:57:10Z
+**User Input**: (none)
+**AI Response**: "Worktree commits 0983b93 (LogSafe.Value replacing line breaks and other control characters with underscores and capping the length; used at AnalyticsService.cs:96 and MailDomainChecker.cs:102; LogSafeTests) and 879608f (plan and totals). Build 0 warnings; 998 tests, 55 fixtures. Five review agents launched on the worktree diff."
+**Context**: CodeQL issue #88 fix, review in progress; phase 12b running in the main tree.
+
+---
+
+## CodeQL fix: review applied, PR #112 opened
+**Timestamp**: 2026-09-15T22:06:41Z
+**User Input**: (none)
+**AI Response**: "Five-area review on fix/log-forging: security PASS (the Replace sanitizer recognized by CodeQL; the two-argument overload chosen); correctness (lone-CR and C1 rows, a surrogate guard at the cap, the sign-in error log as a third call site); framework (the DEL row carried a raw 0x7F byte because the editing tool decodes a backslash-u escape; rewritten with a hex escape); maintainability (renamed Sanitize; plan ticks; the instructions heading and a Security row); performance (cap before replace). Commits 868779b and the docs commit; 1001 tests, 55 fixtures. PR #112 fix: keep user-supplied values from forging log lines opened; Copilot requested."
+**Context**: CodeQL issue #88 fix, Copilot gate in progress; phase 12b still running.
+
+---
+
+## CodeQL fix: Copilot round 1 on PR #112
+**Timestamp**: 2026-09-15T22:11:33Z
+**User Input**: (none)
+**AI Response**: "One comment, valid: a zero cap emptied the text and the surrogate guard indexed past the end. Fixed in 0d436cb (the guard runs only on non-empty text; a negative cap counts as zero; the cap test covers Sanitize of x with cap 0). Replied on the thread; Copilot re-requested."
+**Context**: CodeQL fix Copilot gate, round 1 remediated.
+
+---
+
+## CodeQL issue #88: fix merged
+**Timestamp**: 2026-09-15T22:15:41Z
+**User Input**: (none)
+**AI Response**: "PR #112: Copilot round 2 zero new comments; CI green; squash-merged as 69edd77; the worktree removed and the local branch deleted; issue #88 commented with the outcome of both alerts (it closes through the PR keyword; alert 2 closes on the next CodeQL scan of master). The 12b branch, based on 65a7728, will need origin/master merged in before its PR (the coverage heading in unit-test-instructions.md changed on both sides)."
+**Context**: CodeQL issue #88 done; phase 12b still in progress.
+
+---
+
+## Unit 12 phase 12b: phase agent report; review launched
+**Timestamp**: 2026-09-15T22:38:53Z
+**User Input**: (none)
+**AI Response**: "Phase agent done on feat/rate-limiting: six commits (9c0201c limiters generalized, 68245dc policies, pipeline and endpoints, 0a2cd2d trusted proxies, 535d0bc circuit limits, a6434d9 tests, d319414 docs); build 0 warnings; 1066 tests, 61 fixtures. Verification: thirty 200s then a 429 with Retry-After 60 and the text body on /feed.xml, /healthz unaffected; a forged X-Forwarded-For got its own bucket with TRUSTED_PROXIES unset and did not escape the real bucket with a trusted network set; the Blazor descriptor for the comment island is opaque and carries no readable address. Deviations: the new modifier on the derived limiters static members; the database-free service tests prove invalid input never reaches the database and valid input reaches the ban check (the limiter sits after it); the app ran on the launchSettings port; the literal style grep matches data-style from 12a while NoInlineStyleTests is the real gate. Five review agents launched."
+**Context**: Unit 12 phase 12b implementation complete; review in progress.
+
+---
+
+## Unit 12 phase 12b: five-area review complete; remediation launched
+**Timestamp**: 2026-09-15T22:57:37Z
+**User Input**: (none)
+**AI Response**: "Security PASS (NFR-14 key path end to end: IPNetwork.TryParse normalizes host bits; blank TRUSTED_PROXIES skips the known-proxy check in the framework source; ForwardLimit 1; the three provider callback paths match the /signin- prefix and the /signin picker does not; the 429 body written after the content type so the re-execute never fires; the admin exemption from the server-side authentication state; the island parameter protected by ITimeLimitedDataProtector per the framework source; BR-18 clean; anonymous posting does not exist today, so the ip key branch is dormant). Correctness PASS (two no-action notes). Framework and maintainability: the new-modifier statics on CommentLimiter and ReportLimiter to drop (numbers passed to the base constructor; ContactRateLimiter keeps its static shape for its callers), a comment antecedent, two theory row comments. Performance: SubmissionLimiter never removes keys; a sweep every 256 calls and on RetryAfter. A Sonnet remediation agent applies the items and merges origin/master (the CodeQL fix) into the branch, resolving the instructions heading and the Security row."
+**Context**: Unit 12 phase 12b review complete; remediation and the master merge in progress.
+
+---
+
+## Unit 12 phase 12b: remediation applied; PR #114 opened
+**Timestamp**: 2026-09-15T23:17:31Z
+**User Input**: (none)
+**AI Response**: "Remediation commits c1c0d9c (SubmissionLimiter.Sweep every 256th call and on RetryAfter, TrackedKeys; CommentLimiter and ReportLimiter pass their numbers to the base constructor; ContactRateLimiter keeps its static shape with the reason; the FR-D12 comment; the theory row comments; the dormant ip key documented) and 42c66ce (plan deviations); merge commit 04c45d2 bringing in the CodeQL fix with the instructions heading and Security row resolved. Verified: build 0 warnings; 1080 tests, 62 fixtures. Docs commit; branch pushed; PR #114 feat: rate limiting for auth, feeds, comments and reports opened; Copilot requested."
+**Context**: Unit 12 phase 12b Copilot gate in progress.
+
+---
+
+## Unit 12 phase 12b: Copilot round 1 on PR #114
+**Timestamp**: 2026-09-15T23:26:49Z
+**User Input**: (none)
+**AI Response**: "Six comments, CI green, all valid: (1) TRUSTED_PROXIES set but with no valid token fell open to trust-all: fail startup instead; (2) the /signin- prefix check was case-sensitive while the framework matches callback paths case-insensitively; (3) the limiter sweep could remove an entry a concurrent Allow already held, splitting one key into two lists: verify the entry under the list lock and remove under it; (4) a hit exactly Window old was kept while RetryAfter reported zero: expire with >= everywhere; (5) the verification recipe targets port 5199 while the launch profile listens on 5072: add --no-launch-profile; (6) handoff.md still said production ran 1.29.0. A Sonnet remediation agent applies 1 to 5; the orchestrator fixes the handoff."
+**Context**: Unit 12 phase 12b Copilot gate, round 1 remediation in progress.
+
+---
+
+## Unit 12 phase 12b: Copilot round 1 remediated
+**Timestamp**: 2026-09-15T23:41:09Z
+**User Input**: (none)
+**AI Response**: "Remediation commits 8133033 (TrustedProxyList.ConfiguredButEmpty and a startup throw naming the variable and the skipped tokens; OrdinalIgnoreCase on the sign-in prefix; Allow and RetryAfter re-verify the list is the live entry under its lock and Sweep removes under the lock; expiry with >= everywhere; tests and README and env notes) and 6c37d95 (--no-launch-profile in the verification recipe; totals). The orchestrator corrected handoff.md (production on 1.30.0 in report-only, 12b at PR #114, CodeQL closed). Verified: build 0 warnings; 1085 tests, 62 fixtures. Pushing, replying on the six threads, re-requesting Copilot."
+**Context**: Unit 12 phase 12b Copilot gate, round 1 remediated.
+
+---

@@ -7,7 +7,7 @@ services:
     build: .
     image: ghcr.io/jjwren/portfolio:latest
     ports:
-      - "${WEB_PORT:-8080}:8080"
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-8080}:8080"
     env_file: .env
     environment:
       ConnectionStrings__Default: "Host=db;Database=${POSTGRES_DB:-portfolio};Username=${POSTGRES_USER:-portfolio};Password=${POSTGRES_PASSWORD}"

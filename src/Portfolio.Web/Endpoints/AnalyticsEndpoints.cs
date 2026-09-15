@@ -34,7 +34,8 @@ public static class AnalyticsEndpoints
             await analytics.TryRecordEventAsync(
                 ctx, AnalyticsRules.ProjectClickEvent, $"{project.Title}|{kind}");
             return Results.Redirect(url!);
-        });
+        })
+        .RequireRateLimiting(RateLimitPolicies.Redirects);
 
         // Availability-gated through ResumeService.IsAvailable, the one rule
         // shared with the Contact and footer links. The origin is
@@ -53,6 +54,7 @@ public static class AnalyticsEndpoints
             return Results.File(
                 site.ResumeFile!, "application/pdf",
                 fileDownloadName: Path.GetFileName(site.ResumeFile));
-        });
+        })
+        .RequireRateLimiting(RateLimitPolicies.Redirects);
     }
 }

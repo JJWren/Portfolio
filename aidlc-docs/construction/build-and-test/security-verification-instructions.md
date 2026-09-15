@@ -1,9 +1,12 @@
 # Security Verification Instructions
 
 Unit 12a (`feat/security-headers`) adds security response headers and an
-enforced Content-Security-Policy. This document is the checklist for
-verifying them: locally with curl and a browser before the PR, and in
-production after the deploy.
+enforced Content-Security-Policy; Unit 12b (`feat/rate-limiting`) adds
+framework rate limiting on auth, feeds and redirects, the generalized
+circuit limiter for comments and reports, and `TRUSTED_PROXIES` for the
+forwarded-for boundary. This document is the checklist for verifying both:
+locally with curl and a browser before each PR, and in production after
+each deploy.
 
 ## Local setup (the Unit 11 recipe)
 
@@ -28,8 +31,13 @@ SITE_OWNER_NAME="Jane Developer" \
 CONTACT_EMAIL="jane@example.com" \
 SEED_DEMO_DATA=true \
 SITE_FLAVOR=bjj \
-dotnet run --project src/Portfolio.Web
+dotnet run --project src/Portfolio.Web --no-launch-profile
 ```
+
+`--no-launch-profile` matters here: without it, `dotnet run` applies
+`launchSettings.json`'s own `applicationUrl` (port 5072) after the
+environment variables above, silently overriding `ASPNETCORE_URLS` — every
+`curl` below targets port 5199, so the app must actually be listening there.
 
 `SEED_DEMO_DATA=true` gives `DemoSeeder`'s two posts, each with a fenced
 code block (for Prism/`script-src`); it does not create any file under
@@ -161,3 +169,65 @@ code change: set `SECURITY_CSP_MODE=report-only` (log without blocking) or
 `SECURITY_CSP_MODE=off` (send no Content-Security-Policy header at all) in
 `.env` and recreate the container. The other security headers (section 1)
 are unaffected by this setting and keep being sent either way.
+
+## 7. The 429 walk-through (rate limiting, Unit 12b)
+
+With the app running (the same local setup as above; `TRUSTED_PROXIES`
+unset so the loopback connection keys its own bucket), loop 31 requests to
+`/feed.xml` inside a minute:
+
+```bash
+for i in $(seq 1 31); do
+  curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5199/feed.xml
+done
+```
+
+The first 30 answer `200`; the 31st answers `429`. Confirm the last
+response's headers and body:
+
+```bash
+curl -si http://localhost:5199/feed.xml
+```
+
+carries `Retry-After: <N>` (whole seconds, at least 1) and a
+`text/plain; charset=utf-8` body reading exactly `Too many requests. Try
+again in <N> seconds.`. Waiting out the window and repeating the single
+`curl -si` call answers `200` again.
+
+Throughout the loop, `curl -s -o /dev/null -w "%{http_code}\n"
+http://localhost:5199/healthz` must keep answering `200` — `/healthz` is
+never limited.
+
+The comment-posting and report-submission limits (FR-D12) cannot be
+exercised locally without a signed-in OAuth account; `CommentServiceTests`
+and `ReportServiceTests` (database-free, over a throwing
+`IDbContextFactory`) carry that coverage instead — see
+`unit-test-instructions.md`.
+
+Record the loop's status-code sequence and the 429 response's headers/body
+here once run.
+
+## 8. The proxy-trust check (`TRUSTED_PROXIES`, Unit 12b)
+
+With `TRUSTED_PROXIES` unset (today's behaviour, every peer trusted), a
+direct request carrying a forged `X-Forwarded-For` shares the limit bucket
+of that forged address:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -H "X-Forwarded-For: 203.0.113.9" http://localhost:5199/feed.xml
+```
+
+repeated past the feed's 30/minute limit ends in `429` for that forged
+address specifically — a second run using a different forged address
+starts its own fresh bucket.
+
+Restart the app with `TRUSTED_PROXIES=192.0.2.0/24` (a documentation range
+that does not include the test client's own loopback address) and repeat
+the forged-header request: the connection address is used instead, so the
+forged `X-Forwarded-For` no longer moves the bucket the request lands in.
+Record both runs' results here.
+
+Stop the app by PID (never `taskkill /IM dotnet.exe`) and remove the
+container (`docker rm -f portfolio-csp-check`) when done — the same
+housekeeping "Local setup" above asks for, now covering sections 7 and 8
+too.

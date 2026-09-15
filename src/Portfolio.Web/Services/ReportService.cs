@@ -1,14 +1,15 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Web.Data;
 
 namespace Portfolio.Web.Services;
 
-public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageService messages)
+public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageService messages, ReportLimiter reportLimiter)
 {
-    /// <summary>Files a report; returns null and an error message when invalid.</summary>
+    /// <summary>Files a report; returns null and an error message when invalid, the account can't report, or the caller is over the report rate limit.</summary>
     public async Task<(Report? Report, string? Error)> CreateAsync(
         string reporterId, int commentId, ReportTargetType targetType,
-        string? reason, string? details)
+        string? reason, string? details, ClaimsPrincipal user, string? clientAddress)
     {
         if (!ReportRules.Validate(reason, details, out var error))
         {
@@ -21,6 +22,17 @@ public class ReportService(IDbContextFactory<AppDbContext> dbFactory, MessageSer
         if (reporter is null || reporter.IsBanned)
         {
             return (null, "Your account can't file reports right now.");
+        }
+
+        // FR-D12: after the ban check, before any insert, so an account
+        // that can't report at all still sees that message first.
+        if (!SubmissionRules.IsExempt(user))
+        {
+            var key = SubmissionRules.Key(reporterId, clientAddress);
+            if (!reportLimiter.Allow(key))
+            {
+                return (null, SubmissionRules.WaitMessage(reportLimiter.RetryAfter(key), "reports"));
+            }
         }
 
         var comment = await db.Comments.AsNoTracking().FirstOrDefaultAsync(c => c.Id == commentId);
