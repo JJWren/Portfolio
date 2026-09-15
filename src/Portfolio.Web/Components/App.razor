@@ -41,11 +41,14 @@
         @* After app.css so the overridden tokens win the cascade by source
            order; MarkupString because Blazor would HTML-encode the selector's
            quotes. Only ThemeRules.BuildOverrideCss output lands here — every
-           value is re-validated to #rrggbb at emission. *@
+           value is re-validated to #rrggbb at emission. This block is allowed
+           under the Content-Security-Policy's style-src by the hash carried
+           on _theme.OverrideCssHash (ThemeRules.StyleHash), computed over
+           exactly this element's text — so this line must stay on one line
+           with nothing else inside the <style> element. *@
         <style>@((MarkupString)_theme.OverrideCss)</style>
     }
     <link rel="stylesheet" href="@Assets["Portfolio.Web.styles.css"]" />
-    <ImportMap />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
     <link rel="manifest" href="site.webmanifest" />
