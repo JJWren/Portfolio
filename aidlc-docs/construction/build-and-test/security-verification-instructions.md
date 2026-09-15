@@ -31,8 +31,13 @@ SITE_OWNER_NAME="Jane Developer" \
 CONTACT_EMAIL="jane@example.com" \
 SEED_DEMO_DATA=true \
 SITE_FLAVOR=bjj \
-dotnet run --project src/Portfolio.Web
+dotnet run --project src/Portfolio.Web --no-launch-profile
 ```
+
+`--no-launch-profile` matters here: without it, `dotnet run` applies
+`launchSettings.json`'s own `applicationUrl` (port 5072) after the
+environment variables above, silently overriding `ASPNETCORE_URLS` — every
+`curl` below targets port 5199, so the app must actually be listening there.
 
 `SEED_DEMO_DATA=true` gives `DemoSeeder`'s two posts, each with a fenced
 code block (for Prism/`script-src`); it does not create any file under
