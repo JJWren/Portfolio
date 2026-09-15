@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.31.0](https://github.com/JJWren/Portfolio/compare/v1.30.0...v1.31.0) (2026-09-15)
+
+
+### Features
+
+* rate limiting for auth, feeds, comments and reports ([#114](https://github.com/JJWren/Portfolio/issues/114)) ([e5caf7d](https://github.com/JJWren/Portfolio/commit/e5caf7dacd2a0c927128e26c9b4a8d55b44526e1))
+
+
+### Bug Fixes
+
+* keep user-supplied values from forging log lines ([#112](https://github.com/JJWren/Portfolio/issues/112)) ([69edd77](https://github.com/JJWren/Portfolio/commit/69edd7730f3c81b299851f55808d4e51fb5a6a59))
+
 ## [1.30.0](https://github.com/JJWren/Portfolio/compare/v1.29.0...v1.30.0) (2026-09-15)
 
 
