@@ -19,16 +19,30 @@ namespace Portfolio.Web.Services;
 /// <c>/uploads</c> static-file middleware's <c>OnPrepareResponse</c>, with
 /// <see cref="SecurityHeadersRules.UploadsCsp"/>) keeps it — the page policy
 /// below never overwrites it.
+///
+/// Also caches the composed header set: <see cref="SecurityOptions.CspMode"/>
+/// is resolved once at startup and never changes, and the theme's style hash
+/// changes only on a save (<see cref="ThemeService.SaveAsync"/>), so most
+/// requests — static assets included — can reuse the same composed list
+/// instead of paying <see cref="SecurityHeadersRules.Compose"/>'s allocation
+/// and string-join on every request.
 /// </summary>
 public sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
+    // A plain field, not a lock: a reference assignment is atomic, so a
+    // concurrent reader either sees the old pair or the new one, never a
+    // torn value. Two requests racing a hash change might both miss the
+    // cache and recompose, but Compose is pure, so that's just one wasted
+    // recomposition, not a correctness problem.
+    private (string? Hash, IReadOnlyList<(string Name, string Value)> Headers) _cache;
+
     public async Task InvokeAsync(HttpContext context, SecurityOptions options, ThemeService themes)
     {
         // The snapshot is cached in ThemeService's process memory (a
         // database read only on a cache miss, e.g. right after a save), so
         // reading it per request is cheap and always current.
         var snapshot = await themes.GetSnapshotAsync();
-        var headers = SecurityHeadersRules.Compose(options.CspMode, snapshot.OverrideCssHash);
+        var headers = ComposeCached(options.CspMode, snapshot.OverrideCssHash);
 
         context.Response.OnStarting(static state =>
         {
@@ -45,5 +59,23 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         }, (context.Response, headers));
 
         await next(context);
+    }
+
+    /// <summary>
+    /// Returns the cached header list when <paramref name="hash"/> matches
+    /// the one it was last composed for, recomposing only on a miss (the
+    /// first request, or the request right after a theme save).
+    /// </summary>
+    private IReadOnlyList<(string Name, string Value)> ComposeCached(CspMode mode, string? hash)
+    {
+        var cached = _cache;
+        if (cached.Headers is not null && cached.Hash == hash)
+        {
+            return cached.Headers;
+        }
+
+        var composed = SecurityHeadersRules.Compose(mode, hash);
+        _cache = (hash, composed);
+        return composed;
     }
 }

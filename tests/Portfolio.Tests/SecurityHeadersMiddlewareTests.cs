@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -40,8 +41,19 @@ public class SecurityHeadersMiddlewareTests
 
         public bool HasStarted => false;
 
+        /// <summary>
+        /// The most recent OnStarting registration's state object — the same
+        /// (HttpResponse, IReadOnlyList&lt;(string, string)&gt;) pair
+        /// SecurityHeadersMiddleware itself unpacks, exposed so a test can
+        /// inspect the composed list's identity without firing the callback.
+        /// </summary>
+        public object? LastOnStartingState { get; private set; }
+
         public void OnStarting(Func<object, Task> callback, object state)
-            => _onStarting.Add((callback, state));
+        {
+            _onStarting.Add((callback, state));
+            LastOnStartingState = state;
+        }
 
         public void OnCompleted(Func<object, Task> callback, object state)
         {
@@ -67,6 +79,30 @@ public class SecurityHeadersMiddlewareTests
 
     private static ThemeService NewThemeService() => new(new ThrowingDbFactory());
 
+    /// <summary>
+    /// A ThemeService whose GetSnapshotAsync returns DefaultSnapshot with
+    /// <paramref name="hash"/> substituted for OverrideCssHash, without a
+    /// database: reflection seeds the private in-process cache field
+    /// GetSnapshotAsync already checks first, the same field a real save
+    /// populates.
+    /// </summary>
+    private static ThemeService NewThemeServiceWithHash(string hash)
+    {
+        var service = new ThemeService(new ThrowingDbFactory());
+        var snapshot = ThemeRules.DefaultSnapshot with { OverrideCssHash = hash };
+        typeof(ThemeService)
+            .GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(service, snapshot);
+        return service;
+    }
+
+    /// <summary>Unpacks the composed header list from a captured OnStarting state, the same cast the middleware itself does.</summary>
+    private static IReadOnlyList<(string Name, string Value)> ComposedHeaders(RecordingResponseFeature response)
+    {
+        var (_, headers) = ((HttpResponse Response, IReadOnlyList<(string Name, string Value)> Headers))response.LastOnStartingState!;
+        return headers;
+    }
+
     private static async Task<IHeaderDictionary> RunAsync(CspMode mode)
     {
         var (context, response) = NewContext();
@@ -88,6 +124,8 @@ public class SecurityHeadersMiddlewareTests
         Assert.Equal("DENY", headers["X-Frame-Options"].ToString());
         Assert.Equal(SecurityHeadersRules.PermissionsPolicy, headers["Permissions-Policy"].ToString());
         Assert.Equal("same-origin", headers["Cross-Origin-Opener-Policy"].ToString());
+        Assert.Equal("off", headers["X-DNS-Prefetch-Control"].ToString());
+        Assert.Equal("none", headers["X-Permitted-Cross-Domain-Policies"].ToString());
         // No override in this test's ThemeService (DB-blip fallback), so no hash.
         Assert.Equal(SecurityHeadersRules.BuildCsp(null), headers["Content-Security-Policy"].ToString());
         Assert.False(headers.ContainsKey("Content-Security-Policy-Report-Only"));
@@ -111,6 +149,8 @@ public class SecurityHeadersMiddlewareTests
         Assert.False(headers.ContainsKey("Content-Security-Policy-Report-Only"));
         Assert.Equal("nosniff", headers["X-Content-Type-Options"].ToString());
         Assert.Equal("DENY", headers["X-Frame-Options"].ToString());
+        Assert.Equal("off", headers["X-DNS-Prefetch-Control"].ToString());
+        Assert.Equal("none", headers["X-Permitted-Cross-Domain-Policies"].ToString());
     }
 
     [Fact]
@@ -131,6 +171,26 @@ public class SecurityHeadersMiddlewareTests
         // ...but every header this middleware found absent is still added.
         Assert.Equal("DENY", response.Headers["X-Frame-Options"].ToString());
         Assert.Equal("nosniff", response.Headers["X-Content-Type-Options"].ToString());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ComposedHeaders_AreCachedByHashAndRecomposedOnlyWhenItChanges()
+    {
+        // One middleware instance, so its cache field persists across calls.
+        var middleware = new SecurityHeadersMiddleware(_ => Task.CompletedTask);
+        var options = new SecurityOptions(CspMode.Enforce);
+
+        var (context1, response1) = NewContext();
+        await middleware.InvokeAsync(context1, options, NewThemeService()); // hash null
+        var (context2, response2) = NewContext();
+        await middleware.InvokeAsync(context2, options, NewThemeService()); // hash null again
+
+        Assert.Same(ComposedHeaders(response1), ComposedHeaders(response2));
+
+        var (context3, response3) = NewContext();
+        await middleware.InvokeAsync(context3, options, NewThemeServiceWithHash("sha256-changed=="));
+
+        Assert.NotSame(ComposedHeaders(response1), ComposedHeaders(response3));
     }
 
     [Fact]

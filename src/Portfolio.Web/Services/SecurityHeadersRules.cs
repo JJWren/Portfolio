@@ -26,10 +26,10 @@ public static class SecurityHeadersRules
     /// <summary>
     /// FR-D1: every powerful browser feature the site never uses, denied
     /// outright so an injected script or a framed third party can never ask
-    /// for it.
+    /// for it. Alphabetical order.
     /// </summary>
     public const string PermissionsPolicy =
-        "accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), screen-wake-lock=(), usb=(), xr-spatial-tracking=()";
+        "accelerometer=(), autoplay=(), browsing-topics=(), camera=(), clipboard-read=(), clipboard-write=(), display-capture=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), usb=(), web-share=(), xr-spatial-tracking=()";
 
     /// <summary>
     /// FR-D4: the restrictive policy for <c>/uploads/*</c> (user-supplied
@@ -113,6 +113,14 @@ public static class SecurityHeadersRules
             ("X-Frame-Options", "DENY"),
             ("Permissions-Policy", PermissionsPolicy),
             ("Cross-Origin-Opener-Policy", "same-origin"),
+            // Neither is part of FR-D1's named list, but both are the same
+            // shape of "deny a legacy capability nothing here uses": DNS
+            // prefetching would leak the hostnames of links and hot-linked
+            // images the page merely mentions, before they're ever followed;
+            // a Flash or Acrobat plugin honours a cross-domain policy file as
+            // permission to reach into responses from this origin.
+            ("X-DNS-Prefetch-Control", "off"),
+            ("X-Permitted-Cross-Domain-Policies", "none"),
         };
 
         switch (mode)

@@ -37,7 +37,7 @@ public class SecurityHeadersRulesTests
     [Fact]
     public void PermissionsPolicy_IsExactlyThePinnedValue()
         => Assert.Equal(
-            "accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), screen-wake-lock=(), usb=(), xr-spatial-tracking=()",
+            "accelerometer=(), autoplay=(), browsing-topics=(), camera=(), clipboard-read=(), clipboard-write=(), display-capture=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), usb=(), web-share=(), xr-spatial-tracking=()",
             SecurityHeadersRules.PermissionsPolicy);
 
     [Fact]
@@ -99,6 +99,8 @@ public class SecurityHeadersRulesTests
             "X-Frame-Options",
             "Permissions-Policy",
             "Cross-Origin-Opener-Policy",
+            "X-DNS-Prefetch-Control",
+            "X-Permitted-Cross-Domain-Policies",
             "Content-Security-Policy",
         ];
         Assert.Equal(expectedNames, headers.Select(h => h.Name).ToArray());
@@ -109,6 +111,8 @@ public class SecurityHeadersRulesTests
         Assert.Equal("DENY", byName["X-Frame-Options"]);
         Assert.Equal(SecurityHeadersRules.PermissionsPolicy, byName["Permissions-Policy"]);
         Assert.Equal("same-origin", byName["Cross-Origin-Opener-Policy"]);
+        Assert.Equal("off", byName["X-DNS-Prefetch-Control"]);
+        Assert.Equal("none", byName["X-Permitted-Cross-Domain-Policies"]);
         Assert.Equal(SecurityHeadersRules.BuildCsp(null), byName["Content-Security-Policy"]);
     }
 
@@ -134,6 +138,8 @@ public class SecurityHeadersRulesTests
             "X-Frame-Options",
             "Permissions-Policy",
             "Cross-Origin-Opener-Policy",
+            "X-DNS-Prefetch-Control",
+            "X-Permitted-Cross-Domain-Policies",
         ];
         Assert.Equal(expectedNames, headers.Select(h => h.Name).ToArray());
         Assert.DoesNotContain(headers, h => h.Name.StartsWith("Content-Security-Policy", StringComparison.Ordinal));
