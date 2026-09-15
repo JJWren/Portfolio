@@ -19,12 +19,25 @@ namespace Portfolio.Tests;
 /// (a real server overrides it), so this fake records the registered
 /// callback and fires it on FireOnStartingAsync — the way Kestrel would,
 /// just before the first byte of the response leaves.
+///
+/// Two more Unit 12a review facts live here: the middleware now prefers
+/// ThemeService.LastKnown over a fresh GetSnapshotAsync (NewThemeServiceWithLastKnown
+/// seeds it, the same reflection seam NewThemeServiceWithHash already uses
+/// for the private _cache field, and ThrowingDbFactory.Calls proves the
+/// database is never touched once LastKnown is set), and it stashes the
+/// snapshot it used under ThemeSnapshotItemKey for App.razor to read back.
 /// </summary>
 public class SecurityHeadersMiddlewareTests
 {
     private sealed class ThrowingDbFactory : IDbContextFactory<AppDbContext>
     {
-        public AppDbContext CreateDbContext() => throw new InvalidOperationException("No database in this test.");
+        public int Calls { get; private set; }
+
+        public AppDbContext CreateDbContext()
+        {
+            Calls++;
+            throw new InvalidOperationException("No database in this test.");
+        }
     }
 
     private sealed class RecordingResponseFeature : IHttpResponseFeature
@@ -94,6 +107,27 @@ public class SecurityHeadersMiddlewareTests
             .GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!
             .SetValue(service, snapshot);
         return service;
+    }
+
+    /// <summary>
+    /// A ThemeService whose LastKnown returns DefaultSnapshot with
+    /// <paramref name="hash"/> substituted for OverrideCssHash, without a
+    /// database: reflection seeds the private LastKnown property (a real
+    /// value only a prior successful GetSnapshotAsync or SaveAsync can
+    /// produce), the same seam NewThemeServiceWithHash uses for _cache.
+    /// The backing ThrowingDbFactory is returned too, so a test can assert
+    /// InvokeAsync never reached it.
+    /// </summary>
+    private static (ThemeService Service, ThrowingDbFactory Factory) NewThemeServiceWithLastKnown(string hash)
+    {
+        var factory = new ThrowingDbFactory();
+        var service = new ThemeService(factory);
+        var snapshot = ThemeRules.DefaultSnapshot with { OverrideCssHash = hash };
+        typeof(ThemeService)
+            .GetProperty(nameof(ThemeService.LastKnown))!
+            .GetSetMethod(nonPublic: true)!
+            .Invoke(service, [snapshot]);
+        return (service, factory);
     }
 
     /// <summary>Unpacks the composed header list from a captured OnStarting state, the same cast the middleware itself does.</summary>
@@ -207,5 +241,44 @@ public class SecurityHeadersMiddlewareTests
         await middleware.InvokeAsync(context, new SecurityOptions(CspMode.Enforce), NewThemeService());
 
         Assert.True(nextCalled);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_StashesTheSnapshotItUsed_MatchingTheComposedCspHash()
+    {
+        var (context, response) = NewContext();
+        var themes = NewThemeServiceWithHash("sha256-item-test==");
+        var middleware = new SecurityHeadersMiddleware(_ => Task.CompletedTask);
+
+        await middleware.InvokeAsync(context, new SecurityOptions(CspMode.Enforce), themes);
+        await response.FireOnStartingAsync();
+
+        // The request item is the exact snapshot the header's hash came from.
+        var stashed = Assert.IsType<ThemeSnapshot>(context.Items[SecurityHeadersMiddleware.ThemeSnapshotItemKey]);
+        Assert.Equal("sha256-item-test==", stashed.OverrideCssHash);
+        Assert.Equal(
+            SecurityHeadersRules.BuildCsp("sha256-item-test=="),
+            response.Headers["Content-Security-Policy"].ToString());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_PrefersLastKnownOverAFreshLoad_AndNeverTouchesTheDatabase()
+    {
+        var (context, response) = NewContext();
+        var (themes, factory) = NewThemeServiceWithLastKnown("sha256-last-known==");
+        var middleware = new SecurityHeadersMiddleware(_ => Task.CompletedTask);
+
+        await middleware.InvokeAsync(context, new SecurityOptions(CspMode.Enforce), themes);
+
+        // GetSnapshotAsync (hence GetOverridesAsync and the factory) is never
+        // reached: LastKnown short-circuits the "??" before it's evaluated.
+        Assert.Equal(0, factory.Calls);
+
+        await response.FireOnStartingAsync();
+        Assert.Equal(
+            SecurityHeadersRules.BuildCsp("sha256-last-known=="),
+            response.Headers["Content-Security-Policy"].ToString());
+        var stashed = Assert.IsType<ThemeSnapshot>(context.Items[SecurityHeadersMiddleware.ThemeSnapshotItemKey]);
+        Assert.Equal("sha256-last-known==", stashed.OverrideCssHash);
     }
 }

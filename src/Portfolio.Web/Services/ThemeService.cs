@@ -7,9 +7,28 @@ public class ThemeService(IDbContextFactory<AppDbContext> dbFactory)
 {
     // Single-container deploy, so an in-process cache is safe; SaveAsync clears
     // it. The version counter lets a reader detect that a save happened while
-    // its DB read was in flight and skip publishing the now-stale snapshot.
+    // its DB read was in flight and skip publishing the now-stale snapshot
+    // into either _cache or _lastKnown.
     private volatile ThemeSnapshot? _cache;
+    private volatile ThemeSnapshot? _lastKnown;
     private int _version;
+
+    /// <summary>
+    /// The most recently loaded or saved snapshot, kept even once
+    /// <c>GetSnapshotAsync</c>'s own cache is cleared by a save or a later
+    /// read fails. Null only before the very first successful load or save.
+    /// A caller that must not retry the database on every call once the app
+    /// has served one snapshot (<see cref="SecurityHeadersMiddleware"/>)
+    /// prefers this over a fresh <see cref="GetSnapshotAsync"/>; before that
+    /// first load, during an outage from process start, it stays null and
+    /// such a caller falls back to <see cref="GetSnapshotAsync"/>'s own
+    /// default-snapshot guard.
+    /// </summary>
+    public ThemeSnapshot? LastKnown
+    {
+        get => _lastKnown;
+        private set => _lastKnown = value;
+    }
 
     /// <summary>Resolved palette + emitted override CSS, cached until the next save.</summary>
     public async Task<ThemeSnapshot> GetSnapshotAsync()
@@ -29,6 +48,9 @@ public class ThemeService(IDbContextFactory<AppDbContext> dbFactory)
         {
             // Every page must render even when the DB blips: serve the built-in
             // palette and leave the cache empty so the next request retries.
+            // LastKnown is left untouched, so a caller preferring it over a
+            // fresh load keeps serving the real last-known snapshot through
+            // the outage instead of silently reverting to defaults.
             // Cancellations still propagate so aborted requests die.
             return ThemeRules.DefaultSnapshot;
         }
@@ -37,13 +59,15 @@ public class ThemeService(IDbContextFactory<AppDbContext> dbFactory)
         if (Volatile.Read(ref _version) == versionBefore)
         {
             _cache = snapshot;
+            LastKnown = snapshot;
         }
 
         return snapshot;
     }
 
     /// <summary>Raw override row for the admin form; null when nothing has been saved yet.</summary>
-    public async Task<ThemeSettings?> GetOverridesAsync()
+    /// <remarks><c>virtual</c> only so tests can simulate a successful load without a database (the project has no test host; see ThemeServiceTests).</remarks>
+    public virtual async Task<ThemeSettings?> GetOverridesAsync()
     {
         await using var db = await dbFactory.CreateDbContextAsync();
         return await db.ThemeSettings.AsNoTracking()
@@ -71,6 +95,12 @@ public class ThemeService(IDbContextFactory<AppDbContext> dbFactory)
         // snapshot predates this save and must not repopulate the cache.
         Interlocked.Increment(ref _version);
         _cache = null;
+
+        // Built straight from the overrides just persisted — no database
+        // round trip — so the very next request (the theme editor's own
+        // forced reload after a save) sees the new snapshot immediately and
+        // never a hash that predates this save.
+        LastKnown = ThemeRules.BuildSnapshot(overrides);
     }
 
     private async Task UpsertAsync(Dictionary<string, string>? overrides)

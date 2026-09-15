@@ -26,22 +26,61 @@ namespace Portfolio.Web.Services;
 /// requests — static assets included — can reuse the same composed list
 /// instead of paying <see cref="SecurityHeadersRules.Compose"/>'s allocation
 /// and string-join on every request.
+///
+/// Reads <see cref="ThemeService.LastKnown"/> in preference to a fresh
+/// <see cref="ThemeService.GetSnapshotAsync"/>, so a database outage does not
+/// turn every request — this middleware wraps all of them — into a retried
+/// database call, and stores the snapshot it used on <c>context.Items</c>
+/// under <see cref="ThemeSnapshotItemKey"/> so the root component renders
+/// its override block from the very same snapshot this response's CSP hash
+/// was computed from.
 /// </summary>
 public sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
-    // A plain field, not a lock: a reference assignment is atomic, so a
-    // concurrent reader either sees the old pair or the new one, never a
-    // torn value. Two requests racing a hash change might both miss the
-    // cache and recompose, but Compose is pure, so that's just one wasted
-    // recomposition, not a correctness problem.
-    private (string? Hash, IReadOnlyList<(string Name, string Value)> Headers) _cache;
+    /// <summary>
+    /// <see cref="HttpContext.Items"/> key under which this middleware
+    /// stores the exact <see cref="ThemeSnapshot"/> it used to compose this
+    /// response's headers, so <c>App.razor</c> can render its override
+    /// <c>&lt;style&gt;</c> block from that same snapshot instead of reading
+    /// (and possibly loading a different) one — the header's CSP hash and
+    /// the rendered block must always agree.
+    /// </summary>
+    public const string ThemeSnapshotItemKey = "SecurityHeaders.ThemeSnapshot";
+
+    /// <summary>One composition's header/directive list, paired with the style hash it was composed for.</summary>
+    private sealed record ComposedHeaders(string? Hash, IReadOnlyList<(string Name, string Value)> Headers);
+
+    // ComposedHeaders is immutable, so _cache holds a single object
+    // reference: assigning it is atomic and, marked volatile, visible to
+    // every thread immediately, so a concurrent reader always sees a whole
+    // (Hash, Headers) pair from one composition — never a torn mix of an old
+    // Hash with new Headers (or the reverse), which a two-field ValueTuple
+    // field could produce, since writing one is really two separate field
+    // writes, not a single reference assignment. Two requests racing a hash
+    // change might both miss the cache and recompose, but Compose is pure,
+    // so that's just one wasted recomposition, not a correctness problem.
+    private volatile ComposedHeaders? _cache;
 
     public async Task InvokeAsync(HttpContext context, SecurityOptions options, ThemeService themes)
     {
-        // The snapshot is cached in ThemeService's process memory (a
-        // database read only on a cache miss, e.g. right after a save), so
-        // reading it per request is cheap and always current.
-        var snapshot = await themes.GetSnapshotAsync();
+        // Prefer the last-known snapshot over a fresh load: this middleware
+        // wraps every request, static assets and /healthz included, and
+        // GetSnapshotAsync retries the database on every call while it's
+        // unavailable (its blip guard returns the default snapshot without
+        // caching it). LastKnown is set by a successful load or a save and
+        // survives an outage, so once the app has served one snapshot no
+        // request touches the database for headers again; before that first
+        // load, LastKnown is null and this falls back to today's per-request
+        // retry — the pages cannot render without the database at that point
+        // either.
+        var snapshot = themes.LastKnown ?? await themes.GetSnapshotAsync();
+
+        // Stashed so App.razor can render its override <style> block from
+        // this exact snapshot: the CSP hash below and the block must always
+        // come from the same one, or the browser refuses the block under a
+        // hash that no longer matches it.
+        context.Items[ThemeSnapshotItemKey] = snapshot;
+
         var headers = ComposeCached(options.CspMode, snapshot.OverrideCssHash);
 
         context.Response.OnStarting(static state =>
@@ -69,13 +108,13 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
     private IReadOnlyList<(string Name, string Value)> ComposeCached(CspMode mode, string? hash)
     {
         var cached = _cache;
-        if (cached.Headers is not null && cached.Hash == hash)
+        if (cached is not null && cached.Hash == hash)
         {
             return cached.Headers;
         }
 
         var composed = SecurityHeadersRules.Compose(mode, hash);
-        _cache = (hash, composed);
+        _cache = new ComposedHeaders(hash, composed);
         return composed;
     }
 }
