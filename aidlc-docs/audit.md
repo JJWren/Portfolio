@@ -1929,3 +1929,51 @@ everything else is good"
 **Context**: Unit 12 phase 12a Copilot gate, round 1 remediation in progress.
 
 ---
+
+## Unit 12 phase 12a merged
+**Timestamp**: 2026-09-15T15:52:29Z
+**User Input**: (none)
+**AI Response**: "PR #110: Copilot round 2 landed with zero new comments (clean pass); CI green; squash-merged as 1153ece; master realigned (nothing to stash); local branch deleted. Phase 12a complete: 990 tests, 54 fixtures. Release-please will open or update the release PR (a minor). Next: the stop before the release and the report-only deploy (owner decisions Q1 C and Q7 B)."
+**Context**: Unit 12 phase 12a Code Generation complete; release stop next.
+
+---
+
+## Stop presented: release 1.30.0 and the report-only deploy
+**Timestamp**: 2026-09-15T15:53:18Z
+**User Input**: (none)
+**AI Response**: "Presented the deploy stop: A) merge release PR #111, deploy 1.30.0 with SECURITY_CSP_MODE=report-only in the production .env, then the owner runs the admin-page checklist and says done, then the flip to enforce; B) hold. Phase 12b (rate limiting) starts after A or in parallel on the owner word."
+**Context**: Unit 12 phase 12a complete; deploy stop (owner decisions Q1 C, Q2 B, Q7 B).
+
+---
+
+## Owner instruction: compact the session, then review the CodeQL issue
+**Timestamp**: 2026-09-15T18:06:00Z
+**User Input**: "everything is merged. compact this session, then review the security issue that is logged in portfolio from codeQL (https://github.com/JJWren/Portfolio/issues/88)"
+**AI Response**: "Checking the release and production state after the owner merges; refreshing handoff.md as the compaction checkpoint (no tool compacts the context; it compacts automatically or via /compact in a terminal); then reviewing issue #88."
+**Context**: Post-12a; deploy stop answered implicitly by the merge; CodeQL issue review requested.
+
+---
+
+## CodeQL issue #88 reviewed; handoff refreshed
+**Timestamp**: 2026-09-15T18:09:02Z
+**User Input**: (the instruction above)
+**AI Response**: "State: release 1.30.0 published by the owner merge of PR #111 (65a7728), image in the registry; production still on 1.29.0 (the report-only deploy is the open stop); master realigned stash-first. handoff.md rewritten as the compaction checkpoint (state, next steps, the CodeQL review, mechanics). Issue #88 review: alert 2 cs/log-forging at AnalyticsService.cs:96 is real but low impact (the percent-decoded request path logged verbatim into the plain-text console log; fix with a SanitizeForLog helper stripping control characters and truncating, plus tests; MailDomainChecker.cs:102 logs the sender domain at Debug and is the only similar spot); alert 1 js/xss-through-dom at crop.js:323 is a false positive (a blob: object URL of the admin picked file assigned to the src of the img element with id crop-image, fetched by getElementById so CodeQL cannot see the element type; an image never executes script and the bytes are validated server-side) to dismiss with that rationale. Offered: a quick fix PR for alert 2 and the dismissal of alert 1 with the written rationale, alongside the open deploy and 12b decisions."
+**Context**: Owner request; assessment delivered; decisions open.
+
+---
+
+## Owner instruction: work it
+**Timestamp**: 2026-09-15T21:53:06Z
+**User Input**: "work it"
+**AI Response**: "Read as A on all three: the CodeQL fix PR and the alert 1 dismissal; the report-only deploy of 1.30.0 now; phase 12b started. Order: deploy first, then the 12b branch and phase agent in the main tree, the CodeQL fix in a separate worktree while 12b runs."
+**Context**: Deploy stop answered; 12b and the CodeQL fix authorized.
+
+---
+
+## Deploy verified: v1.30.0 live with SECURITY_CSP_MODE=report-only
+**Timestamp**: 2026-09-15T21:54:21Z
+**User Input**: (none; the owner instruction work it)
+**AI Response**: "Appended SECURITY_CSP_MODE=report-only to the production .env (CRLF, values masked); compose tag 1.29.0 to 1.30.0; docker compose pull web and up -d web; portfolio-web healthy on 1.30.0. Live headers on /: X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, X-Frame-Options DENY, the nineteen-feature Permissions-Policy, Cross-Origin-Opener-Policy same-origin, X-DNS-Prefetch-Control off, X-Permitted-Cross-Domain-Policies none, Content-Security-Policy-Report-Only with the full directive list (style-src self only: no theme override in production), HSTS passthrough, Server openresty from the proxy; the old SAMEORIGIN and frame-ancestors self are gone, confirming they were the framework defaults. The 404 page carries the report-only header too. Owner check open: the admin pages with the browser console per security-verification-instructions.md; then the flip to enforce."
+**Context**: Operations: 1.30.0 deployed in report-only; the enforce flip waits on the owner check.
+
+---
