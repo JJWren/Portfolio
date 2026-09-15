@@ -16,7 +16,10 @@ public static class SubmissionRules
     /// <summary>
     /// A signed-in caller keys on their user id (<c>user:&lt;id&gt;</c>); an
     /// anonymous caller keys on the client address (<c>ip:&lt;address&gt;</c>),
-    /// or <c>ip:unknown</c> when neither is available.
+    /// or <c>ip:unknown</c> when neither is available. Comments and reports
+    /// both require sign-in today (the form only renders for a signed-in
+    /// user), so the <c>ip:</c> branch is dormant in production — it exists
+    /// for a future anonymous submission path and goes unused for now.
     /// </summary>
     public static string Key(string? userId, string? clientAddress)
         => !string.IsNullOrWhiteSpace(userId)

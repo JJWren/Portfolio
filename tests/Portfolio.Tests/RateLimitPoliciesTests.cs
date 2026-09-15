@@ -93,8 +93,8 @@ public class RateLimitPoliciesTests
     [InlineData(0.4, 1)]
     [InlineData(1, 1)]
     [InlineData(1.2, 2)]
-    [InlineData(59.9, 60)]
-    [InlineData(-5, 1)]
+    [InlineData(59.9, 60)] // rounds up to 60
+    [InlineData(-5, 1)] // an already-elapsed retry clamps to 1
     public void RetryAfterSeconds_RoundsUpToWholeSecondsAtLeastOne(double seconds, int expected)
         => Assert.Equal(expected, RateLimitPolicies.RetryAfterSeconds(TimeSpan.FromSeconds(seconds)));
 

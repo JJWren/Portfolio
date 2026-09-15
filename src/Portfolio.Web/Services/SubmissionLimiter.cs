@@ -10,15 +10,28 @@ namespace Portfolio.Web.Services;
 /// </summary>
 public class SubmissionLimiter(TimeProvider timeProvider, int maxPerWindow, TimeSpan window)
 {
+    /// <summary>How often (in <see cref="Allow"/> calls) an automatic <see cref="Sweep"/> runs.</summary>
+    private const int SweepEveryNthCall = 256;
+
     public int MaxPerWindow { get; } = maxPerWindow;
 
     public TimeSpan Window { get; } = window;
 
     private readonly ConcurrentDictionary<string, List<DateTimeOffset>> _hits = new();
 
+    private int _callCount;
+
+    /// <summary>How many keys are currently tracked — memory held by this limiter grows with this (tests only).</summary>
+    public int TrackedKeys => _hits.Count;
+
     /// <summary>Prunes hits older than the window; refuses when the count is already at the limit, else records this one and allows it.</summary>
     public bool Allow(string key)
     {
+        if (Interlocked.Increment(ref _callCount) % SweepEveryNthCall == 0)
+        {
+            Sweep();
+        }
+
         var now = timeProvider.GetUtcNow();
         var list = _hits.GetOrAdd(key, _ => []);
         lock (list)
@@ -38,7 +51,9 @@ public class SubmissionLimiter(TimeProvider timeProvider, int maxPerWindow, Time
     /// The time until the oldest hit still inside the window ages out —
     /// what a caller should wait before <see cref="Allow"/> would say yes
     /// again. <see cref="TimeSpan.Zero"/> when a call right now would be
-    /// allowed (an unseen key, or one still under the limit).
+    /// allowed (an unseen key, or one still under the limit). Removes the
+    /// key when pruning leaves it with no hits, the same bookkeeping
+    /// <see cref="Sweep"/> does.
     /// </summary>
     public TimeSpan RetryAfter(string key)
     {
@@ -51,6 +66,12 @@ public class SubmissionLimiter(TimeProvider timeProvider, int maxPerWindow, Time
         lock (list)
         {
             list.RemoveAll(t => now - t > Window);
+            if (list.Count == 0)
+            {
+                _hits.TryRemove(new KeyValuePair<string, List<DateTimeOffset>>(key, list));
+                return TimeSpan.Zero;
+            }
+
             if (list.Count < MaxPerWindow)
             {
                 return TimeSpan.Zero;
@@ -59,6 +80,34 @@ public class SubmissionLimiter(TimeProvider timeProvider, int maxPerWindow, Time
             var oldest = list.Min();
             var retryAfter = Window - (now - oldest);
             return retryAfter > TimeSpan.Zero ? retryAfter : TimeSpan.Zero;
+        }
+    }
+
+    /// <summary>
+    /// Prunes every tracked key's hit list and drops any key left empty
+    /// afterwards, so a key that stops posting stops occupying memory
+    /// instead of keeping an entry for the container's whole lifetime.
+    /// Runs automatically every <see cref="SweepEveryNthCall"/>th
+    /// <see cref="Allow"/> call; also public so tests (and callers wanting
+    /// an eager collection) can invoke it directly.
+    /// </summary>
+    public void Sweep()
+    {
+        var now = timeProvider.GetUtcNow();
+        foreach (var entry in _hits)
+        {
+            lock (entry.Value)
+            {
+                entry.Value.RemoveAll(t => now - t > Window);
+                if (entry.Value.Count == 0)
+                {
+                    // Value-checked: removes this exact (key, list) pair only,
+                    // so if a concurrent Allow call already repopulated the key
+                    // with a new list in the meantime, that entry is left alone
+                    // instead of being lost underneath it.
+                    _hits.TryRemove(entry);
+                }
+            }
         }
     }
 }

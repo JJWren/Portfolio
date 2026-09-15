@@ -7,8 +7,6 @@ namespace Portfolio.Web.Services;
 /// <see cref="ReportLimiter"/>, so DI can tell the two apart.
 /// </summary>
 public sealed class CommentLimiter(TimeProvider timeProvider)
-    : SubmissionLimiter(timeProvider, MaxPerWindow, Window)
+    : SubmissionLimiter(timeProvider, maxPerWindow: 5, window: TimeSpan.FromMinutes(10))
 {
-    public new const int MaxPerWindow = 5;
-    public new static readonly TimeSpan Window = TimeSpan.FromMinutes(10);
 }

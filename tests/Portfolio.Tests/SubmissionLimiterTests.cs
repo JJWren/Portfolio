@@ -137,10 +137,11 @@ public class SubmissionLimiterTests
     [Fact]
     public void CommentLimiter_UsesFiveOverTenMinutes()
     {
-        Assert.Equal(5, CommentLimiter.MaxPerWindow);
-        Assert.Equal(TimeSpan.FromMinutes(10), CommentLimiter.Window);
-
         var limiter = new CommentLimiter(new FakeTimeProvider());
+
+        Assert.Equal(5, limiter.MaxPerWindow);
+        Assert.Equal(TimeSpan.FromMinutes(10), limiter.Window);
+
         for (var i = 0; i < 5; i++)
         {
             Assert.True(limiter.Allow("k"));
@@ -152,15 +153,67 @@ public class SubmissionLimiterTests
     [Fact]
     public void ReportLimiter_UsesThreeOverTenMinutes()
     {
-        Assert.Equal(3, ReportLimiter.MaxPerWindow);
-        Assert.Equal(TimeSpan.FromMinutes(10), ReportLimiter.Window);
-
         var limiter = new ReportLimiter(new FakeTimeProvider());
+
+        Assert.Equal(3, limiter.MaxPerWindow);
+        Assert.Equal(TimeSpan.FromMinutes(10), limiter.Window);
+
         for (var i = 0; i < 3; i++)
         {
             Assert.True(limiter.Allow("k"));
         }
 
         Assert.False(limiter.Allow("k"));
+    }
+
+    // ---- Sweep / TrackedKeys (bounded memory) ------------------------------
+
+    [Fact]
+    public void Sweep_RemovesKeysAgedOutOfTheWindow_KeepsLiveOnes()
+    {
+        var time = new FakeTimeProvider();
+        var limiter = NewLimiter(time);
+
+        limiter.Allow("stale");
+        time.Advance(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
+        limiter.Allow("live");
+
+        limiter.Sweep();
+
+        Assert.Equal(1, limiter.TrackedKeys);
+    }
+
+    [Fact]
+    public void Sweep_RunsAutomaticallyEvery256thAllowCall()
+    {
+        var time = new FakeTimeProvider();
+        var limiter = NewLimiter(time);
+
+        limiter.Allow("stale"); // call 1 of the 256-call cadence
+
+        time.Advance(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
+
+        // Calls 2 through 256: the 256th call's automatic Sweep() prunes
+        // "stale" (aged out and now empty) while "fresh" (repopulated by
+        // this very loop) stays, since Sweep only drops empty lists.
+        for (var i = 0; i < 255; i++)
+        {
+            limiter.Allow("fresh");
+        }
+
+        Assert.Equal(1, limiter.TrackedKeys);
+    }
+
+    [Fact]
+    public void RetryAfter_OnAnAgedOutKey_RemovesIt()
+    {
+        var time = new FakeTimeProvider();
+        var limiter = NewLimiter(time);
+
+        limiter.Allow("k");
+        time.Advance(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
+
+        Assert.Equal(TimeSpan.Zero, limiter.RetryAfter("k"));
+        Assert.Equal(0, limiter.TrackedKeys);
     }
 }
