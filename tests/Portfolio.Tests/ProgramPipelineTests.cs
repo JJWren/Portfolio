@@ -157,4 +157,33 @@ public class ProgramPipelineTests
         Assert.Contains("options.KnownProxies.Add(", program, StringComparison.Ordinal);
         Assert.Contains("options.KnownIPNetworks.Add(", program, StringComparison.Ordinal);
     }
+
+    /// <summary>
+    /// A configured-but-empty TRUSTED_PROXIES (every token junk) must throw
+    /// before the host builds, rather than let the forwarded-headers
+    /// middleware silently trust every peer with both lists empty — see
+    /// <see cref="TrustedProxyList.ConfiguredButEmpty"/>. Pinned here (a
+    /// text scan, like every other fact in this fixture) because the throw
+    /// itself can't run through this text-only host-free project.
+    /// </summary>
+    [Fact]
+    public void TrustedProxies_ConfiguredButEmpty_ThrowsBeforeTheHostBuilds()
+    {
+        var program = ProgramCs();
+
+        var parseIndex = program.IndexOf(
+            @"TrustedProxies.Parse(builder.Configuration[""TRUSTED_PROXIES""])",
+            StringComparison.Ordinal);
+        var checkIndex = program.IndexOf("trusted.ConfiguredButEmpty", StringComparison.Ordinal);
+        var throwIndex = program.IndexOf("throw new InvalidOperationException", StringComparison.Ordinal);
+        var buildIndex = program.IndexOf("builder.Build()", StringComparison.Ordinal);
+
+        Assert.True(parseIndex >= 0, "Expected TrustedProxies.Parse in Program.cs.");
+        Assert.True(checkIndex >= 0, "Expected a trusted.ConfiguredButEmpty check in Program.cs.");
+        Assert.True(throwIndex >= 0, "Expected a throw new InvalidOperationException in Program.cs.");
+        Assert.True(buildIndex >= 0, "Expected builder.Build() in Program.cs.");
+        Assert.True(checkIndex > parseIndex, "Expected the ConfiguredButEmpty check after TrustedProxies.Parse.");
+        Assert.True(throwIndex > checkIndex, "Expected the throw inside the ConfiguredButEmpty check.");
+        Assert.True(throwIndex < buildIndex, "Expected the throw to run before builder.Build().");
+    }
 }

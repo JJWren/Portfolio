@@ -79,6 +79,7 @@ public class RateLimitPoliciesTests
     [InlineData("/signin-github", true)]
     [InlineData("/signin-google", true)]
     [InlineData("/signin-discord", true)]
+    [InlineData("/SIGNIN-GITHUB", true)] // ASP.NET Core routes callback paths case-insensitively
     [InlineData("/signin", false)]
     [InlineData("/auth/login/GitHub", false)]
     [InlineData("/", false)]

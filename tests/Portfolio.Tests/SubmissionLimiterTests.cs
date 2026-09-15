@@ -125,6 +125,49 @@ public class SubmissionLimiterTests
         Assert.Equal(TimeSpan.Zero, limiter.RetryAfter("b"));
     }
 
+    // ---- Expiry boundary: a hit exactly Window old is expired ------------
+
+    /// <summary>
+    /// A hit ages out the instant it turns exactly <c>Window</c> old (the
+    /// <c>&gt;=</c> comparison in <c>Allow</c>/<c>RetryAfter</c>/<c>Sweep</c>),
+    /// not one tick later. Two independent limiters sharing one clock so
+    /// <see cref="SubmissionLimiter.Allow"/>'s own bookkeeping (adding a
+    /// fresh hit) can't change what <see cref="SubmissionLimiter.RetryAfter"/>
+    /// sees for the original one.
+    /// </summary>
+    [Fact]
+    public void Boundary_ExactlyAtTheWindow_AllowSucceedsAndRetryAfterIsZero()
+    {
+        var time = new FakeTimeProvider();
+        var allowLimiter = NewLimiter(time, maxPerWindow: 1, windowMinutes: 10);
+        allowLimiter.Allow("k"); // t = 0
+
+        var retryLimiter = NewLimiter(time, maxPerWindow: 1, windowMinutes: 10);
+        retryLimiter.Allow("k"); // t = 0
+
+        time.Advance(TimeSpan.FromMinutes(10)); // now = last hit + Window, exactly
+
+        Assert.True(allowLimiter.Allow("k"));
+        Assert.Equal(TimeSpan.Zero, retryLimiter.RetryAfter("k"));
+    }
+
+    /// <summary>One tick short of the window, the same hit still counts against the limit.</summary>
+    [Fact]
+    public void Boundary_OneTickBeforeTheWindow_AllowIsDeniedAndRetryAfterIsThatTick()
+    {
+        var time = new FakeTimeProvider();
+        var allowLimiter = NewLimiter(time, maxPerWindow: 1, windowMinutes: 10);
+        allowLimiter.Allow("k"); // t = 0
+
+        var retryLimiter = NewLimiter(time, maxPerWindow: 1, windowMinutes: 10);
+        retryLimiter.Allow("k"); // t = 0
+
+        time.Advance(TimeSpan.FromMinutes(10) - TimeSpan.FromTicks(1));
+
+        Assert.False(allowLimiter.Allow("k"));
+        Assert.Equal(TimeSpan.FromTicks(1), retryLimiter.RetryAfter("k"));
+    }
+
     // ---- The three derived limiters keep their own pinned numbers --------
 
     [Fact]
@@ -215,5 +258,34 @@ public class SubmissionLimiterTests
 
         Assert.Equal(TimeSpan.Zero, limiter.RetryAfter("k"));
         Assert.Equal(0, limiter.TrackedKeys);
+    }
+
+    /// <summary>
+    /// Guards the outcome the Sweep/Allow lock-and-verify protocol exists
+    /// for (see the class remarks on <see cref="SubmissionLimiter"/>): once
+    /// a key's list has been swept away for being empty, reusing the same
+    /// key must start a clean count — up to the limit, then denied — with
+    /// exactly one tracked entry, never a leftover or a split across two
+    /// lists that together let more than <c>MaxPerWindow</c> through.
+    /// </summary>
+    [Fact]
+    public void Allow_KeyRemovedBySweepThenReused_CountsCorrectlyAndTracksOneEntry()
+    {
+        var time = new FakeTimeProvider();
+        var limiter = NewLimiter(time, maxPerWindow: 3, windowMinutes: 10);
+
+        limiter.Allow("k");
+        time.Advance(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
+        limiter.Sweep();
+
+        Assert.Equal(0, limiter.TrackedKeys);
+
+        for (var i = 0; i < 3; i++)
+        {
+            Assert.True(limiter.Allow("k"));
+        }
+
+        Assert.False(limiter.Allow("k"));
+        Assert.Equal(1, limiter.TrackedKeys);
     }
 }

@@ -55,9 +55,16 @@ public static class RateLimitPolicies
         return address.ToString();
     }
 
-    /// <summary>True for the OAuth handler callback paths the global limiter's sign-in partition covers.</summary>
+    /// <summary>
+    /// True for the OAuth handler callback paths the global limiter's
+    /// sign-in partition covers. Case-insensitive: ASP.NET Core's routing
+    /// matches these provider-registered callback paths without regard to
+    /// case, so e.g. <c>/SIGNIN-GITHUB</c> still reaches the handler and
+    /// must land in the rate-limited partition rather than falling through
+    /// to the global limiter's no-limit default.
+    /// </summary>
     public static bool IsSignInHandlerPath(PathString path)
-        => path.Value?.StartsWith(SignInPathPrefix, StringComparison.Ordinal) == true;
+        => path.Value?.StartsWith(SignInPathPrefix, StringComparison.OrdinalIgnoreCase) == true;
 
     /// <summary>
     /// The fixed-window options every named policy and the global limiter's

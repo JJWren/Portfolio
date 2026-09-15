@@ -16,6 +16,9 @@ public class TrustedProxiesTests
         Assert.Empty(result.Proxies);
         Assert.Empty(result.Networks);
         Assert.Empty(result.Skipped);
+        // Not configured at all — must not be mistaken for "configured but
+        // every entry was junk" (Program.cs only throws on the latter).
+        Assert.False(result.ConfiguredButEmpty);
     }
 
     [Fact]
@@ -49,6 +52,9 @@ public class TrustedProxiesTests
         Assert.Equal("not-an-address", skipped);
         Assert.Empty(result.Proxies);
         Assert.Empty(result.Networks);
+        // Configured (non-blank) but nothing valid parsed — Program.cs must
+        // fail startup on this rather than fall open to trust-everyone.
+        Assert.True(result.ConfiguredButEmpty);
     }
 
     [Fact]
@@ -80,5 +86,8 @@ public class TrustedProxiesTests
             [IPAddress.Parse("203.0.113.9"), IPAddress.Parse("198.51.100.5"), IPAddress.Parse("192.0.2.9")],
             result.Proxies);
         Assert.Equal(["bogus1", "bogus2"], result.Skipped);
+        // At least one valid entry alongside the junk: this is the "warn
+        // and keep going" case, not the "fail startup" case.
+        Assert.False(result.ConfiguredButEmpty);
     }
 }

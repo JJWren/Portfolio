@@ -94,6 +94,20 @@ if (!string.IsNullOrEmpty(keysPath))
 // honored after the two lists are cleared below; blank keeps every peer
 // trusted (today's behaviour), so no self-hoster breaks.
 var trusted = TrustedProxies.Parse(builder.Configuration["TRUSTED_PROXIES"]);
+
+// A *configured* TRUSTED_PROXIES that produced no valid proxy or network is
+// a misconfiguration, not "trust everyone": left alone, both KnownProxies
+// and KnownIPNetworks below would end up empty exactly as they would for a
+// blank/unset value, and the forwarded-headers middleware treats an empty
+// pair of lists as trust-every-peer. Fail fast instead, the same startup-
+// validation style as SiteConfig.FromConfiguration above.
+if (trusted.ConfiguredButEmpty)
+{
+    throw new InvalidOperationException(
+        $"TRUSTED_PROXIES is set but contains no valid IP address or CIDR network " +
+        $"(skipped: {string.Join(", ", trusted.Skipped)}). Fix the value, or clear it to trust every peer.");
+}
+
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;

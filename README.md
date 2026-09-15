@@ -132,7 +132,10 @@ By default every peer's `X-Forwarded-For` is honored, which is fine with no prox
 in front but means a client that reaches the published port directly could forge
 its address. Once you add a proxy, set `TRUSTED_PROXIES` to its address or network
 (comma-separated IPs and/or CIDR blocks) so only its forwarded header is trusted;
-every other connection keeps its own address. If the proxy shares the same Docker
+every other connection keeps its own address. A value that isn't blank but contains
+no address or network the app can parse stops startup with an error naming the
+entries it couldn't use, rather than silently falling back to trusting every peer.
+If the proxy shares the same Docker
 host, you can also bind the published port to loopback (`WEB_BIND=127.0.0.1`) so
 only that machine can reach it directly — the proxy still reaches the container
 over the Docker network either way.
