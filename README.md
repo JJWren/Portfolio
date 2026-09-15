@@ -104,6 +104,8 @@ back to the built-in colors).
 | `OWNER_PHOTO_FLIP_ALT` | | Alt text for the second photo; defaults to `Portrait of {SITE_OWNER_NAME}`, admin-overridable |
 | `SEED_DEMO_DATA` | | `true` seeds sample posts/projects into empty tables |
 | `SECURITY_CSP_MODE` | | Content-Security-Policy mode: `enforce` (default; also blank or unrecognized), `report-only`, or `off`; see [Running behind a reverse proxy](#running-behind-a-reverse-proxy) |
+| `TRUSTED_PROXIES` | | Comma-separated IPs/CIDRs whose `X-Forwarded-For` is trusted for the connecting address rate limits and analytics use; blank trusts every peer; see [Running behind a reverse proxy](#running-behind-a-reverse-proxy) |
+| `WEB_BIND` | | Host interface the published port binds to; blank publishes on every interface (`0.0.0.0`) |
 
 ### OAuth callback URLs
 
@@ -125,6 +127,25 @@ The container serves plain HTTP on port 8080 and expects TLS to terminate at you
 proxy (Caddy, Traefik, nginx…). Forwarded headers (`X-Forwarded-For` /
 `X-Forwarded-Proto`) are honored so OAuth redirects build correct `https://` URLs.
 Set `PUBLIC_BASE_URL` to your public origin.
+
+By default every peer's `X-Forwarded-For` is honored, which is fine with no proxy
+in front but means a client that reaches the published port directly could forge
+its address. Once you add a proxy, set `TRUSTED_PROXIES` to its address or network
+(comma-separated IPs and/or CIDR blocks) so only its forwarded header is trusted;
+every other connection keeps its own address. If the proxy shares the same Docker
+host, you can also bind the published port to loopback (`WEB_BIND=127.0.0.1`) so
+only that machine can reach it directly — the proxy still reaches the container
+over the Docker network either way.
+
+Rate limits protect the auth endpoints (10 requests/minute), the RSS feed and
+sitemap (30/minute), and the résumé/project-link redirects (30/minute), all keyed
+by the connecting address (the trusted forwarded address once `TRUSTED_PROXIES`
+applies); a limited request gets `429 Too Many Requests` with a `Retry-After`
+header and a short text body. Comment posting and report submission are limited
+per signed-in user, or per address for an anonymous comment, at 5 and 3 every 10
+minutes; admins are exempt. Every limit lives in process memory and resets on
+restart — fine for this single-container app, but the numbers don't carry across
+a restart or a multi-instance deployment.
 
 The app sets its own security headers on every response — `X-Content-Type-Options`,
 `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`,
