@@ -1881,3 +1881,35 @@ everything else is good"
 **Context**: Unit 12 Application Design, NFR Requirements, NFR Design and Code Generation Part 1 approved (one stop, owner decision Q1 C); Code Generation Part 2 phase 12a starting.
 
 ---
+
+## Unit 12 phase 12a: branch, brief, phase agent launched
+**Timestamp**: 2026-09-15T13:56:51Z
+**User Input**: (none)
+**AI Response**: "Branch feat/security-headers from master a6ff7b9 (release 1.29.0); docs commit 53dfee9 (Unit 11 close-out, the deploy, the approval) and the brief commit (construction/plans/unit12a-brief.md, from the Unit 11 brief: the composer values pinned in the brief, the OnStarting fill-if-absent middleware, the snapshot hash, the ImportMap removal, the theme editor data-style and data-color with applyDataStyles and the forced reload after save, ADR 0003, README and env, the verification instructions, the test fixtures, the curl and browser verification with an optional seeded theme override to exercise the hash path). A Sonnet general-purpose phase agent launched with it."
+**Context**: Unit 12 Code Generation Part 2, phase 12a in progress.
+
+---
+
+## Unit 12 phase 12a: phase agent report; review launched
+**Timestamp**: 2026-09-15T14:38:44Z
+**User Input**: (none)
+**AI Response**: "Phase agent done on feat/security-headers: six commits (5f5cca7 snapshot hash and ImportMap removal; f7da30e composer, options, middleware and Program.cs wiring; 4b222fe theme editor CSSOM colors and forced reload; 1a26229 tests; 837a6fb fix suppressing the framework anti-clickjacking defaults; be1633b ADR 0003, README, env, verification instructions, plan ticks). Build 0 warnings; 982 tests, 53 fixtures. Finding: ASP.NET antiforgery emits X-Frame-Options SAMEORIGIN and the interactive server render mode emits Content-Security-Policy frame-ancestors self by default, registered later in the pipeline so they fired first and the fill-if-absent middleware kept them; suppressed with AntiforgeryOptions.SuppressXFrameOptionsHeader and ServerComponentsEndpointOptions.ContentSecurityFrameAncestorsPolicy null. This also explains the two headers seen in production on 2026-09-04 and attributed to the proxy; the ADR and README wording will be corrected in remediation. Verification: curl on /, the 404 page and /feed.xml carries the full set and no Server header; browser walk under enforce of the FR-D8 public pages with enhanced navigation and a full reload, zero CSP messages; the hash path exercised by seeding one theme override in the ephemeral database (style-src carried the sha256 value, page rendered the override, console clean). No upload existed to curl; the admin pages stay the owner production check. Five review agents launched; the security reviewer asked to verify the framework-default attribution."
+**Context**: Unit 12 phase 12a implementation complete; review in progress.
+
+---
+
+## Unit 12 phase 12a: five-area review complete; remediation launched
+**Timestamp**: 2026-09-15T14:52:52Z
+**User Input**: (none)
+**AI Response**: "Security: values match the NFR requirements and OWASP with the documented omissions; both framework-default claims verified against Microsoft Learn (SuppressXFrameOptionsHeader defaults false; ContentSecurityFrameAncestorsPolicy defaults to self and null disables it); the hash byte-exact; the CSSOM path carries only validated colors and constant CSS text; BR-18 clean; two minors (a fuller Permissions-Policy; a test pinning the two suppressions) and a nit (X-DNS-Prefetch-Control and X-Permitted-Cross-Domain-Policies). Correctness: one minor (the reset path must force the same reload as save) and a nit (an adjacency assertion). Framework: one major on accessibility (the saved notice after the forced reload sits in the initial markup, unannounced) and one minor (repaint on every render). Performance: one minor (compose per request; cache per hash) and the same repaint nit. Maintainability: four minors (a wrong FR citation, the verification doc restating constants without a keep-in-sync note, test naming, a shared LinkedSource reader for seven fixtures). The orchestrator corrected the proxy attribution in ADR 0003, the NFR requirements, the tech-stack decisions and the requirements amendment (the two headers were the framework defaults). A Sonnet remediation agent applies the eleven items."
+**Context**: Unit 12 phase 12a review complete; remediation in progress.
+
+---
+
+## Unit 12 phase 12a: remediation applied
+**Timestamp**: 2026-09-15T15:14:58Z
+**User Input**: (none)
+**AI Response**: "Remediation commits f21a307 (the cached header list by hash; the fuller Permissions-Policy with nineteen features; X-DNS-Prefetch-Control off and X-Permitted-Cross-Domain-Policies none; the paint-version gate; the saved notice inserted after the first interactive render so the live region announces it; one ReloadWithSavedNotice helper for save and reset), e82b574 (the adjacency assertion; a fact pinning the two framework suppressions; the FR-D3 citation; the Subject_Behaviour test names; Support/LinkedSource.cs used by the single-file scan fixtures; the two directory-scanning fixtures left as they are, a documented deviation) and b20d6f2 (the NFR requirements rows, the verification doc keep-in-sync sentence and values, the instructions totals, five plan deviation bullets). Verified: build 0 warnings; 984 tests, 53 fixtures. Next: the plan review tick, the docs commit with the corrected ADR and requirement amendment, push, PR 3, Copilot."
+**Context**: Unit 12 phase 12a review complete; PR next.
+
+---

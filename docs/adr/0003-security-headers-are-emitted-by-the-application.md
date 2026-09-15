@@ -1,17 +1,25 @@
 # Security headers are emitted by the application, not the proxy
 
-The application sent no security header beyond HSTS and cache control, and
-Kestrel announced itself. The owner's production reverse proxy (openresty
-behind nginx-proxy-manager) already adds `X-Frame-Options: SAMEORIGIN` and
-`Content-Security-Policy: frame-ancestors 'self'` in front of it, but the
-project is published for self-hosters, many of whom run the compose stack
-with no reverse proxy at all. We add a pure header composer
-(`SecurityHeadersRules`) and one middleware (`SecurityHeadersMiddleware`)
-that set `X-Content-Type-Options`, `Referrer-Policy`,
-`X-Frame-Options: DENY`, a `Permissions-Policy`, `Cross-Origin-Opener-Policy`
-and an enforced Content-Security-Policy on every response, switch off
-Kestrel's `Server` header, and admit the admin theme's override `<style>`
-block by a SHA-256 hash carried on the theme snapshot rather than a nonce.
+The application sent no security header of its own beyond HSTS and cache
+control, and Kestrel announced itself. The `X-Frame-Options: SAMEORIGIN` and
+`Content-Security-Policy: frame-ancestors 'self'` seen on production
+responses were not added by the owner's reverse proxy, as first assumed, but
+by ASP.NET Core's own defaults: antiforgery sends the first and the
+interactive server render mode the second, and both register their
+`OnStarting` callback later in the pipeline than any middleware, so they win
+a fill-if-absent race. The project is published for self-hosters, many of
+whom run the compose stack with no reverse proxy at all. We add a pure
+header composer (`SecurityHeadersRules`) and one middleware
+(`SecurityHeadersMiddleware`) that set `X-Content-Type-Options`,
+`Referrer-Policy`, `X-Frame-Options: DENY`, a `Permissions-Policy`,
+`Cross-Origin-Opener-Policy` and an enforced Content-Security-Policy on
+every response, switch off Kestrel's `Server` header, suppress the two
+framework defaults through their options
+(`AntiforgeryOptions.SuppressXFrameOptionsHeader` and
+`ServerComponentsEndpointOptions.ContentSecurityFrameAncestorsPolicy = null`)
+so the stricter values are the only ones the app sends, and admit the admin
+theme's override `<style>` block by a SHA-256 hash carried on the theme
+snapshot rather than a nonce.
 
 ## Considered Options
 
@@ -40,9 +48,11 @@ block by a SHA-256 hash carried on the theme snapshot rather than a nonce.
 - Every response carries the full header set, in every `SECURITY_CSP_MODE`;
   a self-hoster with no reverse proxy is fully covered from the first
   deploy, with no configuration required.
-- The owner's production proxy keeps adding `X-Frame-Options: SAMEORIGIN`
-  and `Content-Security-Policy: frame-ancestors 'self'` unchanged; the app's
-  stricter `DENY` and `frame-ancestors 'none'` win in the browser, and no
+- The two framework defaults are suppressed rather than overwritten, so the
+  app sends exactly one `X-Frame-Options` and one `Content-Security-Policy`.
+  A proxy in front (the owner's nginx-proxy-manager included) may still add
+  headers of its own; such duplicates are harmless because the stricter
+  directive wins and `frame-ancestors` supersedes `X-Frame-Options`, and no
   proxy configuration edit was needed.
 - The theme override `<style>` block must stay exactly the one line
   `ThemeRules.StyleHash` hashes (pinned by `AppRazorTests`); the theme
