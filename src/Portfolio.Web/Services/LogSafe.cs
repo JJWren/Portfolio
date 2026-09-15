@@ -12,24 +12,29 @@ public static class LogSafe
     /// <summary>The default cap, the same length the analytics path column keeps.</summary>
     public const int MaxLength = 300;
 
-    /// <summary>The value with control characters replaced by underscores and cut to <paramref name="maxLength"/>; empty for null.</summary>
-    public static string Value(string? value, int maxLength = MaxLength)
+    /// <summary>The value cut to <paramref name="maxLength"/> with every control character replaced by an underscore; empty for null.</summary>
+    public static string Sanitize(string? value, int maxLength = MaxLength)
     {
         if (string.IsNullOrEmpty(value))
         {
             return string.Empty;
         }
 
-        // The two Replace calls are the line-break removal CodeQL recognizes as
-        // a sanitizer; the loop below covers the remaining control characters
-        // (tabs, escapes, DEL) the same way.
-        var text = value
-            .Replace("\r", "_", StringComparison.Ordinal)
-            .Replace("\n", "_", StringComparison.Ordinal);
-        if (text.Length > maxLength)
+        // Cap first so a long request line is never scanned in full; every
+        // replacement below keeps the length, so the order does not change the
+        // result. A cap that lands inside a surrogate pair drops the dangling
+        // half rather than logging malformed text.
+        var text = value.Length > maxLength ? value[..maxLength] : value;
+        if (char.IsHighSurrogate(text[^1]))
         {
-            text = text[..maxLength];
+            text = text[..^1];
         }
+
+        // The two Replace calls are the line-break removal CodeQL recognizes as
+        // a sanitizer (the two-argument overload is ordinal); the loop below
+        // covers the remaining control characters (tabs, escapes, DEL, the C1
+        // range) the same way.
+        text = text.Replace("\r", "_").Replace("\n", "_");
 
         var chars = text.ToCharArray();
         for (var i = 0; i < chars.Length; i++)

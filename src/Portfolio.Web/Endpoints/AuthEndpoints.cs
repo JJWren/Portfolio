@@ -70,8 +70,10 @@ public static class AuthEndpoints
                     var created = await userManager.CreateAsync(user);
                     if (!created.Succeeded)
                     {
+                        // Identity's descriptions embed the provider's email claim
+                        // verbatim: LogSafe keeps it from forging a log line (issue #88).
                         logger.LogError("Failed to create user for {Provider}: {Errors}",
-                            info.LoginProvider, string.Join("; ", created.Errors.Select(e => e.Description)));
+                            info.LoginProvider, LogSafe.Sanitize(string.Join("; ", created.Errors.Select(e => e.Description))));
                         return Results.Redirect("/signin?error=create");
                     }
                 }

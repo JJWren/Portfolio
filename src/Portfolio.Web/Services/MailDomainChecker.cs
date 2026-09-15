@@ -101,7 +101,7 @@ public class MailDomainChecker(IMxResolver resolver, ILogger<MailDomainChecker> 
         {
             // The domain comes from the visitor's address: LogSafe keeps it from
             // forging a log line (issue #88).
-            logger.LogDebug(ex, "MX check failed for domain {Domain}; failing open.", LogSafe.Value(domain));
+            logger.LogDebug(ex, "MX check failed for domain {Domain}; failing open.", LogSafe.Sanitize(domain));
             return MailDomainResult.Unknown;
         }
     }

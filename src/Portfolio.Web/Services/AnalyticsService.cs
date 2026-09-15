@@ -95,7 +95,7 @@ public class AnalyticsService(
         {
             // The path is user-supplied and percent-decoded: LogSafe keeps an
             // encoded line break from forging a second log entry (issue #88).
-            logger.LogWarning(ex, "Failed to record page view for {Path}.", LogSafe.Value(path));
+            logger.LogWarning(ex, "Failed to record page view for {Path}.", LogSafe.Sanitize(path));
         }
     }
 
