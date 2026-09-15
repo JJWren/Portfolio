@@ -1,3 +1,5 @@
+using Portfolio.Tests.Support;
+
 namespace Portfolio.Tests;
 
 /// <summary>
@@ -9,13 +11,7 @@ namespace Portfolio.Tests;
 /// </summary>
 public class ProgramPipelineTests
 {
-    private static string ProgramCs()
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "Program.cs");
-        Assert.True(File.Exists(path),
-            $"Expected the linked source at {path}; check the None/Link item in Portfolio.Tests.csproj.");
-        return File.ReadAllText(path);
-    }
+    private static string ProgramCs() => LinkedSource.Read("Program.cs");
 
     [Fact]
     public void SecurityHeadersMiddleware_RunsRightAfterUseForwardedHeaders_AndBeforeUseRouting()
@@ -43,17 +39,49 @@ public class ProgramPipelineTests
     public void Kestrel_ServerHeaderIsDisabled()
         => Assert.Contains("options.AddServerHeader = false", ProgramCs(), StringComparison.Ordinal);
 
+    /// <summary>
+    /// OnStarting fires last-registered-first, so both framework defaults —
+    /// antiforgery's unconditional X-Frame-Options: SAMEORIGIN and the
+    /// interactive render mode's Content-Security-Policy: frame-ancestors
+    /// 'self' — register after, and so run before, SecurityHeadersMiddleware's
+    /// own OnStarting callback and win under fill-if-absent (commit 837a6fb).
+    /// Losing either suppression line reinstates that weaker default; losing
+    /// the second is worse than losing the first, because it leaves the
+    /// framework's own Content-Security-Policy header already present under
+    /// that exact name, so fill-if-absent skips this app's fuller policy
+    /// entirely on every interactive response.
+    /// </summary>
+    [Fact]
+    public void FrameworkAntiClickjackingDefaults_AreBothSuppressed()
+    {
+        var program = ProgramCs();
+        Assert.Contains("SuppressXFrameOptionsHeader = true", program, StringComparison.Ordinal);
+        Assert.Contains("ContentSecurityFrameAncestorsPolicy = null", program, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void SecurityOptions_RegisteredAsASingletonRightAfterSiteConfig()
     {
         var program = ProgramCs();
 
-        var siteConfigIndex = program.IndexOf("AddSingleton(SiteConfig.FromConfiguration", StringComparison.Ordinal);
-        var securityOptionsIndex = program.IndexOf("AddSingleton(SecurityOptions.FromConfiguration", StringComparison.Ordinal);
+        const string siteConfigStatement = "builder.Services.AddSingleton(SiteConfig.FromConfiguration(builder.Configuration));";
+        const string securityOptionsStatement = "builder.Services.AddSingleton(SecurityOptions.FromConfiguration(builder.Configuration));";
+
+        var siteConfigIndex = program.IndexOf(siteConfigStatement, StringComparison.Ordinal);
+        var securityOptionsIndex = program.IndexOf(securityOptionsStatement, StringComparison.Ordinal);
 
         Assert.True(siteConfigIndex >= 0, "Expected the SiteConfig singleton registration.");
         Assert.True(securityOptionsIndex >= 0, "Expected the SecurityOptions singleton registration.");
         Assert.True(securityOptionsIndex > siteConfigIndex, "Expected SecurityOptions to be registered right after SiteConfig.");
+
+        // Nothing but whitespace and comment lines sits between the two
+        // registrations — the same "between" check the sibling test above
+        // uses for the middleware's placement.
+        var between = program[(siteConfigIndex + siteConfigStatement.Length)..securityOptionsIndex];
+        var betweenLines = between.Split('\n').Select(line => line.Trim());
+        Assert.True(
+            betweenLines.All(line => line.Length == 0 || line.StartsWith("//", StringComparison.Ordinal)),
+            $"Expected only whitespace and comments between SiteConfig and SecurityOptions, found: \"{between}\".");
     }
 
     [Fact]

@@ -1,3 +1,5 @@
+using Portfolio.Tests.Support;
+
 namespace Portfolio.Tests;
 
 /// <summary>
@@ -8,13 +10,7 @@ namespace Portfolio.Tests;
 /// </summary>
 public class ResumeLinksTests
 {
-    private static string Linked(string relativePath)
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "RazorComponents", relativePath);
-        Assert.True(File.Exists(path),
-            $"Expected the linked source at {path}; check the None/LinkBase item in Portfolio.Tests.csproj.");
-        return File.ReadAllText(path);
-    }
+    private static string Linked(string relativePath) => LinkedSource.Read("RazorComponents", relativePath);
 
     [Fact]
     public void MainLayout_FooterNav_AriaLabelIsLinksNotSocial()

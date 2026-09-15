@@ -1,3 +1,5 @@
+using Portfolio.Tests.Support;
+
 namespace Portfolio.Tests;
 
 /// <summary>
@@ -7,27 +9,21 @@ namespace Portfolio.Tests;
 /// </summary>
 public class ColorPickerModuleTests
 {
-    private static string ColorPickerJs()
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "js", "colorpicker.js");
-        Assert.True(File.Exists(path),
-            $"Expected the linked source at {path}; check the None/Link item in Portfolio.Tests.csproj.");
-        return File.ReadAllText(path);
-    }
+    private static string ColorPickerJs() => LinkedSource.Read("js", "colorpicker.js");
 
     [Fact]
-    public void ExportsApplyDataStyles()
+    public void ColorPickerJs_ExportsApplyDataStyles()
         => Assert.Contains("export function applyDataStyles(root)", ColorPickerJs(), StringComparison.Ordinal);
 
     [Fact]
-    public void PaintsDataStyleThroughCssText()
+    public void ColorPickerJs_PaintsDataStyleThroughCssText()
         => Assert.Contains("style.cssText", ColorPickerJs(), StringComparison.Ordinal);
 
     [Fact]
-    public void PaintsDataColorThroughBackground()
+    public void ColorPickerJs_PaintsDataColorThroughBackground()
         => Assert.Contains("style.background", ColorPickerJs(), StringComparison.Ordinal);
 
     [Fact]
-    public void NeverSetsTheStyleAttributeDirectly()
+    public void ColorPickerJs_NeverSetsTheStyleAttributeDirectly()
         => Assert.DoesNotContain("setAttribute('style'", ColorPickerJs(), StringComparison.Ordinal);
 }
