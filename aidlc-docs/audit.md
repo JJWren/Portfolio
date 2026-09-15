@@ -1921,3 +1921,11 @@ everything else is good"
 **Context**: Unit 12 phase 12a Copilot gate in progress.
 
 ---
+
+## Unit 12 phase 12a: Copilot round 1 on PR #110
+**Timestamp**: 2026-09-15T15:23:24Z
+**User Input**: (none)
+**AI Response**: "Copilot left three comments on SecurityHeadersMiddleware.cs, CI green: (1) the two-reference cache tuple is not written atomically; (2) every request, assets and /healthz included, calls ThemeService.GetSnapshotAsync, which retries the database per request during an outage; (3) the header hash and the App.razor block read the snapshot separately, so a save between the reads could mismatch them. One design change answers all three: an immutable cache object held by one reference; a LastKnown snapshot on ThemeService set on load and on save, used by the middleware so no request touches the database for headers after the first load; the snapshot stored on the request (HttpContext.Items) and App.razor rendering from it. A Sonnet remediation agent applies it with tests and the design note."
+**Context**: Unit 12 phase 12a Copilot gate, round 1 remediation in progress.
+
+---
