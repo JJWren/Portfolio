@@ -2041,3 +2041,19 @@ everything else is good"
 **Context**: Unit 12 phase 12b Copilot gate in progress.
 
 ---
+
+## Unit 12 phase 12b: Copilot round 1 on PR #114
+**Timestamp**: 2026-09-15T23:26:49Z
+**User Input**: (none)
+**AI Response**: "Six comments, CI green, all valid: (1) TRUSTED_PROXIES set but with no valid token fell open to trust-all: fail startup instead; (2) the /signin- prefix check was case-sensitive while the framework matches callback paths case-insensitively; (3) the limiter sweep could remove an entry a concurrent Allow already held, splitting one key into two lists: verify the entry under the list lock and remove under it; (4) a hit exactly Window old was kept while RetryAfter reported zero: expire with >= everywhere; (5) the verification recipe targets port 5199 while the launch profile listens on 5072: add --no-launch-profile; (6) handoff.md still said production ran 1.29.0. A Sonnet remediation agent applies 1 to 5; the orchestrator fixes the handoff."
+**Context**: Unit 12 phase 12b Copilot gate, round 1 remediation in progress.
+
+---
+
+## Unit 12 phase 12b: Copilot round 1 remediated
+**Timestamp**: 2026-09-15T23:41:09Z
+**User Input**: (none)
+**AI Response**: "Remediation commits 8133033 (TrustedProxyList.ConfiguredButEmpty and a startup throw naming the variable and the skipped tokens; OrdinalIgnoreCase on the sign-in prefix; Allow and RetryAfter re-verify the list is the live entry under its lock and Sweep removes under the lock; expiry with >= everywhere; tests and README and env notes) and 6c37d95 (--no-launch-profile in the verification recipe; totals). The orchestrator corrected handoff.md (production on 1.30.0 in report-only, 12b at PR #114, CodeQL closed). Verified: build 0 warnings; 1085 tests, 62 fixtures. Pushing, replying on the six threads, re-requesting Copilot."
+**Context**: Unit 12 phase 12b Copilot gate, round 1 remediated.
+
+---
