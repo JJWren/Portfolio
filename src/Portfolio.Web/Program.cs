@@ -10,11 +10,16 @@ using Portfolio.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// FR-D1: self-hosters without a reverse proxy get no server-identifying
+// header either; the production proxy already substitutes its own.
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton(SiteConfig.FromConfiguration(builder.Configuration));
+builder.Services.AddSingleton(SecurityOptions.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton<AdminEmails>();
 builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddSingleton<BlogService>();
@@ -166,6 +171,14 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 
+// Security headers on every response (FR-D1, FR-D2, FR-D5): placed right
+// after forwarded headers and before the HEAD-as-GET rewrite below, so
+// static assets, the /uploads files, the exception handler's re-execution,
+// the re-executed 404, the health check and every Blazor page all pass
+// through it — see SecurityHeadersMiddleware for why OnStarting and
+// fill-if-absent.
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
 // Blazor component endpoints match GET only, so bare HEAD requests 405.
 // Serve HEAD as GET with the body discarded (RFC 9110: same status and
 // headers, no content); the method is restored afterwards for logging.
@@ -230,9 +243,16 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(uploadsRoot),
     RequestPath = "/uploads",
     // Upload filenames are single-use GUIDs — the content behind a URL can
-    // never change, so clients may cache it forever.
+    // never change, so clients may cache it forever. FR-D4: a restrictive
+    // policy of its own (a scripted SVG, validated by extension only, must
+    // never run) set here, ahead of SecurityHeadersMiddleware's
+    // fill-if-absent, so the page policy never overwrites it.
     OnPrepareResponse = static ctx =>
-        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable",
+    {
+        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        ctx.Context.Response.Headers["Content-Security-Policy"] = SecurityHeadersRules.UploadsCsp;
+        ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    },
 });
 
 app.MapAuthEndpoints();
