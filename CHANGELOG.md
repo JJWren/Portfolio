@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/JJWren/Portfolio/compare/v1.29.0...v1.30.0) (2026-09-15)
+
+
+### Features
+
+* security headers with an enforced content security policy ([#110](https://github.com/JJWren/Portfolio/issues/110)) ([1153ece](https://github.com/JJWren/Portfolio/commit/1153ececaf585738b519d7638a734c181566ca71))
+
 ## [1.29.0](https://github.com/JJWren/Portfolio/compare/v1.28.0...v1.29.0) (2026-09-14)
 
 
