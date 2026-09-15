@@ -38,6 +38,11 @@ builder.Services.AddSingleton<CommentService>();
 builder.Services.AddSingleton<ProjectService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<ContactRateLimiter>();
+// FR-D12: the contact limiter's algorithm, generalized (SubmissionLimiter),
+// with their own per-window numbers for the circuit's two other submission
+// paths.
+builder.Services.AddSingleton<CommentLimiter>();
+builder.Services.AddSingleton<ReportLimiter>();
 builder.Services.AddSingleton<ContactFormTimestamp>();
 // Explicit factory: container-driven construction would pick the
 // IEnumerable<string> test constructor (DI resolves IEnumerable<T> as "all
