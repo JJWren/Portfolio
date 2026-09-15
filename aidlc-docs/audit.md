@@ -2033,3 +2033,11 @@ everything else is good"
 **Context**: Unit 12 phase 12b review complete; remediation and the master merge in progress.
 
 ---
+
+## Unit 12 phase 12b: remediation applied; PR #114 opened
+**Timestamp**: 2026-09-15T23:17:31Z
+**User Input**: (none)
+**AI Response**: "Remediation commits c1c0d9c (SubmissionLimiter.Sweep every 256th call and on RetryAfter, TrackedKeys; CommentLimiter and ReportLimiter pass their numbers to the base constructor; ContactRateLimiter keeps its static shape with the reason; the FR-D12 comment; the theory row comments; the dormant ip key documented) and 42c66ce (plan deviations); merge commit 04c45d2 bringing in the CodeQL fix with the instructions heading and Security row resolved. Verified: build 0 warnings; 1080 tests, 62 fixtures. Docs commit; branch pushed; PR #114 feat: rate limiting for auth, feeds, comments and reports opened; Copilot requested."
+**Context**: Unit 12 phase 12b Copilot gate in progress.
+
+---
