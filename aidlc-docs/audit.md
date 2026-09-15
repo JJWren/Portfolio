@@ -1913,3 +1913,11 @@ everything else is good"
 **Context**: Unit 12 phase 12a review complete; PR next.
 
 ---
+
+## Unit 12 phase 12a: PR #110 opened
+**Timestamp**: 2026-09-15T15:15:45Z
+**User Input**: (none)
+**AI Response**: "Docs commit 58c80ce (ADR 0003 and the design docs attributing the old frame headers to the framework defaults; the 12b brief; the audit trail); branch pushed; PR #110 feat: security headers with an enforced content security policy opened with the what, the design pointers and the verification in the body; Copilot requested; polling the reviews. The plan review box ticked (to ride in the next docs commit before the merge)."
+**Context**: Unit 12 phase 12a Copilot gate in progress.
+
+---
