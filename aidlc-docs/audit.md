@@ -1817,3 +1817,115 @@ everything else is good"
 **Context**: Unit 11 Copilot gate, round 1 remediated.
 
 ---
+
+## Unit 11 merged
+**Timestamp**: 2026-09-14T02:10:40Z
+**User Input**: (none)
+**AI Response**: "PR #109: Copilot round 2 landed with zero new comments (clean pass); CI green; squash-merged as 069ef12; master realigned (nothing to stash); local branch deleted. Unit 11 COMPLETE: 924 tests, 47 fixtures. Release-please will fold it into the open release PR #108 (now a minor); the release and deploy wait for 12a (owner decision Q2). Next: the Unit 12 stop with the design bundle and the two-phase plan."
+**Context**: Unit 11 Code Generation Part 2 complete; Unit 12 design stop next.
+
+---
+
+## Unit 12 stop presented: application design, NFR requirements, NFR design and the two-phase plan
+**Timestamp**: 2026-09-14T02:11:12Z
+**User Input**: (none)
+**AI Response**: "Presented the merged Unit 12 stop (owner decision Q1 C): inception/application-design/unit12-security-components.md; construction/unit12-security/nfr-requirements/nfr-requirements.md and tech-stack-decisions.md; construction/unit12-security/nfr-design/nfr-design-patterns.md and logical-components.md; construction/plans/unit12-security-plan.md (phases 12a headers and 12b rate limiting). 2-option message: A) Request Changes, B) Continue to Next Stage (B runs 12a through to merge, then the release and the report-only deploy with a stop for the owner admin-page check, then 12b through to merge and its deploy)."
+**Context**: Unit 12 Application Design, NFR Requirements, NFR Design and Code Generation Part 1, one stop; awaiting the owner.
+
+---
+
+## Owner question: completion and the production deploy
+**Timestamp**: 2026-09-15T13:23:39Z
+**User Input**: "Is everything complete and is the prod stack pulled and redeployed? I merged the chore for 109 yesterday."
+**AI Response**: "Checking the release, the image, the production container and master before answering."
+**Context**: Unit 12 stop still open; owner merged the release PR.
+
+---
+
+## Answer: state after the owner merged release 1.29.0
+**Timestamp**: 2026-09-15T13:25:43Z
+**User Input**: (the question above)
+**AI Response**: "Facts: release v1.29.0 published 2026-09-14T23:52Z from the owner merge of PR #108 (a6ff7b9); release-please run 34910777728 succeeded and ghcr.io/jjwren/portfolio:1.29.0 is in the registry; production still runs 1.28.0 (compose tag unchanged, container healthy). Unit 12 has not started: its design stop awaits the owner A or B. The session attempted the deploy (tag bump to 1.29.0, compose pull and up, health wait, live checks) but the auto-mode classifier denied the command as a production deploy before anything ran; the compose file is unchanged. Master realigned stash-first on a6ff7b9 with the pending docs edits restored. Told the owner: the three deploy commands to run by hand, or allow the action and say deploy; the Unit 12 A or B still open."
+**Context**: Release 1.29.0 published; deploy pending the owner; Unit 12 stop open.
+
+---
+
+## Owner instruction: deploy 1.29.0
+**Timestamp**: 2026-09-15T13:26:46Z
+**User Input**: "deploy"
+**AI Response**: "Deploying 1.29.0 to the production container: compose tag bump, pull, recreate, health wait, live checks."
+**Context**: Operations: deploy of release 1.29.0 (the quick fix and Unit 11) on the owner instruction.
+
+---
+
+## Deploy verified: v1.29.0 live
+**Timestamp**: 2026-09-15T13:27:35Z
+**User Input**: (none)
+**AI Response**: "Compose tag 1.28.0 to 1.29.0 in the production folder (LF preserved); docker compose pull web and up -d web; portfolio-web healthy on ghcr.io/jjwren/portfolio:1.29.0. Live checks: /healthz 200; the landing page rank bar renders as <figure class="rank-bar" data-belt="black"> with the stripe bar carrying no inline style; inline style attributes on the landing page: 0. Owner checks: the Daily visitors tile on /admin/stats (average per day with the visitor-days beneath) and the Current belt select on /admin/site. The Unit 12 stop stays open."
+**Context**: Operations: release 1.29.0 deployed by the session on the owner instruction.
+
+---
+
+## Owner question: plain summary of Units 11 and 12
+**Timestamp**: 2026-09-15T13:52:18Z
+**User Input**: "Can you summarize (just here in the chat) chat the unit 11 and 12 changes were in simple terms and what I will see as a user"
+**AI Response**: "Gave a plain-language summary in chat: Unit 11 (live in 1.29.0) lets the rank bar draw any belt with a new admin select and env setting, defaulting to black so nothing changed for the owner; the quick fix made the Daily visitors tile an average per day. Unit 12 (not built yet, awaiting the stop) adds browser security headers and a content security policy, then rate limits on sign-in, feeds, downloads, comments and reports; visitors see nothing different unless something is blocked; the owner sees a report-only check step on the admin pages and two new env settings at deploy."
+**Context**: Question answered; the Unit 12 stop stays open.
+
+---
+
+## Unit 12 stop answered
+**Timestamp**: 2026-09-15T13:54:22Z
+**User Input**: "B"
+**AI Response**: "Continue to Next Stage: phase 12a (security headers) starts on feat/security-headers with a docs commit, a brief and a Sonnet phase agent; then the five reviews, PR 3, the Copilot gate, the merge, and a stop before the release and the report-only deploy."
+**Context**: Unit 12 Application Design, NFR Requirements, NFR Design and Code Generation Part 1 approved (one stop, owner decision Q1 C); Code Generation Part 2 phase 12a starting.
+
+---
+
+## Unit 12 phase 12a: branch, brief, phase agent launched
+**Timestamp**: 2026-09-15T13:56:51Z
+**User Input**: (none)
+**AI Response**: "Branch feat/security-headers from master a6ff7b9 (release 1.29.0); docs commit 53dfee9 (Unit 11 close-out, the deploy, the approval) and the brief commit (construction/plans/unit12a-brief.md, from the Unit 11 brief: the composer values pinned in the brief, the OnStarting fill-if-absent middleware, the snapshot hash, the ImportMap removal, the theme editor data-style and data-color with applyDataStyles and the forced reload after save, ADR 0003, README and env, the verification instructions, the test fixtures, the curl and browser verification with an optional seeded theme override to exercise the hash path). A Sonnet general-purpose phase agent launched with it."
+**Context**: Unit 12 Code Generation Part 2, phase 12a in progress.
+
+---
+
+## Unit 12 phase 12a: phase agent report; review launched
+**Timestamp**: 2026-09-15T14:38:44Z
+**User Input**: (none)
+**AI Response**: "Phase agent done on feat/security-headers: six commits (5f5cca7 snapshot hash and ImportMap removal; f7da30e composer, options, middleware and Program.cs wiring; 4b222fe theme editor CSSOM colors and forced reload; 1a26229 tests; 837a6fb fix suppressing the framework anti-clickjacking defaults; be1633b ADR 0003, README, env, verification instructions, plan ticks). Build 0 warnings; 982 tests, 53 fixtures. Finding: ASP.NET antiforgery emits X-Frame-Options SAMEORIGIN and the interactive server render mode emits Content-Security-Policy frame-ancestors self by default, registered later in the pipeline so they fired first and the fill-if-absent middleware kept them; suppressed with AntiforgeryOptions.SuppressXFrameOptionsHeader and ServerComponentsEndpointOptions.ContentSecurityFrameAncestorsPolicy null. This also explains the two headers seen in production on 2026-09-04 and attributed to the proxy; the ADR and README wording will be corrected in remediation. Verification: curl on /, the 404 page and /feed.xml carries the full set and no Server header; browser walk under enforce of the FR-D8 public pages with enhanced navigation and a full reload, zero CSP messages; the hash path exercised by seeding one theme override in the ephemeral database (style-src carried the sha256 value, page rendered the override, console clean). No upload existed to curl; the admin pages stay the owner production check. Five review agents launched; the security reviewer asked to verify the framework-default attribution."
+**Context**: Unit 12 phase 12a implementation complete; review in progress.
+
+---
+
+## Unit 12 phase 12a: five-area review complete; remediation launched
+**Timestamp**: 2026-09-15T14:52:52Z
+**User Input**: (none)
+**AI Response**: "Security: values match the NFR requirements and OWASP with the documented omissions; both framework-default claims verified against Microsoft Learn (SuppressXFrameOptionsHeader defaults false; ContentSecurityFrameAncestorsPolicy defaults to self and null disables it); the hash byte-exact; the CSSOM path carries only validated colors and constant CSS text; BR-18 clean; two minors (a fuller Permissions-Policy; a test pinning the two suppressions) and a nit (X-DNS-Prefetch-Control and X-Permitted-Cross-Domain-Policies). Correctness: one minor (the reset path must force the same reload as save) and a nit (an adjacency assertion). Framework: one major on accessibility (the saved notice after the forced reload sits in the initial markup, unannounced) and one minor (repaint on every render). Performance: one minor (compose per request; cache per hash) and the same repaint nit. Maintainability: four minors (a wrong FR citation, the verification doc restating constants without a keep-in-sync note, test naming, a shared LinkedSource reader for seven fixtures). The orchestrator corrected the proxy attribution in ADR 0003, the NFR requirements, the tech-stack decisions and the requirements amendment (the two headers were the framework defaults). A Sonnet remediation agent applies the eleven items."
+**Context**: Unit 12 phase 12a review complete; remediation in progress.
+
+---
+
+## Unit 12 phase 12a: remediation applied
+**Timestamp**: 2026-09-15T15:14:58Z
+**User Input**: (none)
+**AI Response**: "Remediation commits f21a307 (the cached header list by hash; the fuller Permissions-Policy with nineteen features; X-DNS-Prefetch-Control off and X-Permitted-Cross-Domain-Policies none; the paint-version gate; the saved notice inserted after the first interactive render so the live region announces it; one ReloadWithSavedNotice helper for save and reset), e82b574 (the adjacency assertion; a fact pinning the two framework suppressions; the FR-D3 citation; the Subject_Behaviour test names; Support/LinkedSource.cs used by the single-file scan fixtures; the two directory-scanning fixtures left as they are, a documented deviation) and b20d6f2 (the NFR requirements rows, the verification doc keep-in-sync sentence and values, the instructions totals, five plan deviation bullets). Verified: build 0 warnings; 984 tests, 53 fixtures. Next: the plan review tick, the docs commit with the corrected ADR and requirement amendment, push, PR 3, Copilot."
+**Context**: Unit 12 phase 12a review complete; PR next.
+
+---
+
+## Unit 12 phase 12a: PR #110 opened
+**Timestamp**: 2026-09-15T15:15:45Z
+**User Input**: (none)
+**AI Response**: "Docs commit 58c80ce (ADR 0003 and the design docs attributing the old frame headers to the framework defaults; the 12b brief; the audit trail); branch pushed; PR #110 feat: security headers with an enforced content security policy opened with the what, the design pointers and the verification in the body; Copilot requested; polling the reviews. The plan review box ticked (to ride in the next docs commit before the merge)."
+**Context**: Unit 12 phase 12a Copilot gate in progress.
+
+---
+
+## Unit 12 phase 12a: Copilot round 1 on PR #110
+**Timestamp**: 2026-09-15T15:23:24Z
+**User Input**: (none)
+**AI Response**: "Copilot left three comments on SecurityHeadersMiddleware.cs, CI green: (1) the two-reference cache tuple is not written atomically; (2) every request, assets and /healthz included, calls ThemeService.GetSnapshotAsync, which retries the database per request during an outage; (3) the header hash and the App.razor block read the snapshot separately, so a save between the reads could mismatch them. One design change answers all three: an immutable cache object held by one reference; a LastKnown snapshot on ThemeService set on load and on save, used by the middleware so no request touches the database for headers after the first load; the snapshot stored on the request (HttpContext.Items) and App.razor rendering from it. A Sonnet remediation agent applies it with tests and the design note."
+**Context**: Unit 12 phase 12a Copilot gate, round 1 remediation in progress.
+
+---

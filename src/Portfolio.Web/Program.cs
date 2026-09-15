@@ -10,11 +10,27 @@ using Portfolio.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// FR-D1: self-hosters without a reverse proxy get no server-identifying
+// header either; the production proxy already substitutes its own.
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// The framework would otherwise add its own baseline anti-clickjacking
+// header ahead of SecurityHeadersMiddleware: by default, antiforgery-token
+// generation (used across the app's interactive forms) sends
+// X-Frame-Options: SAMEORIGIN unconditionally. Because that write happens
+// deep in endpoint execution, it registers its Response.OnStarting callback
+// after this app's own middleware and so runs first, leaving
+// SecurityHeadersMiddleware's fill-if-absent logic unable to replace it
+// with the stricter DENY (FR-D1). Suppressed here; every response still
+// gets X-Frame-Options from this app's own middleware.
+builder.Services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader = true);
+
 builder.Services.AddSingleton(SiteConfig.FromConfiguration(builder.Configuration));
+builder.Services.AddSingleton(SecurityOptions.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton<AdminEmails>();
 builder.Services.AddSingleton<MarkdownService>();
 builder.Services.AddSingleton<BlogService>();
@@ -166,6 +182,14 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 
+// Security headers on every response (FR-D1, FR-D2, FR-D5): placed right
+// after forwarded headers and before the HEAD-as-GET rewrite below, so
+// static assets, the /uploads files, the exception handler's re-execution,
+// the re-executed 404, the health check and every Blazor page all pass
+// through it — see SecurityHeadersMiddleware for why OnStarting and
+// fill-if-absent.
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
 // Blazor component endpoints match GET only, so bare HEAD requests 405.
 // Serve HEAD as GET with the body discarded (RFC 9110: same status and
 // headers, no content); the method is restored afterwards for logging.
@@ -230,16 +254,30 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(uploadsRoot),
     RequestPath = "/uploads",
     // Upload filenames are single-use GUIDs — the content behind a URL can
-    // never change, so clients may cache it forever.
+    // never change, so clients may cache it forever. FR-D4: a restrictive
+    // policy of its own (a scripted SVG, validated by extension only, must
+    // never run) set here, ahead of SecurityHeadersMiddleware's
+    // fill-if-absent, so the page policy never overwrites it.
     OnPrepareResponse = static ctx =>
-        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable",
+    {
+        ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        ctx.Context.Response.Headers["Content-Security-Policy"] = SecurityHeadersRules.UploadsCsp;
+        ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    },
 });
 
 app.MapAuthEndpoints();
 app.MapSeoEndpoints();
 app.MapAnalyticsEndpoints();
 app.MapHealthChecks("/healthz");
+// Same reasoning as the antiforgery header above: Blazor Web Apps (.NET 8+)
+// otherwise add their own Content-Security-Policy: frame-ancestors 'self'
+// to interactive component responses, which — by the same OnStarting
+// ordering — would win over this app's fuller policy under fill-if-absent.
+// null disables the framework default (its own documented escape hatch);
+// this app's own middleware supplies frame-ancestors 'none' (FR-D2) on
+// every response, first render included, so nothing is left unprotected.
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode(o => o.ContentSecurityFrameAncestorsPolicy = null);
 
 app.Run();

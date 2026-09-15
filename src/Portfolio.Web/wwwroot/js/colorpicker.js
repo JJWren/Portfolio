@@ -247,3 +247,24 @@ export function open(hex, targetInputId) {
     // and focus restoration to the opening swatch on close.
     picker.dialog.showModal();
 }
+
+// FR-D3: paints ThemeEditor.razor's preview frame and swatches through the
+// CSSOM instead of a style attribute — the site's Content-Security-Policy
+// carries no 'unsafe-inline' in style-src, but CSSOM writes
+// (element.style.x = ...) are not governed by it. Called from
+// OnAfterRenderAsync after every render, since both attributes change on
+// every keystroke and mode toggle. root is the ElementReference the .NET
+// side passes in (the editor's outermost element), which JS interop hands
+// across as the actual DOM element; falls back to the whole document so a
+// missing root fails safe rather than painting nothing.
+export function applyDataStyles(root) {
+    var scope = root || document;
+    var styled = scope.querySelectorAll('[data-style]');
+    for (var i = 0; i < styled.length; i++) {
+        styled[i].style.cssText = styled[i].dataset.style;
+    }
+    var colored = scope.querySelectorAll('[data-color]');
+    for (var j = 0; j < colored.length; j++) {
+        colored[j].style.background = colored[j].dataset.color;
+    }
+}

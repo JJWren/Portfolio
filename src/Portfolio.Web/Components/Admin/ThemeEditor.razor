@@ -8,10 +8,11 @@
 @inject SiteConfig Site
 @inject IJSRuntime JS
 @inject ILogger<ThemeEditor> Logger
+@inject NavigationManager Nav
 
 <PageTitle>Theme — Admin — @Site.SiteTitle</PageTitle>
 
-<section class="section">
+<section class="section" @ref="_editorRoot">
     <div class="container">
         <p class="eyebrow">Admin</p>
         <div class="admin-head">
@@ -111,11 +112,14 @@
                             }
                         </ul>
                     }
-                    @* The inline style carries the complete token set for the
-                       previewed mode, so the admin page's own theme cannot leak
-                       in; inert keeps the preview's links and heading out of the
+                    @* FR-D3: no style attribute (the CSP's style-src carries no
+                       'unsafe-inline'), so the complete token set for the
+                       previewed mode travels as data-style and colorpicker.js's
+                       applyDataStyles paints it through the CSSOM after every
+                       render; the admin page's own theme still cannot leak in.
+                       inert keeps the preview's links and heading out of the
                        tab order and accessibility tree. *@
-                    <div class="theme-preview-frame" style="@_previewStyle" inert aria-hidden="true">
+                    <div class="theme-preview-frame" data-style="@_previewStyle" inert aria-hidden="true">
                         <LandingSections Content="_content" />
                     </div>
                 </div>
@@ -145,11 +149,24 @@
 </dialog>
 
 @code {
+    // FR-D3: round-trips through the forced full-page reload
+    // ReloadWithSavedNotice triggers after a successful save or reset, so
+    // the saved notice still shows once the new override block (or its
+    // removal) and its CSP hash have arrived together.
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "saved")]
+    public string? SavedFlag { get; set; }
+
     private bool _loading = true;
     private bool _busy;
     private bool _saved;
     private bool _confirmingReset;
     private string? _error;
+
+    // FR-D3: the outermost element, so colorpicker.js's applyDataStyles can
+    // reach every data-style/data-color descendant (the preview frame and
+    // every swatch) in one call.
+    private ElementReference _editorRoot;
 
     private bool _pickerInitialized;
     private bool _pickerReady;
@@ -165,10 +182,21 @@
         ThemeRules.BuildPreviewStyle(ThemeRules.DefaultSnapshot.Theme, ThemeMode.Dark);
     private EffectiveSiteContent _content = default!;
 
+    // FR-D3: applyDataStyles need only run again once _previewStyle or an
+    // effective color actually changed since the last paint — most renders
+    // (the picker module's own init, an unrelated StateHasChanged) touch
+    // neither. _paintVersion starts at 1 to already count the synchronous
+    // seed above as a change (Recompute() and SetPreviewMode() bump it
+    // further); _paintedVersion starts at 0, so the first render after the
+    // module import below still paints, same as before.
+    private int _paintVersion = 1;
+    private int _paintedVersion;
+
     private RenderFragment TokenRow(ThemeToken token) => __builder =>
     {
         <div class="token-row">
-            <button type="button" class="swatch" style="background:@_effective[token.Key]"
+            @* FR-D3: data-color, not style — see the preview frame's comment above. *@
+            <button type="button" class="swatch" data-color="@_effective[token.Key]"
                     disabled="@(!_pickerReady)"
                     aria-label="@($"Pick {token.Label} color, currently {_effective[token.Key]}")"
                     @onclick="() => OpenPickerAsync(token)"></button>
@@ -213,6 +241,18 @@
     /// <param name="firstRender">Whether this is the component's first render.</param>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender && SavedFlag is not null)
+        {
+            // FR-D3: flipped here, not in OnInitializedAsync, so the
+            // <p role="status"> notice is inserted as a post-load DOM
+            // mutation — that's what makes a screen reader's live region
+            // announce it; a notice already present in the prerendered
+            // markup is announced to no one. Trade-off: the page is briefly
+            // visible without the notice before this render patches it in.
+            _saved = true;
+            StateHasChanged();
+        }
+
         if (firstRender && !_pickerInitialized)
         {
             _pickerInitialized = true;
@@ -234,6 +274,30 @@
             {
                 // The circuit died while the import was in flight (tab closed,
                 // connection lost); there is no user left to show the picker to.
+            }
+        }
+
+        // FR-D3: re-paints the preview frame and every swatch through the
+        // CSSOM once _previewStyle or an effective color actually changed
+        // since the last paint (_paintVersion differs from _paintedVersion)
+        // — a strict style-src leaves data-style/data-color inert otherwise.
+        // _paintedVersion starts behind _paintVersion, so this still runs on
+        // the first render after the module import above, as before.
+        if (_pickerModule is not null && _paintedVersion != _paintVersion)
+        {
+            try
+            {
+                await _pickerModule.InvokeVoidAsync("applyDataStyles", _editorRoot);
+                _paintedVersion = _paintVersion;
+            }
+            catch (JSException ex)
+            {
+                Logger.LogError(ex, "Applying the preview and swatch colors failed.");
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit died between the render and this call; no user
+                // left to paint for.
             }
         }
     }
@@ -297,6 +361,7 @@
         _previewStyle = ThemeRules.BuildPreviewStyle(_effective, _previewMode);
         _warnings = ThemeRules.ContrastWarnings(_effective);
         _saved = false;
+        _paintVersion++;
     }
 
     private void OnHexInput(string key, ChangeEventArgs e)
@@ -309,6 +374,7 @@
     {
         _previewMode = mode;
         _previewStyle = ThemeRules.BuildPreviewStyle(_effective, mode);
+        _paintVersion++;
     }
 
     /// <summary>An in-progress value that doesn't parse yet — flagged, never blocking.</summary>
@@ -330,6 +396,11 @@
         }
 
         await PersistAsync();
+
+        if (_saved)
+        {
+            ReloadWithSavedNotice();
+        }
     }
 
     private async Task ResetAllAsync()
@@ -349,7 +420,28 @@
 
         Recompute();
         await PersistAsync();
+
+        if (_saved)
+        {
+            // A reset persists the cleared overrides through the same
+            // PersistAsync path a save uses, so the open document must
+            // reload the same way a save does — otherwise it would keep
+            // whatever override CSP hash it loaded with even though the
+            // overrides (and the hash) are now gone.
+            ReloadWithSavedNotice();
+        }
     }
+
+    /// <summary>
+    /// FR-D3: the new override block (or its removal) and its CSP
+    /// style-src hash must arrive together. Enhanced navigation would keep
+    /// this document's already-sent (now stale) policy while patching in
+    /// new content, so force a real full-page load back to this page; the
+    /// "saved" query flag survives the round trip and OnAfterRenderAsync
+    /// turns it back into the notice.
+    /// </summary>
+    private void ReloadWithSavedNotice()
+        => Nav.NavigateTo(Nav.GetUriWithQueryParameter("saved", "1"), forceLoad: true);
 
     private async Task PersistAsync()
     {

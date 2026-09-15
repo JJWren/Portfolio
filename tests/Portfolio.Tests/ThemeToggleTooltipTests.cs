@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Portfolio.Tests.Support;
 using Portfolio.Web.Services;
 
 namespace Portfolio.Tests;
@@ -25,15 +26,7 @@ public class ThemeToggleTooltipTests
     private const string ShownWhileDark = "Switch to the white gi (light theme)";
     private const string ShownWhileLight = "Switch to the black gi (dark theme)";
 
-    private static string Linked(string relativePath)
-    {
-        // Sanity check on the harness: a missing link must name its cause,
-        // not surface as a FileNotFoundException.
-        var path = Path.Combine(AppContext.BaseDirectory, relativePath);
-        Assert.True(File.Exists(path),
-            $"Expected the linked source at {path}; check the None/CopyToOutputDirectory items in Portfolio.Tests.csproj.");
-        return File.ReadAllText(path);
-    }
+    private static string Linked(string relativePath) => LinkedSource.Read(relativePath);
 
     [Fact]
     public void AppRazor_HtmlElement_CarriesTheFlavorAttribute()

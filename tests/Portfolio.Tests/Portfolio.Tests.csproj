@@ -39,12 +39,21 @@
          folder here, so a backslash would land the file under a literal
          "js\theme.js" name on the CI runner. -->
     <None Include="..\..\src\Portfolio.Web\wwwroot\js\theme.js" Link="js/theme.js" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Same idiom, so ColorPickerModuleTests can scan the admin color
+         picker's applyDataStyles export (Unit 12a, FR-D3) without a JS
+         runtime. -->
+    <None Include="..\..\src\Portfolio.Web\wwwroot\js\colorpicker.js" Link="js/colorpicker.js" CopyToOutputDirectory="PreserveNewest" />
     <!-- Same idiom, applied to every .razor file under Components/ (LinkBase
          preserves the subfolder structure under RazorComponents/) so
          NoInlineOnClickTests can scan them for a stray inline onclick=""
          attribute (Phase 5 close-out removed the last four) without a
          Razor/HTML parser package. -->
     <None Include="..\..\src\Portfolio.Web\Components\**\*.razor" LinkBase="RazorComponents" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Same idiom, applied to Program.cs so ProgramPipelineTests can pin
+         the security-headers middleware placement and the Kestrel/uploads
+         settings (Unit 12a) by text scan — the project deliberately has no
+         test host (tech-stack-decisions.md). -->
+    <None Include="..\..\src\Portfolio.Web\Program.cs" Link="Program.cs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

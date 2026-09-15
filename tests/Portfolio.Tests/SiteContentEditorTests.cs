@@ -1,3 +1,5 @@
+using Portfolio.Tests.Support;
+
 namespace Portfolio.Tests;
 
 /// <summary>
@@ -12,13 +14,7 @@ public class SiteContentEditorTests
 {
     private const string SelectOpening = @"<select @bind=""_currentBeltText"" @bind:after=""MarkDirty"">";
 
-    private static string Editor()
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "RazorComponents", "Admin", "SiteContentEditor.razor");
-        Assert.True(File.Exists(path),
-            $"Expected the linked source at {path}; check the None/LinkBase item in Portfolio.Tests.csproj.");
-        return File.ReadAllText(path);
-    }
+    private static string Editor() => LinkedSource.Read("RazorComponents", "Admin", "SiteContentEditor.razor");
 
     /// <summary>The markup of the current-belt select, opening tag to closing tag.</summary>
     private static string SelectBlock(string editor)

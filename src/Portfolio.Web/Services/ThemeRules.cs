@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Portfolio.Web.Services;
@@ -53,7 +54,14 @@ public sealed record EffectiveTheme(IReadOnlyDictionary<string, string> Values)
 /// <param name="Theme">The resolved palette.</param>
 /// <param name="OverrideCss">Style-block body for overridden tokens only; empty when nothing is overridden.</param>
 /// <param name="MetaThemeColor">The effective dark background, for the theme-color meta tag.</param>
-public sealed record ThemeSnapshot(EffectiveTheme Theme, string OverrideCss, string MetaThemeColor);
+/// <param name="OverrideCssHash">
+/// FR-D3: <c>"sha256-&lt;base64&gt;"</c> of the UTF-8 bytes of <paramref name="OverrideCss"/>,
+/// computed by <see cref="StyleHash"/>; null when there is no override block.
+/// <c>SecurityHeadersMiddleware</c> reads this to admit App.razor's override
+/// <c>&lt;style&gt;</c> element under the Content-Security-Policy's style-src
+/// directive, so the two can never disagree within one response.
+/// </param>
+public sealed record ThemeSnapshot(EffectiveTheme Theme, string OverrideCss, string MetaThemeColor, string? OverrideCssHash = null);
 
 /// <summary>
 /// Rules for the admin palette overrides. Blank input means "use the built-in
@@ -282,12 +290,24 @@ public static class ThemeRules
         return style.ToString();
     }
 
-    /// <summary>Resolve + BuildOverrideCss + the theme-color meta value (the effective dark background) in one snapshot.</summary>
+    /// <summary>Resolve + BuildOverrideCss + the theme-color meta value (the effective dark background) + the override's style hash in one snapshot.</summary>
     public static ThemeSnapshot BuildSnapshot(IReadOnlyDictionary<string, string>? overrides)
     {
         var theme = Resolve(overrides);
-        return new ThemeSnapshot(theme, BuildOverrideCss(overrides), theme["dark-bg"]);
+        var overrideCss = BuildOverrideCss(overrides);
+        var hash = overrideCss.Length > 0 ? StyleHash(overrideCss) : null;
+        return new ThemeSnapshot(theme, overrideCss, theme["dark-bg"], hash);
     }
+
+    /// <summary>
+    /// FR-D3: the Content-Security-Policy style-src exception for the theme
+    /// override block — <c>"sha256-&lt;base64&gt;"</c> of the UTF-8 bytes of
+    /// <paramref name="css"/>. App.razor renders exactly this string inside a
+    /// one-line <c>&lt;style&gt;</c> element with nothing else in it, so the
+    /// hash always matches what the browser hashes.
+    /// </summary>
+    public static string StyleHash(string css)
+        => "sha256-" + Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(css)));
 
     /// <summary>WCAG 2.x relative-luminance contrast ratio between two hex colors (1..21).</summary>
     public static double ContrastRatio(string hexA, string hexB)

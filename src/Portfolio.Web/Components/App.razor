@@ -41,11 +41,18 @@
         @* After app.css so the overridden tokens win the cascade by source
            order; MarkupString because Blazor would HTML-encode the selector's
            quotes. Only ThemeRules.BuildOverrideCss output lands here — every
-           value is re-validated to #rrggbb at emission. *@
+           value is re-validated to #rrggbb at emission. This block is allowed
+           under the Content-Security-Policy's style-src by the hash carried
+           on _theme.OverrideCssHash (ThemeRules.StyleHash), computed over
+           exactly this element's text — so this line must stay on one line
+           with nothing else inside the <style> element. _theme itself comes
+           from the request item SecurityHeadersMiddleware populated with the
+           very snapshot it hashed for this response's CSP header (falling
+           back to a fresh ThemeService load only when that item is absent),
+           so the header's hash and this block's content can never disagree. *@
         <style>@((MarkupString)_theme.OverrideCss)</style>
     }
     <link rel="stylesheet" href="@Assets["Portfolio.Web.styles.css"]" />
-    <ImportMap />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
     <link rel="manifest" href="site.webmanifest" />
@@ -63,6 +70,12 @@
 </html>
 
 @code {
+    // Cascading HttpContext that static server-side rendering supplies to
+    // the root component on every real request; null for a render off that
+    // path (a test harness).
+    [CascadingParameter]
+    public Microsoft.AspNetCore.Http.HttpContext? HttpContext { get; set; }
+
     // Safe for any render path; the shell is statically rendered per request
     // and no page streams, so OnInitializedAsync always completes before the
     // head is written — the override style block can never flash in late.
@@ -81,6 +94,19 @@
             uri.AbsolutePath);
     }
 
+    // Reads the snapshot the middleware stashed under ThemeSnapshotItemKey
+    // (see the comment on the <style> block above); a fresh load is the
+    // fallback for a render the middleware never touched, e.g. a test.
     protected override async Task OnInitializedAsync()
-        => _theme = await ThemeStore.GetSnapshotAsync();
+    {
+        if (HttpContext?.Items.TryGetValue(
+                Portfolio.Web.Services.SecurityHeadersMiddleware.ThemeSnapshotItemKey, out var item) == true
+            && item is Portfolio.Web.Services.ThemeSnapshot snapshot)
+        {
+            _theme = snapshot;
+            return;
+        }
+
+        _theme = await ThemeStore.GetSnapshotAsync();
+    }
 }
