@@ -55,13 +55,18 @@ curl -sI http://localhost:5199/no-such-page
 curl -sI http://localhost:5199/feed.xml
 ```
 
-Every response must carry, exactly:
+Every response must carry, exactly. The `Permissions-Policy` and
+`Content-Security-Policy` values below are copied from `SecurityHeadersRules`
+for this curl comparison, are pinned by `SecurityHeadersRulesTests`, and must
+be updated together with that test:
 
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `X-Frame-Options: DENY`
-- `Permissions-Policy: accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), screen-wake-lock=(), usb=(), xr-spatial-tracking=()`
+- `Permissions-Policy: accelerometer=(), autoplay=(), browsing-topics=(), camera=(), clipboard-read=(), clipboard-write=(), display-capture=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), screen-wake-lock=(), usb=(), web-share=(), xr-spatial-tracking=()`
 - `Cross-Origin-Opener-Policy: same-origin`
+- `X-DNS-Prefetch-Control: off`
+- `X-Permitted-Cross-Domain-Policies: none`
 - `Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: https:; font-src 'self'; connect-src 'self'; manifest-src 'self'` (the `style-src` grows a `'sha256-...'` entry only once an override is saved — section 3)
 
 And no response should carry a `Server` header.
