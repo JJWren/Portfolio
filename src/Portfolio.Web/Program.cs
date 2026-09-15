@@ -89,12 +89,25 @@ if (!string.IsNullOrEmpty(keysPath))
         .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 }
 
-// OAuth callbacks need the original scheme/host when running behind a reverse proxy.
+// OAuth callbacks need the original scheme/host when running behind a
+// reverse proxy. FR-D14: TRUSTED_PROXIES narrows whose X-Forwarded-For is
+// honored after the two lists are cleared below; blank keeps every peer
+// trusted (today's behaviour), so no self-hoster breaks.
+var trusted = TrustedProxies.Parse(builder.Configuration["TRUSTED_PROXIES"]);
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
+    foreach (var proxy in trusted.Proxies)
+    {
+        options.KnownProxies.Add(proxy);
+    }
+
+    foreach (var network in trusted.Networks)
+    {
+        options.KnownIPNetworks.Add(network);
+    }
 });
 
 // Sign-in is external OAuth only — no password accounts.
@@ -173,6 +186,13 @@ builder.Services.AddHealthChecks()
 builder.Services.AddRateLimiter(RateLimitPolicies.Configure);
 
 var app = builder.Build();
+
+if (trusted.Skipped.Count > 0)
+{
+    app.Services.GetRequiredService<ILogger<Program>>().LogWarning(
+        "TRUSTED_PROXIES: ignoring entries that are not an IP address or CIDR network: {Skipped}",
+        string.Join(", ", trusted.Skipped));
+}
 
 using (var scope = app.Services.CreateScope())
 {
