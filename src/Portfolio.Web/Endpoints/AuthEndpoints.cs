@@ -13,7 +13,7 @@ public static class AuthEndpoints
 
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/auth");
+        var group = app.MapGroup("/auth").RequireRateLimiting(RateLimitPolicies.Auth);
 
         group.MapGet("/login/{provider}", (
             string provider,

@@ -166,6 +166,12 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>();
 
+// FR-D9: named per-client-address policies on the auth group, the feeds and
+// the counted redirects; a path-scoped global limiter for the OAuth handler
+// callback paths. See RateLimitPolicies.Configure for the policy values and
+// the 429 rejection response.
+builder.Services.AddRateLimiter(RateLimitPolicies.Configure);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -241,6 +247,11 @@ if (app.Environment.IsDevelopment())
 // above — the implicit UseRouting would run before every middleware in
 // this file and match HEAD against GET-only endpoints (405).
 app.UseRouting();
+
+// After routing, so the matched endpoint's policy can resolve, and before
+// authentication, so a rejected request never reaches authentication,
+// authorization, antiforgery or the analytics middleware (FR-D10, NFR-15).
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

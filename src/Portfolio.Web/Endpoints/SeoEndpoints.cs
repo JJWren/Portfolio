@@ -41,7 +41,8 @@ public static class SeoEndpoints
                     channel));
 
             return Results.Content(Declaration(rss), "application/rss+xml", Encoding.UTF8);
-        });
+        })
+        .RequireRateLimiting(RateLimitPolicies.Feeds);
 
         // Config-gated like /resume: no OWNER_PHOTO_FILE, no photo anywhere.
         // Immutable caching is safe because renders always link it as
@@ -71,7 +72,8 @@ public static class SeoEndpoints
 
             var sitemap = new XDocument(new XElement(ns + "urlset", urls));
             return Results.Content(Declaration(sitemap), "application/xml", Encoding.UTF8);
-        });
+        })
+        .RequireRateLimiting(RateLimitPolicies.Feeds);
 
         app.MapGet("/robots.txt", (HttpContext ctx, IConfiguration config) =>
         {
