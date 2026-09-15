@@ -24,8 +24,8 @@ public static class LogSafe
         // replacement below keeps the length, so the order does not change the
         // result. A cap that lands inside a surrogate pair drops the dangling
         // half rather than logging malformed text.
-        var text = value.Length > maxLength ? value[..maxLength] : value;
-        if (char.IsHighSurrogate(text[^1]))
+        var text = value.Length > maxLength ? value[..Math.Max(maxLength, 0)] : value;
+        if (text.Length > 0 && char.IsHighSurrogate(text[^1]))
         {
             text = text[..^1];
         }

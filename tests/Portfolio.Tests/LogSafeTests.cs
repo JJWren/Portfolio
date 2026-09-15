@@ -24,6 +24,7 @@ public class LogSafeTests
 
         Assert.Equal(LogSafe.MaxLength, LogSafe.Sanitize(longPath).Length);
         Assert.Equal("abc", LogSafe.Sanitize("abcdef", 3));
+        Assert.Equal("", LogSafe.Sanitize("x", 0)); // a zero cap empties the value without throwing
     }
 
     [Fact]
