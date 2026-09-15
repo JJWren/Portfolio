@@ -329,6 +329,54 @@ public class ThemeRulesTests
         Assert.Equal(":root{--bg:#0a0b0c;}", snapshot.OverrideCss);
     }
 
+    // ---- OverrideCssHash / StyleHash (FR-D3) --------------------------------
+
+    [Fact]
+    public void DefaultSnapshot_OverrideCssHashIsNull()
+        => Assert.Null(ThemeRules.DefaultSnapshot.OverrideCssHash);
+
+    [Fact]
+    public void BuildSnapshot_NoOverrides_OverrideCssHashIsNull()
+    {
+        Assert.Null(ThemeRules.BuildSnapshot(null).OverrideCssHash);
+        Assert.Null(ThemeRules.BuildSnapshot(new Dictionary<string, string>()).OverrideCssHash);
+    }
+
+    [Fact]
+    public void BuildSnapshot_WithOverrides_OverrideCssHashIsStyleHashOfTheOverrideCss()
+    {
+        var snapshot = ThemeRules.BuildSnapshot(new Dictionary<string, string> { ["dark-bg"] = "#0a0b0c" });
+
+        Assert.Equal(ThemeRules.StyleHash(snapshot.OverrideCss), snapshot.OverrideCssHash);
+    }
+
+    [Fact]
+    public void StyleHash_KnownInput_MatchesAnIndependentlyComputedSha256()
+        // sha256sum -- printf '%s' ":root{--bg:#000000;}" | sha256sum
+        // 94b7375a035dbab353cffd4573ce5a7763a0884f7ce3182c418d3277329e2fea,
+        // base64-encoded independently of this codebase — an oracle for
+        // StyleHash, not merely the same formula restated.
+        => Assert.Equal(
+            "sha256-lLc3WgNdurNTz/1Fc85ad2OgiE984xgsQY0ydzKeL+o=",
+            ThemeRules.StyleHash(":root{--bg:#000000;}"));
+
+    [Fact]
+    public void StyleHash_MatchesTheHashOnASnapshotBuiltFromTheSameOverrideCss()
+    {
+        var snapshot = ThemeRules.BuildSnapshot(new Dictionary<string, string> { ["dark-bg"] = "#000000" });
+
+        Assert.Equal(":root{--bg:#000000;}", snapshot.OverrideCss);
+        Assert.Equal("sha256-lLc3WgNdurNTz/1Fc85ad2OgiE984xgsQY0ydzKeL+o=", snapshot.OverrideCssHash);
+    }
+
+    [Fact]
+    public void StyleHash_StartsWithTheSha256Prefix()
+        => Assert.StartsWith("sha256-", ThemeRules.StyleHash("a"));
+
+    [Fact]
+    public void StyleHash_DifferentInputs_ProduceDifferentHashes()
+        => Assert.NotEqual(ThemeRules.StyleHash("a"), ThemeRules.StyleHash("b"));
+
     // ---- Contrast -----------------------------------------------------------
 
     [Fact]
