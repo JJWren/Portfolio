@@ -1,9 +1,10 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Portfolio.Web.Data;
 
 namespace Portfolio.Web.Services;
 
-public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
+public class CommentService(IDbContextFactory<AppDbContext> dbFactory, CommentLimiter commentLimiter)
 {
     /// <summary>Newest-first window for incremental "show more" loading. Pinned
     /// comments are returned separately, in full — never windowed — and excluded
@@ -95,9 +96,9 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
         return rows.Select(r => (r.Id, r.Title)).ToList();
     }
 
-    /// <summary>Adds a comment; returns null and an error message when the body is invalid.</summary>
+    /// <summary>Adds a comment; returns null and an error message when the body is invalid, the account is banned, or the caller is over the comment rate limit.</summary>
     public async Task<(Comment? Comment, string? Error)> AddAsync(
-        int postId, string userId, string? body, bool isAnonymous = false)
+        int postId, string userId, string? body, ClaimsPrincipal user, string? clientAddress, bool isAnonymous = false)
     {
         var normalized = CommentRules.Validate(body, out var error);
         if (normalized is null)
@@ -111,6 +112,17 @@ public class CommentService(IDbContextFactory<AppDbContext> dbFactory)
         if (banned)
         {
             return (null, "Your account is currently restricted from commenting.");
+        }
+
+        // FR-D12: after the ban check, before any insert, so a banned
+        // account still sees the ban message rather than a rate-limit one.
+        if (!SubmissionRules.IsExempt(user))
+        {
+            var key = SubmissionRules.Key(userId, clientAddress);
+            if (!commentLimiter.Allow(key))
+            {
+                return (null, SubmissionRules.WaitMessage(commentLimiter.RetryAfter(key), "comments"));
+            }
         }
 
         var comment = new Comment

@@ -111,6 +111,10 @@
     [Parameter, EditorRequired]
     public required string PostSlug { get; set; }
 
+    /// <summary>The connection address of the page request that rendered this island (FR-D12, FR-D14); travels to the circuit in the component's data-protected parameter descriptor.</summary>
+    [Parameter]
+    public string? ClientAddress { get; set; }
+
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
 
@@ -119,6 +123,7 @@
     private Portfolio.Web.Data.ApplicationUser? _profile;
     private int _visibleTake = PageSizes.Comments;
     private int _totalComments;
+    private System.Security.Claims.ClaimsPrincipal _principal = new(new System.Security.Claims.ClaimsIdentity());
     private string? _userId;
     private bool _isAdmin;
     private bool _isBanned;
@@ -235,6 +240,7 @@
         if (AuthState is not null)
         {
             var auth = await AuthState;
+            _principal = auth.User;
             _userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             _isAdmin = auth.User.IsInRole("Admin");
         }
@@ -259,7 +265,7 @@
         _busy = true;
         try
         {
-            var (comment, error) = await Comments.AddAsync(PostId, _userId, _draft, _postAnonymously);
+            var (comment, error) = await Comments.AddAsync(PostId, _userId, _draft, _principal, ClientAddress, _postAnonymously);
             _error = error;
             if (comment is not null)
             {
@@ -333,7 +339,7 @@
                 ? Portfolio.Web.Data.ReportTargetType.User
                 : Portfolio.Web.Data.ReportTargetType.Comment;
             var (report, error) = await Reports.CreateAsync(
-                _userId, commentId, targetType, _reportReason, _reportDetails);
+                _userId, commentId, targetType, _reportReason, _reportDetails, _principal, ClientAddress);
             _reportError = error;
             if (report is not null)
             {

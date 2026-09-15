@@ -70,7 +70,8 @@ else if (_post is not null)
         </div>
 
         <div class="container">
-            <CommentSection PostId="_post.Id" PostSlug="@_post.Slug" />
+            <CommentSection PostId="_post.Id" PostSlug="@_post.Slug"
+                            ClientAddress="@(HttpContext?.Connection.RemoteIpAddress?.ToString())" />
         </div>
     </article>
 }
