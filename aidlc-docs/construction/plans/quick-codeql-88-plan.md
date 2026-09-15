@@ -10,11 +10,11 @@
 ## Steps
 
 - [x] Worktree `C:/Users/joshu/source/repos/Portfolio-codeql` on `fix/log-forging` from `origin/master` (65a7728).
-- [ ] `Services/LogSafe.cs`: `Value(string? value, int maxLength = 300)` replaces `\r` and `\n` (the sanitizer shape CodeQL recognizes) and every other control character with an underscore and caps the length; empty for null.
-- [ ] `Services/AnalyticsService.cs:96` and `Services/MailDomainChecker.cs:102` log `LogSafe.Value(...)` instead of the raw value.
-- [ ] `tests/Portfolio.Tests/LogSafeTests.cs`: a theory over plain, CRLF, LF, tab, DEL, empty and null inputs; a fact for the cap; `unit-test-instructions.md` totals and row.
-- [ ] `dotnet build -warnaserror` 0 warnings; `dotnet test` green.
-- [ ] Five-area review (report-only) and remediation.
+- [x] `Services/LogSafe.cs`: `Sanitize(string? value, int maxLength = 300)` caps the length, drops a half surrogate left at the cap, replaces `\r` and `\n` (the sanitizer shape CodeQL recognizes) and every other control character with an underscore; empty for null. Done: commit 0983b93 as `Value`, reshaped by the review (cap first, the two-argument `Replace`, the surrogate guard, renamed `Sanitize`).
+- [x] `Services/AnalyticsService.cs:96` and `Services/MailDomainChecker.cs:102` log `LogSafe.Sanitize(...)` instead of the raw value. Done, plus a third site the review found: `Endpoints/AuthEndpoints.cs:73`, where Identity's error descriptions embed the provider's email claim.
+- [x] `tests/Portfolio.Tests/LogSafeTests.cs`: a theory over plain, CRLF, LF, lone CR, tab, DEL, a C1 control, empty and null inputs; a fact for the cap; a fact for the surrogate boundary; `unit-test-instructions.md` totals and row. Done: the control characters are written as visible hex escapes (a `\u` escape is decoded into the raw byte by the editing tool, which is how the first version carried an invisible DEL); 1001 tests, 55 fixtures.
+- [x] `dotnet build -warnaserror` 0 warnings; `dotnet test` green. Done on every commit.
+- [x] Five-area review (report-only) and remediation. Done 2026-09-15: security PASS (CodeQL's `StringReplaceSanitizer` recognizes every `String.Replace` overload since the January 2024 bundle; the two-argument overload chosen for certainty; BR-18 clean); correctness two nits and one minor applied (the lone-CR and C1 rows; the surrogate guard; the sign-in error log sanitized); framework one major applied (the raw DEL byte replaced by an escape) and one optional idiom declined (a generated regex; the loop stays, it is one screen and allocation-free enough on a failure path); maintainability two majors applied (this plan's ticks; the DEL row) and three minors applied (`Sanitize`; the instructions heading and the row renamed Security); performance one minor applied (cap before replace). Immaterial and noted: `char.IsControl` leaves U+2028 and U+2029, which no console formatter treats as a line break.
 - [ ] Push; PR; Copilot gate; squash-merge; realign; remove the worktree and the branch; comment and close issue #88 once CodeQL's next scan of master closes alert 2.
 
 ## Definition of done
