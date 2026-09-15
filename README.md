@@ -103,6 +103,7 @@ back to the built-in colors).
 | `OWNER_PHOTO_FLIP_FILE` | | Path to a second, "mat" portrait for the hero's two-photo switch, served at `/owner-photo-flip`; BJJ flavor only, and only once `OWNER_PHOTO_FILE` is also set; unset = the hero shows just the primary photo |
 | `OWNER_PHOTO_FLIP_ALT` | | Alt text for the second photo; defaults to `Portrait of {SITE_OWNER_NAME}`, admin-overridable |
 | `SEED_DEMO_DATA` | | `true` seeds sample posts/projects into empty tables |
+| `SECURITY_CSP_MODE` | | Content-Security-Policy mode: `enforce` (default; also blank or unrecognized), `report-only`, or `off`; see [Running behind a reverse proxy](#running-behind-a-reverse-proxy) |
 
 ### OAuth callback URLs
 
@@ -124,6 +125,25 @@ The container serves plain HTTP on port 8080 and expects TLS to terminate at you
 proxy (Caddy, Traefik, nginx…). Forwarded headers (`X-Forwarded-For` /
 `X-Forwarded-Proto`) are honored so OAuth redirects build correct `https://` URLs.
 Set `PUBLIC_BASE_URL` to your public origin.
+
+The app sets its own security headers on every response — `X-Content-Type-Options`,
+`Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`,
+`Cross-Origin-Opener-Policy`, and a Content-Security-Policy — so a self-hoster
+running with no reverse proxy in front is still fully covered. Your proxy may add
+its own security headers too; it doesn't need to remove or match the app's.
+Duplicates are harmless: a browser enforces every Content-Security-Policy header
+it receives (the stricter directive wins), and `frame-ancestors` supersedes
+`X-Frame-Options` wherever a response carries both.
+
+If your setup does something the default policy doesn't expect (a sub-path
+deployment, an unusual proxy, a third-party embed), set
+`SECURITY_CSP_MODE=report-only`. The app then sends
+`Content-Security-Policy-Report-Only` instead of enforcing the policy — nothing
+is blocked, but your browser's console still logs what the policy would have
+stopped. Watch the console across your pages, adjust, then switch back to
+`enforce` (the default) once the console is quiet. `SECURITY_CSP_MODE=off` sends
+no Content-Security-Policy header at all, as a last-resort rollback; the other
+security headers above are always sent regardless of this setting.
 
 ## Operations
 
