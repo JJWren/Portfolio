@@ -18,6 +18,17 @@ builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// The framework would otherwise add its own baseline anti-clickjacking
+// header ahead of SecurityHeadersMiddleware: by default, antiforgery-token
+// generation (used across the app's interactive forms) sends
+// X-Frame-Options: SAMEORIGIN unconditionally. Because that write happens
+// deep in endpoint execution, it registers its Response.OnStarting callback
+// after this app's own middleware and so runs first, leaving
+// SecurityHeadersMiddleware's fill-if-absent logic unable to replace it
+// with the stricter DENY (FR-D1). Suppressed here; every response still
+// gets X-Frame-Options from this app's own middleware.
+builder.Services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader = true);
+
 builder.Services.AddSingleton(SiteConfig.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton(SecurityOptions.FromConfiguration(builder.Configuration));
 builder.Services.AddSingleton<AdminEmails>();
@@ -259,7 +270,14 @@ app.MapAuthEndpoints();
 app.MapSeoEndpoints();
 app.MapAnalyticsEndpoints();
 app.MapHealthChecks("/healthz");
+// Same reasoning as the antiforgery header above: Blazor Web Apps (.NET 8+)
+// otherwise add their own Content-Security-Policy: frame-ancestors 'self'
+// to interactive component responses, which — by the same OnStarting
+// ordering — would win over this app's fuller policy under fill-if-absent.
+// null disables the framework default (its own documented escape hatch);
+// this app's own middleware supplies frame-ancestors 'none' (FR-D2) on
+// every response, first render included, so nothing is left unprotected.
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode(o => o.ContentSecurityFrameAncestorsPolicy = null);
 
 app.Run();
