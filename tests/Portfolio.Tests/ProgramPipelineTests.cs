@@ -102,4 +102,59 @@ public class ProgramPipelineTests
             @"Response.Headers[""X-Content-Type-Options""] = ""nosniff""",
             block, StringComparison.Ordinal);
     }
+
+    // ---- Unit 12b: rate limiting -------------------------------------------
+
+    [Fact]
+    public void UseRateLimiter_RunsRightAfterUseRouting_AndBeforeUseAuthentication()
+    {
+        var program = ProgramCs();
+
+        var routingIndex = program.IndexOf("app.UseRouting();", StringComparison.Ordinal);
+        var rateLimiterIndex = program.IndexOf("app.UseRateLimiter();", StringComparison.Ordinal);
+        var authenticationIndex = program.IndexOf("app.UseAuthentication();", StringComparison.Ordinal);
+
+        Assert.True(routingIndex >= 0, "Expected app.UseRouting(); in Program.cs.");
+        Assert.True(rateLimiterIndex >= 0, "Expected app.UseRateLimiter(); in Program.cs.");
+        Assert.True(authenticationIndex >= 0, "Expected app.UseAuthentication(); in Program.cs.");
+        Assert.True(rateLimiterIndex > routingIndex, "Expected UseRateLimiter to run after UseRouting.");
+        Assert.True(authenticationIndex > rateLimiterIndex, "Expected UseRateLimiter to run before UseAuthentication.");
+    }
+
+    [Fact]
+    public void AddRateLimiter_IsRegisteredWithRateLimitPoliciesConfigure()
+        => Assert.Contains(
+            "builder.Services.AddRateLimiter(RateLimitPolicies.Configure);",
+            ProgramCs(), StringComparison.Ordinal);
+
+    /// <summary>
+    /// Combined with the ordering fact above (UseRateLimiter before
+    /// UseAuthentication), this pins the full chain a rate-limit rejection
+    /// depends on never reaching: rejected before authentication, and
+    /// AnalyticsMiddleware sits after authentication (FR-D10, NFR-15).
+    /// </summary>
+    [Fact]
+    public void AnalyticsMiddleware_RunsAfterUseAuthentication()
+    {
+        var program = ProgramCs();
+
+        var authenticationIndex = program.IndexOf("app.UseAuthentication();", StringComparison.Ordinal);
+        var analyticsIndex = program.IndexOf("app.UseMiddleware<AnalyticsMiddleware>();", StringComparison.Ordinal);
+
+        Assert.True(authenticationIndex >= 0, "Expected app.UseAuthentication(); in Program.cs.");
+        Assert.True(analyticsIndex >= 0, "Expected app.UseMiddleware<AnalyticsMiddleware>(); in Program.cs.");
+        Assert.True(analyticsIndex > authenticationIndex, "Expected AnalyticsMiddleware to run after UseAuthentication.");
+    }
+
+    [Fact]
+    public void TrustedProxies_ParsedFromConfiguration_AndAppliedToForwardedHeadersOptions()
+    {
+        var program = ProgramCs();
+
+        Assert.Contains(
+            @"TrustedProxies.Parse(builder.Configuration[""TRUSTED_PROXIES""])",
+            program, StringComparison.Ordinal);
+        Assert.Contains("options.KnownProxies.Add(", program, StringComparison.Ordinal);
+        Assert.Contains("options.KnownIPNetworks.Add(", program, StringComparison.Ordinal);
+    }
 }
